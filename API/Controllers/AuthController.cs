@@ -3,6 +3,7 @@ using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -19,12 +20,14 @@ namespace API.Controllers
         private readonly IRoleRepository _roleRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TokenProvider _tokenProvider;
-        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository)
+        private readonly IMail _mail;
+        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, IMail mail)
         {
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _mail = mail;
         }
         [HttpPost("register")]
         public IActionResult Register(RegisterUser input)
@@ -36,7 +39,7 @@ namespace API.Controllers
                 Password = input.Password,
                 Username = input.Username,
                 CreatedAt = DateTime.Now,
-                Role = _roleRepository.findByName("User")
+                Role = _roleRepository.FindSingle(role => role.Name == "User")
             };
             if (_userRepository.isExist(x => x.Username == user.Username || x.Email == user.Email))
             {
@@ -64,10 +67,46 @@ namespace API.Controllers
                 }
             }
         }
+
         [HttpPost("login")]
         public IActionResult Login(LoginUser input)
         {
-            return null;
+            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && user.Password == input.Password);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Tài khoản không tồn tại"
+                });
+            }    
+            return Ok(new 
+            { 
+                status = true,
+                message = "Đăng nhập thành công",
+                token = _tokenProvider.GenerateToken(user)
+            });
+        }
+
+        [HttpPost("forget-password")]
+        public IActionResult ForgetPassword(string Name)
+        {
+            User user = _userRepository.FindSingle(user => user.Username == Name || user.Email == Name);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Không tìm thấy user"
+                });
+            }
+            string token = "Không tìm thấy user";
+            //await _mail.SendMailAsync(user.Email, "Đặt lại mật khẩu", "Bấm vào <a>đây</a>")
+            return Ok(new 
+            { 
+                status = true,
+                token = token
+            });
         }
     }
 }
