@@ -1,4 +1,7 @@
+using API.Helper;
 using API.Models.Data;
+using API.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,9 +11,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace API
@@ -29,10 +34,34 @@ namespace API
         {
             services.AddControllers();
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(option =>
+                    {
+                        var key = Encoding.UTF8.GetBytes(Configuration["JWT:Key"]);
+                        option.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateAudience = false,
+                            ValidateIssuer = false,
+
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero
+
+                        };
+
+                    });
+
             services.AddDbContext<ICodeDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("ICode"));
             });
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddSingleton<TokenProvider, JWTTokenProvider>();
 
             services.AddSwaggerGen();
         }
@@ -57,6 +86,7 @@ namespace API
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
