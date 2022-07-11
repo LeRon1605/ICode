@@ -6,22 +6,17 @@ using System.Threading.Tasks;
 
 namespace API.Models.DTO
 {
-    public class RegisterUser
+    public class UserDTO
     {
-        [Required]
+        public string ID { get; set; }
         public string Username { get; set; }
-        [Required]
-        [EmailAddress]
         public string Email { get; set; }
-        [Required]
-        public string Password { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 
-    public class LoginUser
-    {
-        [Required]
-        public string Name { get; set; }
-        [Required]
-        public string Password { get; set; }
-    }
+   public class UserUpdate
+   {
+        public string Username { get; set; }
+   }
 }

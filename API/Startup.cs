@@ -1,5 +1,6 @@
 using API.Helper;
 using API.Models.Data;
+using API.Models.DTO;
 using API.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -34,6 +35,9 @@ namespace API
         {
             services.AddControllers();
 
+            services.AddOptions();
+            services.Configure<MailSetting>(Configuration.GetSection("MailSetting"));
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(option =>
                     {
@@ -62,6 +66,7 @@ namespace API
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
+            services.AddSingleton<IMail, Mail>();
 
             services.AddSwaggerGen();
         }

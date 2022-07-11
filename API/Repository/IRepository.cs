@@ -8,7 +8,8 @@ namespace API.Repository
 {
     public interface IRepository<T> where T: class
     {
-        IEnumerable<T> Find(Expression<Func<T, bool>> expression);
+        IEnumerable<T> FindMulti(Expression<Func<T, bool>> expression);
+        T FindSingle(Expression<Func<T, bool>> expression);
         IEnumerable<T> FindAll();
         void Update(T entity);
         void Remove(T entity);

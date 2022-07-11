@@ -24,9 +24,13 @@ namespace API.Repository
             return _context.Set<T>();
         }
 
-        public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
+        public IEnumerable<T> FindMulti(Expression<Func<T, bool>> expression)
         {
             return _context.Set<T>().Where(expression);
+        }
+        public T FindSingle(Expression<Func<T, bool>> expression)
+        {
+            return _context.Set<T>().FirstOrDefault(expression);
         }
 
         public void Remove(T entity)
@@ -41,7 +45,7 @@ namespace API.Repository
 
         public bool isExist(Expression<Func<T, bool>> expression)
         {
-            return !(_context.Set<T>().Where(expression) == null);
+            return _context.Set<T>().Where(expression).Count() > 0;
         }
     }
 }
