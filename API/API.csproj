@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="Models\DTO\" />
+    <Folder Include="Repository\" />
   </ItemGroup>
 
 
