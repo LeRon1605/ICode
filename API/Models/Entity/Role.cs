@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,5 +14,11 @@ namespace API.Models.Entity
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public virtual ICollection<User> Users { get; set; }
+    }
+
+    public class RoleUpdate
+    {
+        [Required]
+        public string Name { get; set; }
     }
 }

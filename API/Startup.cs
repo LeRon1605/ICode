@@ -51,7 +51,9 @@ namespace API
                             IssuerSigningKey = new SymmetricSecurityKey(key),
 
                             ValidateLifetime = true,
-                            ClockSkew = TimeSpan.Zero
+                            ClockSkew = TimeSpan.Zero,
+
+                            RoleClaimType = "Role"
 
                         };
 
@@ -65,6 +67,7 @@ namespace API
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ITagRepository, TagRepository>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
             services.AddSingleton<IMail, Mail>();
 
