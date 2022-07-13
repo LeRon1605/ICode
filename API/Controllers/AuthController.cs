@@ -1,4 +1,5 @@
-﻿using API.Helper;
+﻿using API.Filter;
+using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
@@ -30,6 +31,7 @@ namespace API.Controllers
             _mail = mail;
         }
         [HttpPost("register")]
+        [ServiceFilter(typeof(ExceptionHandler))]
         public IActionResult Register(RegisterUser input)
         {
             User user = new User
@@ -51,20 +53,9 @@ namespace API.Controllers
             }
             else
             {
-                try
-                {
-                    _userRepository.Add(user);
-                    _unitOfWork.Commit();
-                    return CreatedAtAction("GetByID", "User", new { id = user.ID }, new { status = true, message = "Đăng kí tài khoản thành công"});
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        message = e.Message
-                    });
-                }
+                _userRepository.Add(user);
+                _unitOfWork.Commit();
+                return CreatedAtAction("GetByID", "User", new { id = user.ID }, new { status = true, message = "Đăng kí tài khoản thành công" });
             }
         }
 

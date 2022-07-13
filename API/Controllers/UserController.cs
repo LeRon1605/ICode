@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using API.Filter;
 
 namespace API.Controllers
 {
@@ -46,16 +47,9 @@ namespace API.Controllers
 
         [HttpGet("{ID}")]
         [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult GetByID(string ID)
         {
-            if (string.IsNullOrEmpty(ID))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Invalid ID"
-                });
-            }
             User user = _userRepository.FindSingle(user => user.ID == ID);
             if (user == null)
             {
@@ -85,19 +79,13 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
         public IActionResult Update(string ID, UserUpdate input)
         {
             string tokenID = User.FindFirst("ID")?.Value;
             if (tokenID == ID || _userRepository.GetUserWithRole(user => user.ID == tokenID).Role.Name == "Admin")
             {
-                if (string.IsNullOrEmpty(ID))
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        message = "Invalid ID"
-                    });
-                }
                 User user = _userRepository.FindSingle(user => user.ID == ID);
                 if (user == null)
                 {
@@ -115,21 +103,10 @@ namespace API.Controllers
                         message = "Username đã tồn tại không thể cập nhật"
                     });
                 }
-                try
-                {
-                    user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
-                    user.UpdatedAt = DateTime.Now;
-                    _unitOfWork.Commit();
-                    return NoContent();
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        message = e.Message
-                    });
-                }
+                user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
+                user.UpdatedAt = DateTime.Now;
+                _unitOfWork.Commit();
+                return NoContent();
             }
             else
             {
@@ -139,16 +116,10 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
         public IActionResult Delete(string ID)
         {
-            if (string.IsNullOrEmpty(ID))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Invalid ID"
-                });
-            }    
             User user = _userRepository.FindSingle(user => user.ID == ID);
             if (user == null)
             {
@@ -160,35 +131,17 @@ namespace API.Controllers
             }
             else
             {
-                try
-                {
-                    _userRepository.Remove(user);
-                    _unitOfWork.Commit();
-                    return NoContent();
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        message = e.Message
-                    });
-                }
+                _userRepository.Remove(user);
+                _unitOfWork.Commit();
+                return NoContent();
             }
         }
 
         [HttpGet("{ID}/role")]
         [Authorize(Roles = "Admin")]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult GetRole(string ID)
         {
-            if (string.IsNullOrEmpty(ID))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Invalid ID"
-                });
-            }
             User user = _userRepository.GetUserWithRole(user => user.ID == ID);
             if (user == null)
             {
@@ -214,16 +167,10 @@ namespace API.Controllers
 
         [HttpPut("{ID}/role")]
         [Authorize(Roles = "Admin")]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult UpdateRoleOfUser(string ID, RoleUpdate input)
         {
-            if (string.IsNullOrEmpty(ID))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Invalid ID"
-                });
-            }
             User user = _userRepository.GetUserWithRole(user => user.ID == ID);
             if (user == null)
             {
@@ -246,17 +193,10 @@ namespace API.Controllers
                 }
                 else
                 {
-                    try
-                    {
-                        user.RoleID = role.ID;
-                        _userRepository.Update(user);
-                        _unitOfWork.Commit();
-                        return NoContent();
-                    }
-                    catch(Exception e)
-                    {
-                        return StatusCode(StatusCodes.Status500InternalServerError);
-                    }
+                    user.RoleID = role.ID;
+                    _userRepository.Update(user);
+                    _unitOfWork.Commit();
+                    return NoContent();
                 } 
             }
         }

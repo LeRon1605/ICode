@@ -1,3 +1,4 @@
+using API.Filter;
 using API.Helper;
 using API.Models.Data;
 using API.Models.DTO;
@@ -68,6 +69,8 @@ namespace API
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
+            services.AddSingleton<ExceptionHandler>();
+            services.AddSingleton<ValidateIDAttribute>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
             services.AddSingleton<IMail, Mail>();
 

@@ -1,4 +1,5 @@
-﻿using API.Models.DTO;
+﻿using API.Filter;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
 using Microsoft.AspNetCore.Authorization;
@@ -40,6 +41,7 @@ namespace API.Controllers
         }
         [HttpPost]
         [Authorize]
+        [ServiceFilter(typeof(ExceptionHandler))]
         public IActionResult Create(TagInput input)
         {
             if (_tagRepository.isExist(tag => tag.Name == input.Name))
@@ -52,26 +54,20 @@ namespace API.Controllers
             }
             else
             {
-                try
+                Tag tag = new Tag
                 {
-                    Tag tag = new Tag
-                    {
-                        ID = Guid.NewGuid().ToString(),
-                        Name = input.Name,
-                        CreatedAt = DateTime.Now
-                    };
-                    _tagRepository.Add(tag);
-                    _unitOfWork.Commit();
-                    return CreatedAtAction("GetByID", "Tag", new { id = tag.ID }, new { status = true, message = "Tạo mới tag thành công" });
-                }
-                catch
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-                }
+                    ID = Guid.NewGuid().ToString(),
+                    Name = input.Name,
+                    CreatedAt = DateTime.Now
+                };
+                _tagRepository.Add(tag);
+                _unitOfWork.Commit();
+                return CreatedAtAction("GetByID", "Tag", new { id = tag.ID }, new { status = true, message = "Tạo mới tag thành công" });
             }
         }   
         [HttpGet("{ID}")]
         [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult GetByID(string ID)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -97,6 +93,8 @@ namespace API.Controllers
         }    
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult Update(string ID, TagInput input)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -118,22 +116,17 @@ namespace API.Controllers
             }
             else
             {
-                try
-                {
-                    tag.Name = input.Name;
-                    tag.UpdatedAt = DateTime.Now;
-                    _tagRepository.Update(tag);
-                    _unitOfWork.Commit();
-                    return NoContent();
-                }
-                catch
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-                }
+                tag.Name = input.Name;
+                tag.UpdatedAt = DateTime.Now;
+                _tagRepository.Update(tag);
+                _unitOfWork.Commit();
+                return NoContent();
             }
         }
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult Delete(string ID)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -145,16 +138,9 @@ namespace API.Controllers
                     message = "Tag not found"
                 });
             }
-            try
-            {
-                _tagRepository.Remove(tag);
-                _unitOfWork.Commit();
-                return NoContent();
-            }
-            catch
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            _tagRepository.Remove(tag);
+            _unitOfWork.Commit();
+            return NoContent();
         }
     }
 }
