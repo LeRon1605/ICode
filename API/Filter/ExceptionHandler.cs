@@ -25,7 +25,7 @@ namespace API.Filter
             var result = new ObjectResult(new
             {
                 status = false,
-                message = context.Exception.Message
+                message = context.Exception
             });
             result.StatusCode = 500;
             context.Result = result;

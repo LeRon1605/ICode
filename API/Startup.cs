@@ -69,6 +69,7 @@ namespace API
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
+            services.AddScoped<IProblemRepository, ProblemRepository>();
             services.AddSingleton<ExceptionHandler>();
             services.AddSingleton<ValidateIDAttribute>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
