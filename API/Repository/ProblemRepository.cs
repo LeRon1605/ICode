@@ -12,6 +12,7 @@ namespace API.Repository
     public interface IProblemRepository: IRepository<Problem>
     {
         Problem GetProblemDetail(Expression<Func<Problem, bool>> expression);
+        Problem GetProblemWithTestcase(Expression<Func<Problem, bool>> expression);
     }
     public class ProblemRepository: BaseRepository<Problem>, IProblemRepository
     {
@@ -23,6 +24,11 @@ namespace API.Repository
         public Problem GetProblemDetail(Expression<Func<Problem, bool>> expression)
         {
             return _context.Problems.Include(x => x.Article).Include(x => x.Tags).FirstOrDefault(expression);
+        }
+
+        public Problem GetProblemWithTestcase(Expression<Func<Problem, bool>> expression)
+        {
+            return _context.Problems.Include(x => x.TestCases).FirstOrDefault(expression);
         }
     }
 }

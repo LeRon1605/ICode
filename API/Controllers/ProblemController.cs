@@ -19,11 +19,13 @@ namespace API.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IProblemRepository _problemRepository;
         private readonly ITagRepository _tagRepository;
-        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository)
+        private readonly ITestcaseRepository _testcaseRepository;
+        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository)
         {
             _unitOfWork = unitOfWork;
             _problemRepository = problemRepository;
             _tagRepository = tagRepository;
+            _testcaseRepository = testcaseRepository;
         }
         [HttpGet]
         public IActionResult GetAll()
@@ -108,6 +110,7 @@ namespace API.Controllers
         }
         [HttpDelete("{ID}")]
         [Authorize]
+        [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult Delete(string ID)
         {
@@ -133,6 +136,7 @@ namespace API.Controllers
         }
         [HttpPut("{ID}")]
         [Authorize]
+        [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         public IActionResult Update(string ID, ProblemInputUpdate input)
         {
@@ -163,6 +167,214 @@ namespace API.Controllers
                 _problemRepository.Update(problem);
                 _unitOfWork.Commit();
                 return NoContent();
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpGet("{ID}/testcases")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        public IActionResult GetTestCases(string ID)
+        {
+            Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            {
+                return Ok(new
+                {
+                    status = true,
+                    data = new
+                    {
+                        problemID = ID,
+                        testcases = problem.TestCases.Select(testcase => new TestcaseDTO
+                        {
+                            ID = testcase.ID,
+                            Input = testcase.Input,
+                            CreatedAt = testcase.CreatedAt,
+                            MemoryLimit = testcase.MemoryLimit,
+                            Output = testcase.Output,
+                            TimeLimit = testcase.TimeLimit,
+                            UpdatedAt = testcase.UpdatedAt
+                        })
+                    }
+                });
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpPost("{ID}/testcases")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult CreateTestCase(string ID, TestcaseInput input)
+        {
+            Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            {
+                TestCase testcase = new TestCase
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Input = input.Input,
+                    Output = input.Output,
+                    CreatedAt = DateTime.Now,
+                    MemoryLimit = input.MemoryLimit,
+                    TimeLimit = input.TimeLimit,
+                    ProblemID = ID
+                };
+                _testcaseRepository.Add(testcase);
+                _unitOfWork.Commit();
+                return CreatedAtAction("GetTestcaseByID", "Problem", new { ID = ID, TCID = testcase.ID }, new { status = true, message = "Tạo testcase thành công" });
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpGet("{ID}/testcases/{TCID}")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        public IActionResult GetTestcaseByID(string ID, string TCID)
+        {
+            Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            {
+                TestCase testcase = problem.TestCases.FirstOrDefault(x => x.ID == TCID);
+                if (testcase == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Testcase not found"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        data = new
+                        {
+                            problemID = ID,
+                            testcase = new TestcaseDTO
+                            {
+                                ID = testcase.ID,
+                                Input = testcase.Input,
+                                CreatedAt = testcase.CreatedAt,
+                                MemoryLimit = testcase.MemoryLimit,
+                                Output = testcase.Output,
+                                TimeLimit = testcase.TimeLimit,
+                                UpdatedAt = testcase.UpdatedAt
+                            }
+                        }
+                    });
+                }   
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpPut("{ID}/testcases/{TCID}")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult UpdateTestcase(string ID, string TCID, TestcaseInput input)
+        {
+            Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            {
+                TestCase testcase = _testcaseRepository.FindSingle(x => x.ID == TCID);
+                if (testcase == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Testcase not found"
+                    });
+                }
+                else
+                {
+                    testcase.Input = input.Input;
+                    testcase.Output = input.Output;
+                    testcase.MemoryLimit = input.MemoryLimit;
+                    testcase.TimeLimit = input.TimeLimit;
+                    _testcaseRepository.Update(testcase);
+                    _unitOfWork.Commit();
+                    return NoContent();
+                }
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpDelete("{ID}/testcases/{TCID}")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult DeleteTestcase(string ID, string TCID)
+        {
+            Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            {
+                TestCase testcase = problem.TestCases.FirstOrDefault(x => x.ID == TCID);
+                if (testcase == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Testcase not found"
+                    });
+                }
+                else
+                {
+                    _testcaseRepository.Remove(testcase);
+                    _unitOfWork.Commit();
+                    return NoContent();
+                }
             }
             else
             {

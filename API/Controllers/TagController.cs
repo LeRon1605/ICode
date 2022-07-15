@@ -142,5 +142,36 @@ namespace API.Controllers
             _unitOfWork.Commit();
             return NoContent();
         }
+        [HttpGet("{ID}/problems")]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        public IActionResult GetProblemOfTag(string ID)
+        {
+            Tag tag = _tagRepository.GetTagWithProblem(x => x.ID == ID);
+            if (tag == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Tag not found"
+                });
+            }
+            return Ok(new
+            {
+                status = true,
+                data = new
+                {
+                    tagID = tag.ID, 
+                    problems = tag.Problems.Select(x => new 
+                    {
+                        ID = x.ID,
+                        Name = x.Name,
+                        Description = x.Description,
+                        ArticleID = x.ArticleID,
+                        CreatedAt = x.CreatedAt,
+                        UpdatedAt = x.UpdatedAt
+                    })
+                }
+            });
+        }
     }
 }
