@@ -4,14 +4,16 @@ using API.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace API.Migrations
 {
     [DbContext(typeof(ICodeDbContext))]
-    partial class ICodeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220715133031_SubmitDetail_Description")]
+    partial class SubmitDetail_Description
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,7 +184,9 @@ namespace API.Migrations
                         .HasColumnType("real");
 
                     b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<float>("Time")
                         .HasColumnType("real");
@@ -348,7 +352,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.Entity.User", "User")
                         .WithMany("Submissions")
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -359,13 +363,13 @@ namespace API.Migrations
                     b.HasOne("API.Models.Entity.Submission", "Submission")
                         .WithMany("SubmissionDetails")
                         .HasForeignKey("SubmitID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("API.Models.Entity.TestCase", "TestCase")
                         .WithMany("SubmissionDetails")
                         .HasForeignKey("TestCaseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Submission");

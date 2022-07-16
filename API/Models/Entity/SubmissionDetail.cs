@@ -11,7 +11,8 @@ namespace API.Models.Entity
         public string TestCaseID { get; set; }
         public float Time { get; set; }
         public float Memory { get; set; }
-        public string Status { get; set; }
+        public bool Status { get; set; }
+        public string Description { get; set; }
         public virtual Submission Submission { get; set; }
         public virtual TestCase TestCase { get; set; }
     }

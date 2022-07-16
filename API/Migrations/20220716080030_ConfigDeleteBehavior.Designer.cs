@@ -4,14 +4,16 @@ using API.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace API.Migrations
 {
     [DbContext(typeof(ICodeDbContext))]
-    partial class ICodeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220716080030_ConfigDeleteBehavior")]
+    partial class ConfigDeleteBehavior
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,7 +350,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.Entity.User", "User")
                         .WithMany("Submissions")
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -378,7 +380,7 @@ namespace API.Migrations
                     b.HasOne("API.Models.Entity.Problem", "Problem")
                         .WithMany("TestCases")
                         .HasForeignKey("ProblemID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Problem");

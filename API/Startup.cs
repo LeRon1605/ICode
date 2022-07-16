@@ -71,11 +71,14 @@ namespace API
             services.AddScoped<ITagRepository, TagRepository>();
             services.AddScoped<IProblemRepository, ProblemRepository>();
             services.AddScoped<ITestcaseRepository, TestcaseRepository>();
+            services.AddScoped<ISubmissionRepository, SubmissionRepository>();
+            services.AddSingleton<ICodeExecutor, CodeExecutor>();
             services.AddSingleton<ExceptionHandler>();
             services.AddSingleton<ValidateIDAttribute>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
             services.AddSingleton<IMail, Mail>();
 
+            services.AddHttpClient();
             services.AddSwaggerGen();
         }
 

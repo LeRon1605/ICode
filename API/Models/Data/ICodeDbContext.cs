@@ -157,7 +157,8 @@ namespace API.Models.Data
                       .IsRequired();
                 entity.HasOne(testcase => testcase.Problem)
                       .WithMany(problem => problem.TestCases)
-                      .HasForeignKey(testcase => testcase.ProblemID);
+                      .HasForeignKey(testcase => testcase.ProblemID)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Submission>(entity =>
@@ -176,15 +177,15 @@ namespace API.Models.Data
                       .IsRequired();
                 entity.HasOne(submit => submit.User)
                       .WithMany(user => user.Submissions)
-                      .HasForeignKey(submit => submit.UserID);
+                      .HasForeignKey(submit => submit.UserID)
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<SubmissionDetail>(entity =>
             {
                 entity.HasKey(detail => new { detail.SubmitID, detail.TestCaseID });
                 entity.Property(detail => detail.Status)
-                      .IsRequired()
-                      .HasDefaultValue(true);
+                      .IsRequired();
                 entity.Property(detail => detail.Memory)
                       .IsRequired();
                 entity.Property(detail => detail.Time)
@@ -192,11 +193,11 @@ namespace API.Models.Data
                 entity.HasOne(detail => detail.Submission)
                       .WithMany(detail => detail.SubmissionDetails)
                       .HasForeignKey(detail => detail.SubmitID)
-                      .OnDelete(DeleteBehavior.NoAction);
+                      .OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(detail => detail.TestCase)
                       .WithMany(testcase => testcase.SubmissionDetails)
                       .HasForeignKey(detail => detail.TestCaseID)
-                      .OnDelete(DeleteBehavior.NoAction);
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

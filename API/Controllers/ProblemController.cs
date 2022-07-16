@@ -1,13 +1,18 @@
 ﻿using API.Filter;
+using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -20,12 +25,16 @@ namespace API.Controllers
         private readonly IProblemRepository _problemRepository;
         private readonly ITagRepository _tagRepository;
         private readonly ITestcaseRepository _testcaseRepository;
-        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository)
+        private readonly ISubmissionRepository _submissionRepository;
+        private readonly ICodeExecutor _codeExecutor;
+        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository, ISubmissionRepository submissionRepository, ICodeExecutor codeExecutor)
         {
             _unitOfWork = unitOfWork;
             _problemRepository = problemRepository;
             _tagRepository = tagRepository;
+            _submissionRepository = submissionRepository;
             _testcaseRepository = testcaseRepository;
+            _codeExecutor = codeExecutor;
         }
         [HttpGet]
         public IActionResult GetAll()
@@ -380,6 +389,87 @@ namespace API.Controllers
             {
                 return Forbid();
             }
+        }
+        [HttpPost("{ID}/submissions")]
+        [Authorize]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public async Task<IActionResult> Submit(string ID, SubmissionInput input)
+        {
+            Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            Submission submission = new Submission
+            {
+                ID = Guid.NewGuid().ToString(),
+                Status = false,
+                UserID = User.FindFirst("ID")?.Value,
+                Code = input.Code,
+                Language = input.Language,
+                CreatedAt = DateTime.Now,
+                SubmissionDetails = new List<SubmissionDetail>()
+            };
+            foreach (TestCase testcase in problem.TestCases)
+            {
+                ExecutorResult result = await _codeExecutor.ExecuteCode(input.Code, input.Language, testcase.Input);
+                SubmissionDetail submitDetail = new SubmissionDetail
+                {
+                    Memory = Convert.ToSingle(result.memory),
+                    Time = Convert.ToSingle(result.cpuTime),
+                    Status = false,
+                    TestCaseID = testcase.ID,
+                };
+                Console.WriteLine(result.output);
+                if (result.output == testcase.Output)
+                {
+                    if (Convert.ToSingle(result.cpuTime) <= testcase.TimeLimit)
+                    {
+                        if (Convert.ToSingle(result.memory) <= testcase.MemoryLimit)
+                        {
+                            submitDetail.Description = "Success";
+                            submitDetail.Status = true;
+                            submission.Status = true;
+                        }
+                        else
+                        {
+                            submitDetail.Description = "Memory Limit";
+                        }
+                    }
+                    else
+                    {
+                        submitDetail.Description = "Time Limit";
+                    }
+                }
+                else
+                {
+                    submitDetail.Description = "Wrong Answer";
+                }
+                submission.SubmissionDetails.Add(submitDetail);
+            }
+            _submissionRepository.Add(submission);
+            _unitOfWork.Commit();
+            return Ok(new 
+            { 
+                status = true,
+                data = new
+                {
+                    status = submission.Status,
+                    submitID = submission.ID,
+                    details = submission.SubmissionDetails.Select(x => new
+                    {
+                        TestcaseID = x.TestCaseID,
+                        Time = x.Time,
+                        Memory = x.Memory,
+                        Description = x.Description,
+                        Status = x.Status
+                    })
+                }
+            });
         }
     }
 }
