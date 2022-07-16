@@ -26,9 +26,11 @@ namespace API.Controllers
         private readonly ITagRepository _tagRepository;
         private readonly ITestcaseRepository _testcaseRepository;
         private readonly ISubmissionRepository _submissionRepository;
+        private readonly IReportRepository _reportRepository;
         private readonly ICodeExecutor _codeExecutor;
-        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository, ISubmissionRepository submissionRepository, ICodeExecutor codeExecutor)
+        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository, ISubmissionRepository submissionRepository, ICodeExecutor codeExecutor, IReportRepository reportRepository)
         {
+            _reportRepository = reportRepository;
             _unitOfWork = unitOfWork;
             _problemRepository = problemRepository;
             _tagRepository = tagRepository;
@@ -517,6 +519,35 @@ namespace API.Controllers
                     })
                 })
             });
+        }
+
+        [HttpPost("{ID}/reports")]
+        [Authorize(Roles = "User")]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult Report(string ID, ReportInput input)
+        {
+            Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            Report report = new Report
+            {
+                ID = Guid.NewGuid().ToString(),
+                Content = input.Content,
+                Title = input.Title,
+                ProblemID = ID,
+                UserID = User.FindFirst("ID")?.Value,
+                CreatedAt = DateTime.Now,
+            };
+            _reportRepository.Add(report);
+            _unitOfWork.Commit();
+            return Ok();
         }
     }
 }
