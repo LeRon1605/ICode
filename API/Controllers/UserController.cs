@@ -19,12 +19,14 @@ namespace API.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserRepository _userRepository;
+        private readonly ISubmissionRepository _submissionRepository;
         private readonly IRoleRepository _roleRepository;
-        public UserController(IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository)
+        public UserController(IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository)
         {
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _submissionRepository = submissionRepository;
         }
 
         [HttpGet]
@@ -198,6 +200,39 @@ namespace API.Controllers
                     _unitOfWork.Commit();
                     return NoContent();
                 } 
+            }
+        }
+
+        [HttpGet("{ID}/submissions")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        public IActionResult GetSubmitOfUser(string ID)
+        {
+            User user = _userRepository.FindSingle(user => user.ID == ID);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Không tồn tại user"
+                });
+            }
+            else
+            {
+                return Ok(new
+                {
+                    status = true,
+                    UserID = ID,
+                    data = _submissionRepository.GetSubmissionsDetail(x => x.UserID == ID).Select(x => new
+                    {
+                        ID = x.ID,
+                        Code = x.Code,
+                        Language = x.Language,
+                        Status = x.Status,
+                        ProblemID = x.SubmissionDetails.First().TestCase.ProblemID,
+                        CreatedAt = x.CreatedAt
+                    })
+                });
             }
         }
     }

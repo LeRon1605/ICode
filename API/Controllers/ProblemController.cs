@@ -392,6 +392,7 @@ namespace API.Controllers
         }
         [HttpPost("{ID}/submissions")]
         [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Submit(string ID, SubmissionInput input)
         {
@@ -469,6 +470,52 @@ namespace API.Controllers
                         Status = x.Status
                     })
                 }
+            });
+        }
+        [HttpGet("{ID}/submissions")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        public IActionResult GetSubmitOfProblem(string ID)
+        {
+            Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
+            if (problem == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Problem not found"
+                });
+            }
+            List<Submission> submissions;
+            if (User.FindFirst("Role")?.Value == "User")
+            {
+                string userID = User.FindFirst("ID")?.Value;
+                submissions = _submissionRepository.GetSubmissionsDetail(x => x.UserID == userID).ToList();
+            }
+            else
+            {
+                submissions = _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
+            }
+            return Ok(new
+            {
+                status = true,
+                data = submissions.Select(x => new
+                {
+                    ID = x.ID,
+                    Code = x.Code,
+                    Language = x.Language,
+                    Status = x.Status,
+                    UserID = x.UserID,
+                    CreatedAt = x.CreatedAt,
+                    details = x.SubmissionDetails.Select(detail => new
+                    {
+                        TestcaseID = detail.TestCaseID,
+                        Time = detail.Time,
+                        Memory = detail.Memory,
+                        Description = detail.Description,
+                        Status = detail.Status
+                    })
+                })
             });
         }
     }

@@ -12,6 +12,7 @@ namespace API.Repository
     public interface IUserRepository: IRepository<User>
     {
         User GetUserWithRole(Expression<Func<User, bool>> expression);
+        User GetUserWithSubmit(Expression<Func<User, bool>> expression);
     }
     public class UserRepository: BaseRepository<User>, IUserRepository
     {
@@ -23,6 +24,11 @@ namespace API.Repository
         public User GetUserWithRole(Expression<Func<User, bool>> expression)
         {
             return _context.Users.Include(user => user.Role).FirstOrDefault(expression);
+        }
+
+        public User GetUserWithSubmit(Expression<Func<User, bool>> expression)
+        {
+            return _context.Users.Include(user => user.Submissions).FirstOrDefault(expression);
         }
     }
 }

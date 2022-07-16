@@ -161,6 +161,7 @@ namespace API.Controllers
                 data = new
                 {
                     tagID = tag.ID, 
+                    Name = tag.Name,
                     problems = tag.Problems.Select(x => new 
                     {
                         ID = x.ID,
