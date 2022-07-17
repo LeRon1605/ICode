@@ -17,11 +17,13 @@ namespace API.Controllers
     public class ReportController : ControllerBase
     {
         private readonly IReportRepository _reportRepository;
+        private readonly IReplyRepository _replyRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public ReportController(IUnitOfWork unitOfWork, IReportRepository reportRepository)
+        public ReportController(IUnitOfWork unitOfWork, IReportRepository reportRepository, IReplyRepository replyRepository)
         {
             _unitOfWork = unitOfWork;
             _reportRepository = reportRepository;
+            _replyRepository = replyRepository;
         }
         [HttpGet]
         [Authorize]
@@ -149,6 +151,125 @@ namespace API.Controllers
                 _reportRepository.Remove(report);
                 _unitOfWork.Commit();
                 return NoContent();
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpPost("{ID}/reply")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult Reply(string ID, ReplyInput input)
+        {
+            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            if (report == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Report Not Found"
+                });
+            }
+            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            {
+                if (report.Reply == null)
+                {
+                    report.Reply = new Reply
+                    {
+                        Content = input.Content,
+                        CreatedAt = DateTime.Now,
+                    };
+                    _reportRepository.Update(report);
+                    _unitOfWork.Commit();
+                    return NoContent();
+                }
+                else
+                {
+                    return Conflict(new 
+                    { 
+                        status = false,
+                        message = "Đã reply cho report này"
+                    });
+                }
+                
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpPut("{ID}/reply")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult UpdateReply(string ID, ReplyInput input)
+        {
+            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            if (report == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Report Not Found"
+                });
+            }
+            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            {
+                if (report.Reply == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Không tồn tại reply"
+                    });
+                }
+                else
+                {
+                    report.Reply.Content = input.Content;
+                    report.Reply.UpdatedAt = DateTime.Now;
+                    _reportRepository.Update(report);
+                    _unitOfWork.Commit();
+                    return NoContent();
+                }
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+        [HttpDelete("{ID}/reply")]
+        [Authorize]
+        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public IActionResult DeleteReply(string ID)
+        {
+            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            if (report == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Report Not Found"
+                });
+            }
+            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            {
+                if (report.Reply == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Không tồn tại reply"
+                    });
+                }
+                else
+                {
+                    _replyRepository.Remove(report.Reply);
+                    _unitOfWork.Commit();
+                    return NoContent();
+                }
             }
             else
             {

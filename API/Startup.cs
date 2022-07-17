@@ -73,6 +73,7 @@ namespace API
             services.AddScoped<ITestcaseRepository, TestcaseRepository>();
             services.AddScoped<ISubmissionRepository, SubmissionRepository>();
             services.AddScoped<IReportRepository, ReportRepository>();
+            services.AddScoped<IReplyRepository, ReplyRepository>();
             services.AddSingleton<ICodeExecutor, CodeExecutor>();
             services.AddSingleton<ExceptionHandler>();
             services.AddSingleton<ValidateIDAttribute>();

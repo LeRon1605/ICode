@@ -12,6 +12,7 @@ namespace API.Repository
     public interface IReportRepository: IRepository<Report>
     {
         IEnumerable<Report> GetReportsDetail(Expression<Func<Report, bool>> expression = null);
+        Report GetReportWithProblem(Expression<Func<Report, bool>> expression);
     }
     public class ReportRepository: BaseRepository<Report>, IReportRepository
     {
@@ -26,6 +27,11 @@ namespace API.Repository
                 return _context.Reports.Include(x => x.Reply);
             else
                 return _context.Reports.Include(x => x.Reply).Where(expression);
+        }
+
+        public Report GetReportWithProblem(Expression<Func<Report, bool>> expression = null)
+        {
+            return _context.Reports.Include(x => x.Problem).Include(x => x.Reply).FirstOrDefault(expression);
         }
     }
 }
