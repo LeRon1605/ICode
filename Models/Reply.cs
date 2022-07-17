@@ -4,13 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace API.Models.DTO
+namespace CodeStudy.Models
 {
-    public class SubmissionInput
+    public class ReplyInput
     {
         [Required]
-        public string Code { get; set; }
-        [Required]
-        public string Language { get; set; }
+        public string Content { get; set; }
     }
 }

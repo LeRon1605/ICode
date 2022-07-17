@@ -65,6 +65,11 @@ namespace API
                 options.UseSqlServer(Configuration.GetConnectionString("ICode"));
             });
 
+            services.AddCors(option =>
+            {
+                option.AddPolicy("Test", builder => builder.AllowAnyOrigin());
+            });
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
@@ -91,7 +96,7 @@ namespace API
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseCors("Test");
             app.UseSwagger();
 
             // This middleware serves the Swagger documentation UI

@@ -3,6 +3,7 @@ using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,28 @@ namespace API.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_problemRepository.FindAll());
+            return Ok(_problemRepository.GetProblemDetailMulti().Select(x => new ProblemDTO 
+            { 
+                ID = x.ID,
+                Description = x.Description,
+                Name = x.Name,
+                Article = new UserDTO
+                {
+                    ID = x.Article.ID,
+                    Username = x.Article.Username,
+                    Email = x.Article.Email,
+                    CreatedAt = x.Article.CreatedAt,
+                    UpdatedAt = x.Article.UpdatedAt
+                },
+                Tags = x.Tags.Select(tag => new TagDTO { 
+                   ID = tag.ID,
+                   Name = tag.Name,
+                   CreatedAt = tag.CreatedAt,
+                   UpdatedAt = tag.UpdatedAt
+                }).ToList(),
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
+            }));
         }
         [HttpPost]
         [Authorize]

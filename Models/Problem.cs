@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace API.Models.DTO
+namespace CodeStudy.Models
 {
     public class ProblemDTO
     {
@@ -16,6 +16,7 @@ namespace API.Models.DTO
         public DateTime? UpdatedAt { get; set; }
         public List<TagDTO> Tags { get; set; }
     }    
+
     public class ProblemInput
     {
         [Required]

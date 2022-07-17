@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Filter;
+using CodeStudy.Models;
 
 namespace API.Controllers
 {

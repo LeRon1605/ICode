@@ -22,5 +22,9 @@
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Models\Models.csproj" />
+  </ItemGroup>
+
 
 </Project>
