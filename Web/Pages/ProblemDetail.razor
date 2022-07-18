@@ -1,0 +1,14 @@
+﻿@page "/problems/{ProblemID}"
+
+@if (Problem == null)
+{
+    <p>Loading</p>
+}
+else
+{
+    <p>Tên: @Problem.Name</p>
+    <p>Mô tả: @Problem.Description</p>
+    <p>Tác giả: @Problem.Article.Username</p>
+    <p>Thẻ: @string.Join(",", Problem.Tags.Select(x => x.Name))</p>
+    <p>Thời gian tạo: @Problem.CreatedAt.ToString("dd/MM/yyyy")</p>
+}

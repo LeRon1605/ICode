@@ -114,31 +114,28 @@ namespace API.Controllers
                     message = "Problem Not Found"
                 });
             }
-            return Ok(new
+            return Ok(new ProblemDTO
             {
-                status = true,
-                data = new ProblemDTO
+                ID = problem.ID,
+                Description = problem.Description,
+                Name = problem.Name,
+                Article = new UserDTO
                 {
-                    ID = problem.ID,
-                    Description = problem.Description,
-                    Name = problem.Name,
-                    Article = new UserDTO
-                    {
-                        ID = problem.Article.ID,
-                        Username = problem.Article.Username,
-                        Email = problem.Article.Email,
-                        CreatedAt = problem.Article.CreatedAt,
-                        UpdatedAt = problem.Article.UpdatedAt
-                    },
-                    Tags = problem.Tags.Select(x => new TagDTO { 
-                        ID = x.ID,
-                        Name = x.Name,
-                        CreatedAt = x.CreatedAt,
-                        UpdatedAt = x.UpdatedAt
-                    }).ToList(),
-                    CreatedAt = problem.CreatedAt,
-                    UpdatedAt = problem.UpdatedAt
-                }
+                    ID = problem.Article.ID,
+                    Username = problem.Article.Username,
+                    Email = problem.Article.Email,
+                    CreatedAt = problem.Article.CreatedAt,
+                    UpdatedAt = problem.Article.UpdatedAt
+                },
+                Tags = problem.Tags.Select(x => new TagDTO
+                {
+                    ID = x.ID,
+                    Name = x.Name,
+                    CreatedAt = x.CreatedAt,
+                    UpdatedAt = x.UpdatedAt
+                }).ToList(),
+                CreatedAt = problem.CreatedAt,
+                UpdatedAt = problem.UpdatedAt
             });
         }
         [HttpDelete("{ID}")]

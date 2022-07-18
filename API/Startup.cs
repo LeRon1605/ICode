@@ -67,7 +67,7 @@ namespace API
 
             services.AddCors(option =>
             {
-                option.AddPolicy("Test", builder => builder.AllowAnyOrigin());
+                option.AddPolicy("Test", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

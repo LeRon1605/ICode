@@ -14,6 +14,7 @@ namespace Web.Services
     public interface IProblemService
     {
         Task<List<ProblemDTO>> GetAllAsync();
+        Task<ProblemDTO> GetByIDAsync(string ID);
     }
     public class ProblemService : IProblemService
     {
@@ -30,6 +31,20 @@ namespace Web.Services
             {
                 var stream = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<List<ProblemDTO>>(stream);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public async Task<ProblemDTO> GetByIDAsync(string ID)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "http://localhost:5001/problems/" + ID);
+            HttpResponseMessage response = await _client.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var stream = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<ProblemDTO>(stream);
             }
             else
             {

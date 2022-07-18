@@ -20,6 +20,7 @@ namespace Web
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5001") });
             builder.Services.AddScoped<IProblemService, ProblemService>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             await builder.Build().RunAsync();
         }
