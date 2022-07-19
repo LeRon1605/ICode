@@ -1,0 +1,31 @@
+﻿@page "/login"
+<div class="d-flex align-items-center justify-content-between shadow rounded">
+    <div class="col-6">
+        <img src="/images/login.jpg"
+             style="width: 100%;height: 100%; object-fit:cover">
+    </div>
+    <div class="col-7 d-flex justify-content-center">
+        <EditForm Model="@User" OnSubmit="LoginHandler">
+            <DataAnnotationsValidator />
+            <h3>Đăng nhập</h3>
+            @if (isError != null)
+            {
+                if ((bool)isError == false)
+                {
+                    <Alert Icon="fa fa-times-circle" Color="Color.Danger">Tài khoản hoặc mật khẩu không chính xác</Alert>
+                }
+            }
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <InputText @bind-Value="@User.Name" class="form-control" id="username" placeholder="Nhập vào username"></InputText>
+                <ValidationMessage For="() => User.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mật khẩu</label>
+                <InputText @bind-Value="@User.Password" class="form-control" id="password" placeholder="Nhập vào mật khẩu" type="password"></InputText>
+                <ValidationMessage For="() => User.Password" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary col-12">Đăng nhập</button>
+        </EditForm>
+    </div>
+</div>

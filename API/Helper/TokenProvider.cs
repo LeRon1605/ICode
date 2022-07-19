@@ -31,7 +31,8 @@ namespace API.Helper
                 claims: new Claim[]
                 {
                     new Claim("ID", user.ID),
-                    new Claim("Role", user.Role.Name)
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, user.Role.Name)
                 },
                 expires: DateTime.UtcNow.AddMinutes(50),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)

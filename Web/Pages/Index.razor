@@ -4,15 +4,19 @@
 
 @if (problems == null)
 {
-    <p>Loading</p>
+    <Loading></Loading>
 }
 else
 {
-    <div class="d-flex flex-wrap">
+    <Row ItemsPerRow="ItemsPerRow.Four">
         @foreach (ProblemDTO problem in problems)
         {
-            <ProblemCard problem="@problem"></ProblemCard>
+            <Card>
+                <CardBody>
+                    <ProblemCard problem="@problem"></ProblemCard>
+                </CardBody>
+            </Card>
         }
-    </div>
-}
+    </Row>
 
+}

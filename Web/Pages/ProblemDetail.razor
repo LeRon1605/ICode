@@ -1,8 +1,8 @@
 ﻿@page "/problems/{ProblemID}"
-
+@using Web.Components
 @if (Problem == null)
 {
-    <p>Loading</p>
+    <Loading></Loading>
 }
 else
 {
