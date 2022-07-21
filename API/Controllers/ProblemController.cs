@@ -446,7 +446,6 @@ namespace API.Controllers
                     Status = false,
                     TestCaseID = testcase.ID,
                 };
-                Console.WriteLine(result.output);
                 if (result.output == testcase.Output)
                 {
                     if (Convert.ToSingle(result.cpuTime) <= testcase.TimeLimit)
@@ -475,22 +474,13 @@ namespace API.Controllers
             }
             _submissionRepository.Add(submission);
             _unitOfWork.Commit();
-            return Ok(new 
-            { 
-                status = true,
-                data = new
-                {
-                    status = submission.Status,
-                    submitID = submission.ID,
-                    details = submission.SubmissionDetails.Select(x => new
-                    {
-                        TestcaseID = x.TestCaseID,
-                        Time = x.Time,
-                        Memory = x.Memory,
-                        Description = x.Description,
-                        Status = x.Status
-                    })
-                }
+            return Ok(new SubmissionDTO { 
+                ID = submission.ID,
+                Status = submission.Status,
+                Code = submission.Code,
+                CreatedAt = submission.CreatedAt,
+                Language = submission.Language,
+                UserID = submission.UserID
             });
         }
         [HttpGet("{ID}/submissions")]

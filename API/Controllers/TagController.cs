@@ -25,20 +25,15 @@ namespace API.Controllers
             _tagRepository = tagRepository;
         }
         [HttpGet]
-        [Authorize]
         public IActionResult GetAll()
         {
-            return Ok(new
+            return Ok(_tagRepository.FindAll().Select(tag => new TagDTO
             {
-                status = true,
-                data = _tagRepository.FindAll().Select(tag => new TagDTO
-                {
-                    ID = tag.ID,
-                    Name = tag.Name,
-                    CreatedAt = tag.CreatedAt,
-                    UpdatedAt = tag.UpdatedAt
-                })
-            });
+                ID = tag.ID,
+                Name = tag.Name,
+                CreatedAt = tag.CreatedAt,
+                UpdatedAt = tag.UpdatedAt
+            }));
         }
         [HttpPost]
         [Authorize]

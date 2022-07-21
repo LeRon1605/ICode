@@ -1,0 +1,45 @@
+﻿@page "/problems/add-problems"
+@inject SwalService SwalService
+@using CodeStudy.Models 
+<GroupBox Title="Tạo mới problem" style="margin-top: 1.5rem;">
+    <ValidateForm Model="@ProblemInput" OnValidSubmit="HandleSubmit">
+        <EditorForm Model="@ProblemInput" AutoGenerateAllItem="false">
+            <FieldItems>
+                <BootstrapInput @bind-Value="@ProblemInput.Name" ShowLabel="true" PlaceHolder="Nhập tên problem" />
+                <label class="form-label">Mô tả</label>
+                <Editor IsEditor="true" PlaceHolder="Nhập mô tả cho bài toán" @bind-Value="@ProblemInput.Description" Height="300"></Editor>
+                @foreach (TestcaseInput testcase in ProblemInput.TestCases)
+                {
+                    <GroupBox Title="Testcase" style="margin-top: 1.5rem;">
+                        <div class="d-flex justify-content-around">
+                            <div class="col-5"><BootstrapInput @bind-Value="@testcase.Input" ShowLabel="true" /></div>
+                            <div class="col-5"><BootstrapInput @bind-Value="@testcase.Output" ShowLabel="true" /></div>
+                        </div>
+
+                        <div class="d-flex justify-content-around">
+                            <div class="col-5"><BootstrapInput @bind-Value="@testcase.TimeLimit" ShowLabel="true" /></div>
+                            <div class="col-5"><BootstrapInput @bind-Value="@testcase.MemoryLimit" ShowLabel="true" /></div>
+                        </div>
+                    </GroupBox>
+                }
+                <Button Icon="fa fa-save" Text="Thêm testcase" OnClick="AddTestcase" class="mt-2" />
+                <GroupBox Title="Tag" style="margin-top: 1.5rem;">
+                    <div>
+                        @if (Tags == null)
+                        {
+                            <Web.Components.Loading></Web.Components.Loading>
+                        }
+                        else
+                        {
+                            <MultiSelect Items="@TagSelectItems" @bind-Value="@TagsName" PlaceHolder="Chọn tag"></MultiSelect>
+                        }
+                    </div>
+                </GroupBox>
+            </FieldItems>
+            <Buttons>
+                <Button Icon="fa fa-save" Text="Tạo mới problem" ButtonType="ButtonType.Submit"/>
+            </Buttons>
+        </EditorForm>
+    </ValidateForm>
+</GroupBox>
+
