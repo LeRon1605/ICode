@@ -43,7 +43,7 @@ namespace Web.Pages
 
         public async Task<Task> HandleSubmit(EditContext context)
         {
-            if (ProblemInput.TestCases.Count == 0)
+            if (true)
             {
                 var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
                 var user = authState.User;

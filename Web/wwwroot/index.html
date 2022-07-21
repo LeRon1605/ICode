@@ -8,7 +8,6 @@
     <base href="/" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="css/app.css" rel="stylesheet" />
     <style>
         .monaco-editor-container {
             height: 200px;
@@ -17,16 +16,17 @@
     </style>
     <link href="_content/BootstrapBlazor/css/bootstrap.blazor.bundle.min.css" rel="stylesheet">
     <link href="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
 </head>
 
 <body class="bg-light">
-    <div id="app">
+    <app>
         <div class="d-flex justify-content-center align-items-center" role="status" style="width: 100%;height: 100vh">
             <div class="spinner-grow text-secondary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-    </div>
+    </app>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.

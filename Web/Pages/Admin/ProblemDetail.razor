@@ -1,7 +1,6 @@
-﻿@page "/problems/add-problems"
-@inject SwalService SwalService
-@using CodeStudy.Models 
-<GroupBox Title="Tạo mới problem" style="margin-top: 1.5rem;">
+﻿@page "/admin/problems/{ID}"
+
+@*<GroupBox Title="Tạo mới problem" style="margin-top: 1.5rem;">
     <ValidateForm Model="@ProblemInput" OnValidSubmit="HandleSubmit">
         <EditorForm Model="@ProblemInput" AutoGenerateAllItem="false">
             <FieldItems>
@@ -37,9 +36,14 @@
                 </GroupBox>
             </FieldItems>
             <Buttons>
-                <Button Icon="fa fa-save" Text="Tạo mới problem" ButtonType="ButtonType.Submit"/>
+                <Button Icon="fa fa-save" Text="Tạo mới problem" ButtonType="ButtonType.Submit" />
             </Buttons>
         </EditorForm>
     </ValidateForm>
-</GroupBox>
+</GroupBox>*@
 
+
+
+@code {
+
+}
