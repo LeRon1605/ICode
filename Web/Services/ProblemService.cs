@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -15,6 +16,7 @@ namespace Web.Services
     {
         Task<List<ProblemDTO>> GetAllAsync();
         Task<ProblemDTO> GetByIDAsync(string ID);
+        Task<HttpStatusCode> CreateProblem(ProblemInput input);
     }
     public class ProblemService : IProblemService
     {
@@ -50,6 +52,12 @@ namespace Web.Services
             {
                 return null;
             }
+        }
+
+        public async Task<HttpStatusCode> CreateProblem(ProblemInput input)
+        {
+            var result = await _client.PostAsJsonAsync($"/problems", input);
+            return result.StatusCode;
         }
     }
 }

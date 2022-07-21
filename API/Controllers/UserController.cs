@@ -64,18 +64,13 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(new
+                return Ok(new UserDTO
                 {
-                    status = true,
-                    message = "",
-                    data = new UserDTO
-                    {
-                        ID = user.ID,
-                        Username = user.Username,
-                        Email = user.Email,
-                        CreatedAt = user.CreatedAt,
-                        UpdatedAt = user.UpdatedAt
-                    }
+                    ID = user.ID,
+                    Username = user.Username,
+                    Email = user.Email,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt
                 });
             }
         }
@@ -109,7 +104,13 @@ namespace API.Controllers
                 user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
                 user.UpdatedAt = DateTime.Now;
                 _unitOfWork.Commit();
-                return NoContent();
+                return Ok(new UserDTO {
+                    ID = user.ID,
+                    Username = user.Username,
+                    Email = user.Email,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt
+                });
             }
             else
             {

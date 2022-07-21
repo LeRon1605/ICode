@@ -6,9 +6,43 @@
 }
 else
 {
-    <p>Tên: @Problem.Name</p>
-    <p>Mô tả: @Problem.Description</p>
-    <p>Tác giả: @Problem.Article.Username</p>
-    <p>Thẻ: @string.Join(",", Problem.Tags.Select(x => x.Name))</p>
-    <p>Thời gian tạo: @Problem.CreatedAt.ToString("dd/MM/yyyy")</p>
+    <div class="d-flex flex-wrap">
+        <div class="col-8">
+            <div class="bg-white p-3 rounded shadow">
+                <h3 class="text-center">@Problem.Name</h3>
+                @((MarkupString)Problem.Description)
+            </div>
+            <div class="bg-white p-3 rounded shadow mt-3 d-flex flex-column">
+                <EditForm Model="@Submission" OnSubmit="HandleSubmit">
+                    <div class="d-flex align-items-center mb-3">
+                        <b class="me-2">Ngôn ngữ</b>
+                        <div class="col-12 col-sm-6">
+                            <Select Color="Color.Secondary" Items="Language" @bind-Value="Submission.Language"></Select>
+                        </div>
+                    </div>
+                    @*<pre><MonacoEditor Id="editor" ConstructionOptions="@GetOptions" @ref="_editor" CssClass="monaco-editor-container" /></pre>*@
+                    <Textarea placeholder="Code here" rows="10" @bind-Value="Submission.Code"></Textarea>
+                    <button type="submit" class="btn btn-primary ms-auto mt-3">@SubmitState</button>
+                </EditForm>
+            </div>
+        </div>
+        <div class="col-3 ms-auto">
+            <div class="bg-white p-3 rounded shadow">
+                <b>Thông tin bài tập</b>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="m-0 p-0">Tác giả</p>
+                    <p class="m-0 p-0">@Problem.Article.Username</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="m-0 p-0">Thẻ</p>
+                    <p class="m-0 p-0">@string.Join(",", Problem.Tags.Select(x => x.Name))</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="m-0 p-0">Thời gian tạo</p>
+                    <p class="m-0 p-0">@Problem.CreatedAt.ToString("dd/MM/yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
 }

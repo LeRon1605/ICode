@@ -1,0 +1,25 @@
+﻿@page  "/users/{ID}"
+@using CodeStudy.Models
+@if (User == null || Input == null)
+{
+    <Web.Components.Loading></Web.Components.Loading>
+}
+else
+{
+    <GroupBox Title="Thông tin chi tiết user" style="position: absolute;top: 50%;left:50%;transform: translate(-50%, -50%);width: 45vw">
+        <ValidateForm Model="Input" OnValidSubmit="HandleSubmit">
+            <EditorForm Model="Input" AutoGenerateAllItem="false">
+                <FieldItems>
+                    <BootstrapInput @bind-Value="@User.ID" ShowLabel="true" IsDisabled="true" />
+                    <BootstrapInput @bind-Value="@Input.Username" ShowLabel="true" PlaceHolder="Nhập UserName" />
+                    <BootstrapInput @bind-Value="@User.Email" ShowLabel="true" IsDisabled="true" />
+                    <BootstrapInput @bind-Value="@User.CreatedAt" ShowLabel="true" IsDisabled="true" />
+                    <BootstrapInput @bind-Value="@User.UpdatedAt" ShowLabel="true" IsDisabled="true" />
+                </FieldItems>
+                <Buttons>
+                    <Button Icon="fa fa-save" Text="Cập nhật" ButtonType="ButtonType.Submit" />
+                </Buttons>
+            </EditorForm>
+        </ValidateForm>
+    </GroupBox>
+}

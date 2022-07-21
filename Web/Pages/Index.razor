@@ -11,12 +11,11 @@ else
     <Row ItemsPerRow="ItemsPerRow.Four">
         @foreach (ProblemDTO problem in problems)
         {
-            <Card>
+            <Card IsShadow="true" Color="Color.None">
                 <CardBody>
                     <ProblemCard problem="@problem"></ProblemCard>
                 </CardBody>
             </Card>
         }
     </Row>
-
 }

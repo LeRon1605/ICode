@@ -1,7 +1,7 @@
-﻿@using Web.Services 
+﻿@using Web.Services
 @inject IUserService UserService
-@inject ToastService ToastService 
-@inject NavigationManager NavigationManager 
+@inject ToastService ToastService
+@inject NavigationManager NavigationManager
 <header>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container">
@@ -11,35 +11,35 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    <ul class="navbar-nav flex-grow-1">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/homepage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="/problems/add-problems">Tạo problem</a>
+                    </li>
+                </ul>
+            </div>
+            <ul class="navbar-nav">
+                <AuthorizeView>
+                    <NotAuthorized>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="/homepage">Home</a>
+                            <a class="nav-link text-dark" href="/register">Đăng kí</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="/fetchdata">Fetch Data</a>
+                            <a class="nav-link text-dark" href="/login">Đăng nhập</a>
                         </li>
-                    </ul>
-                </div>
-        <ul class="navbar-nav">
-            <AuthorizeView>
-                <NotAuthorized>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" href="/register">Đăng kí</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" href="/login">Đăng nhập</a>
-                    </li>
-                </NotAuthorized>
-                <Authorized>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark">@context.User.Identity.Name</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" @onclick="HandleLogout">Đăng xuất</a>
-                    </li>
-                </Authorized>
-            </AuthorizeView>
-        </ul>
+                    </NotAuthorized>
+                    <Authorized>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/users/@context.User.FindFirst(x => x.Type == "ID")?.Value">@context.User.Identity.Name</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" @onclick="HandleLogout">Đăng xuất</a>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+            </ul>
         </div>
     </nav>
 </header>
