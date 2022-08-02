@@ -82,7 +82,8 @@ namespace API.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginUser input)
         {
-            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && Encryptor.MD5Hash(user.Password) == input.Password);
+            string passwordHashed = Encryptor.MD5Hash(input.Password);
+            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && passwordHashed == user.Password);
             if (user == null)
             {
                 return NotFound(new
@@ -101,9 +102,9 @@ namespace API.Controllers
         }
 
         [HttpPost("forget-password")]
-        public IActionResult ForgetPassword(string Name)
+        public IActionResult ForgetPassword(ForgetPassword input)
         {
-            User user = _userRepository.FindSingle(user => user.Username == Name || user.Email == Name);
+            User user = _userRepository.FindSingle(user => user.Username == input.Name || user.Email == input.Name);
             if (user == null)
             {
                 return NotFound(new
@@ -112,13 +113,94 @@ namespace API.Controllers
                     message = "Không tìm thấy user"
                 });
             }
-            string token = "Không tìm thấy user";
-            //await _mail.SendMailAsync(user.Email, "Đặt lại mật khẩu", "Bấm vào <a>đây</a>")
+            if (user.ForgotPasswordToken != null)
+            {
+                if (user.ForgotPasswordTokenExpireAt < DateTime.Now)
+                {
+                    user.ForgotPasswordToken = _tokenProvider.GenerateForgotPasswordToken();
+                    user.ForgotPasswordTokenCreatedAt = DateTime.Now;
+                    user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
+                    _userRepository.Update(user);
+                    _unitOfWork.Commit();
+                }
+                else
+                {
+                    return Conflict(new
+                    {
+                        status = false,
+                        message = "Token còn hạn"
+                    });
+                }
+            }
+            else
+            {
+                user.ForgotPasswordToken = _tokenProvider.GenerateForgotPasswordToken();
+                user.ForgotPasswordTokenCreatedAt = DateTime.Now;
+                user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
+                _userRepository.Update(user);
+                _unitOfWork.Commit();
+            }
             return Ok(new 
             { 
                 status = true,
-                token = token
+                userID = user.ID,
+                token = user.ForgotPasswordToken
             });
+        }
+
+        [HttpPost(("forget-password/callback"))]
+        public IActionResult ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
+        {
+            User user = _userRepository.FindSingle(user => user.ID == userID);
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    status = false,
+                    message = "Không tìm thấy user"
+                });
+            }
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Token required"
+                });
+            }
+            if (user.ForgotPasswordToken != null)
+            {
+                if (user.ForgotPasswordToken == token && user.ForgotPasswordTokenExpireAt >= DateTime.Now)
+                {
+                    user.Password = Encryptor.MD5Hash(input.Password);
+                    user.ForgotPasswordToken = null;
+                    user.ForgotPasswordTokenCreatedAt = null;
+                    user.ForgotPasswordTokenExpireAt = null;
+                    _userRepository.Update(user);
+                    _unitOfWork.Commit();
+                    return Ok(new
+                    {
+                        status = true,
+                        message = "Đổi mật khẩu thành công"
+                    });
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        message = "Invalid Token"
+                    });
+                }
+            }
+            else
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Invalid Action"
+                });
+            }    
         }
 
         [HttpGet("google")]

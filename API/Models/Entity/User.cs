@@ -13,6 +13,9 @@ namespace API.Models.Entity
         public string Password { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string ForgotPasswordToken { get; set; }
+        public DateTime? ForgotPasswordTokenCreatedAt { get; set; }
+        public DateTime? ForgotPasswordTokenExpireAt { get; set; }
         public string RoleID { get; set; }
         public virtual Role Role { get; set; }
         public virtual ICollection<Submission> Submissions { get; set; }

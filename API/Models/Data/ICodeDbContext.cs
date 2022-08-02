@@ -43,7 +43,6 @@ namespace API.Models.Data
                       .HasMaxLength(16)
                       .IsRequired();
                 entity.Property(user => user.Password)
-                      .HasMaxLength(16)
                       .IsRequired();
                 entity.Property(user => user.Email)
                       .IsRequired();
@@ -54,6 +53,12 @@ namespace API.Models.Data
                       .HasDefaultValue(null);
                 entity.Property(user => user.RoleID)
                       .IsRequired();
+                entity.Property(user => user.ForgotPasswordToken)
+                      .IsRequired(false);
+                entity.Property(user => user.ForgotPasswordTokenCreatedAt)
+                      .IsRequired(false);
+                entity.Property(user => user.ForgotPasswordTokenExpireAt)
+                      .IsRequired(false);
             });
 
             modelBuilder.Entity<Tag>(entity =>

@@ -27,4 +27,18 @@ namespace CodeStudy.Models
         [Required]
         public string Password { get; set; }
     }
+
+    public class ForgetPassword
+    {
+        [Required]
+        public string Name { get; set; }
+    }
+    public class ForgetPasswordSubmit
+    {
+        [Required]
+        public string Password { get; set; }
+        [Required]
+        [Compare("Password")]
+        public string ConfirmPassword { get; set; }
+    }
 }
