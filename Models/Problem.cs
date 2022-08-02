@@ -24,8 +24,6 @@ namespace CodeStudy.Models
         [Required]
         public string Description { get; set; }
         [Required]
-        public string ArticleID { get; set; }
-        [Required]
         public List<TestcaseInput> TestCases { get; set; }
         public List<string> Tags { get; set; }
     }

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -42,7 +43,7 @@ namespace API.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_problemRepository.GetProblemDetailMulti().Select(x => new ProblemDTO 
+            return Ok(_problemRepository.GetProblemDetailMulti().Select(x => new  
             { 
                 ID = x.ID,
                 Description = x.Description,
@@ -84,7 +85,7 @@ namespace API.Controllers
                 Name = input.Name,
                 Status = false,
                 Description = input.Description,
-                ArticleID = input.ArticleID,
+                ArticleID = User.FindFirst("ID")?.Value,
                 CreatedAt = DateTime.Now,
                 TestCases = input.TestCases.Select(x => new TestCase
                 {

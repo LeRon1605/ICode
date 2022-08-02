@@ -3,6 +3,10 @@ using API.Helper;
 using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +34,22 @@ namespace API.Controllers
             _roleRepository = roleRepository;
             _mail = mail;
         }
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetUser()
+        {
+            User user = _userRepository.GetUserWithRole(x => x.ID == User.FindFirst("ID").Value);
+            if (user == null) return NotFound();
+            return Ok(new
+            {
+                ID = user.ID,
+                Username = user.Username,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                Role = user.Role.Name
+            });
+        }
         [HttpPost("register")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public IActionResult Register(RegisterUser input)
@@ -38,7 +58,7 @@ namespace API.Controllers
             {
                 ID = Guid.NewGuid().ToString(),
                 Email = input.Email,
-                Password = input.Password,
+                Password = Encryptor.MD5Hash(input.Password),
                 Username = input.Username,
                 CreatedAt = DateTime.Now,
                 Role = _roleRepository.FindSingle(role => role.Name == "User")
@@ -62,7 +82,7 @@ namespace API.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginUser input)
         {
-            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && user.Password == input.Password);
+            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && Encryptor.MD5Hash(user.Password) == input.Password);
             if (user == null)
             {
                 return NotFound(new
@@ -75,6 +95,7 @@ namespace API.Controllers
             { 
                 status = true,
                 message = "Đăng nhập thành công",
+                userId = user.ID,
                 token = _tokenProvider.GenerateToken(user)
             });
         }
@@ -99,5 +120,13 @@ namespace API.Controllers
                 token = token
             });
         }
+
+        [HttpGet("google")]
+        public IActionResult GoogleAuth()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GetGoogleAuth") };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
     }
 }
