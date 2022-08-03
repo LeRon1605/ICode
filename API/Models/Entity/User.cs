@@ -21,5 +21,6 @@ namespace API.Models.Entity
         public virtual ICollection<Submission> Submissions { get; set; }
         public virtual ICollection<Problem> Problems { get; set; }
         public virtual ICollection<Report> Reports { get; set; }
+        public virtual ICollection<RefreshToken> Tokens { get; set; }
     }
 }

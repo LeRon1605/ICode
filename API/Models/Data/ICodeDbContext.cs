@@ -204,6 +204,26 @@ namespace API.Models.Data
                       .HasForeignKey(detail => detail.TestCaseID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(token => token.ID);
+                entity.Property(token => token.Token)
+                      .IsRequired();
+                entity.Property(token => token.State)
+                      .HasDefaultValue(false)
+                      .IsRequired();
+                entity.Property(token => token.JwtID)
+                      .IsRequired();
+                entity.Property(token => token.UserID)
+                      .IsRequired();
+                entity.Property(token => token.JwtID)
+                      .IsRequired();
+                entity.HasOne(token => token.User)
+                      .WithMany(user => user.Tokens)
+                      .HasForeignKey(token => token.UserID)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
         }
 
         public virtual DbSet<User> Users { get; set; }
