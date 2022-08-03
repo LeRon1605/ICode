@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,13 +24,15 @@ namespace API.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
+        private readonly ITokenRepository _tokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TokenProvider _tokenProvider;
         private readonly IMail _mail;
-        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, IMail mail)
+        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
         {
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
+            _tokenRepository = tokenRepository;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _mail = mail;
@@ -91,14 +94,76 @@ namespace API.Controllers
                     status = false,
                     message = "Tài khoản không tồn tại"
                 });
-            }    
+            }
+            AccessToken token = _tokenProvider.GenerateToken(user);
+            RefreshToken refreshToken = new RefreshToken
+            {
+                ID = Guid.NewGuid().ToString(),
+                UserID = user.ID,
+                State = false,
+                Token = _tokenProvider.GenerateRandomToken(),
+                JwtID = token.ID,
+                ExpiredAt = DateTime.Now.AddHours(6),
+                IssuedAt = DateTime.Now
+            };
+            _tokenRepository.Add(refreshToken);
+            _unitOfWork.Commit();
             return Ok(new 
             { 
                 status = true,
                 message = "Đăng nhập thành công",
                 userId = user.ID,
-                token = _tokenProvider.GenerateToken(user)
+                token = token.Token,
+                refreshToken = refreshToken.Token
             });
+        }
+
+        [HttpPost("RefreshToken")]
+        public IActionResult RenewToken(Token token)
+        {
+            string jwtId = "";
+            if (!_tokenProvider.ValidateToken(token.AccessToken, ref jwtId))
+            {
+                return BadRequest(new 
+                { 
+                    message = "Invalid Token"
+                });
+            }
+            RefreshToken refreshToken = _tokenRepository.FindSingle(x => x.Token == token.RefreshToken);
+            if (refreshToken == null || refreshToken.State || refreshToken.JwtID != jwtId)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid Refresh Token"
+                });
+            }
+            User user = _userRepository.GetUserWithRole(user => user.ID == refreshToken.UserID);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            refreshToken.State = true;
+            AccessToken newToken = _tokenProvider.GenerateToken(user);
+            RefreshToken newRefreshToken = new RefreshToken
+            {
+                ID = Guid.NewGuid().ToString(),
+                UserID = user.ID,
+                State = false,
+                Token = _tokenProvider.GenerateRandomToken(),
+                JwtID = newToken.ID,
+                ExpiredAt = DateTime.Now.AddHours(6),
+                IssuedAt = DateTime.Now
+            };
+            _tokenRepository.Update(refreshToken);
+            _tokenRepository.Add(newRefreshToken);
+            _unitOfWork.Commit();
+            return Ok(new
+            {
+                status = true,
+                userId = user.ID,
+                token = newToken.Token,
+                refreshToken = newRefreshToken.Token
+            }); ;
         }
 
         [HttpPost("forget-password")]
@@ -117,7 +182,7 @@ namespace API.Controllers
             {
                 if (user.ForgotPasswordTokenExpireAt < DateTime.Now)
                 {
-                    user.ForgotPasswordToken = _tokenProvider.GenerateForgotPasswordToken();
+                    user.ForgotPasswordToken = _tokenProvider.GenerateRandomToken();
                     user.ForgotPasswordTokenCreatedAt = DateTime.Now;
                     user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
                     _userRepository.Update(user);
@@ -134,7 +199,7 @@ namespace API.Controllers
             }
             else
             {
-                user.ForgotPasswordToken = _tokenProvider.GenerateForgotPasswordToken();
+                user.ForgotPasswordToken = _tokenProvider.GenerateRandomToken();
                 user.ForgotPasswordTokenCreatedAt = DateTime.Now;
                 user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
                 _userRepository.Update(user);

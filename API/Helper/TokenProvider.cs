@@ -1,6 +1,7 @@
 ﻿using API.Models.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,8 +15,9 @@ namespace API.Helper
 {
     public interface TokenProvider
     {
-        string GenerateToken(User user);
-        string GenerateForgotPasswordToken();
+        AccessToken GenerateToken(User user);
+        string GenerateRandomToken();
+        bool ValidateToken(string token, ref string id);
     }
     public class JWTTokenProvider: TokenProvider
     {
@@ -24,7 +26,7 @@ namespace API.Helper
         {
             _configuration = configuration;
         }
-        public string GenerateToken(User user)
+        public AccessToken GenerateToken(User user)
         {
             var key = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
             var token = new JwtSecurityToken(
@@ -34,21 +36,72 @@ namespace API.Helper
                 {
                     new Claim("ID", user.ID),
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role.Name)
+                    new Claim(ClaimTypes.Role, user.Role.Name),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 },
-                expires: DateTime.UtcNow.AddMinutes(50),
+                expires: DateTime.UtcNow.AddSeconds(30),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new AccessToken
+            {
+                ID = token.Id,
+                Token = new JwtSecurityTokenHandler().WriteToken(token)
+            };
         }
 
-        public string GenerateForgotPasswordToken()
+        public string GenerateRandomToken()
         {
             var randomNumber = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomNumber);
                 return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        public bool ValidateToken(string token, ref string id)
+        {
+            try
+            {
+                var key = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
+                var jwtTokenHandler = new JwtSecurityTokenHandler();
+                var tokenValidationParam = new TokenValidationParameters
+                {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+
+                    ValidateLifetime = false,
+                    ClockSkew = TimeSpan.Zero,
+                };
+                var tokenInVerification = jwtTokenHandler.ValidateToken(token, tokenValidationParam, out var validatedToken);
+                
+                if (validatedToken is JwtSecurityToken jwtSecurityToken)
+                {
+                    id = jwtSecurityToken.Id;
+                    // So sánh thuật toán
+                    if (!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
+                    {
+                        Console.WriteLine(2);
+                        return false;
+                    }
+                }
+                
+                // Check if token is expire
+                if (validatedToken.ValidTo > DateTime.Now)
+                {
+                    Console.WriteLine(3);
+                    return false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                Console.WriteLine(4);
+                return false;
             }
         }
     }

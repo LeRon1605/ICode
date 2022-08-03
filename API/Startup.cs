@@ -83,6 +83,7 @@ namespace API
             
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ITagRepository, TagRepository>();
