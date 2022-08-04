@@ -98,7 +98,7 @@ namespace API.Controllers
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Delete(string ID)
+        public async Task<IActionResult> Delete(string ID)
         {
             Submission submission = _submissionRepository.FindSingle(x => x.ID == ID);
             if (submission == null)
@@ -112,7 +112,7 @@ namespace API.Controllers
             else
             {
                 _submissionRepository.Remove(submission);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return Ok(new
                 {
                     status = true,

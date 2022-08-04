@@ -47,5 +47,10 @@ namespace API.Repository
         {
             return _context.Set<T>().Where(expression).Count() > 0;
         }
+
+        public async Task AddAsync(T entity)
+        {
+            await _context.AddAsync(entity);
+        }
     }
 }

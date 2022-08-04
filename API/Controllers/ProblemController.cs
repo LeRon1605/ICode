@@ -69,7 +69,7 @@ namespace API.Controllers
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Create(ProblemInput input)
+        public async Task<IActionResult> Create(ProblemInput input)
         {
             if (input.Tags.Any(x => !_tagRepository.isExist(tag => tag.ID == x)))
             {
@@ -98,8 +98,8 @@ namespace API.Controllers
                 }).ToList(),
                 Tags = input.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList()
             };
-            _problemRepository.Add(problem);
-            _unitOfWork.Commit();
+            await _problemRepository.AddAsync(problem);
+            await _unitOfWork.CommitAsync();
             return CreatedAtAction("GetByID", "Problem", new { ID = problem.ID }, new { status = true, message = "Tạo mới problem thành công" });
         }
         [HttpGet("{ID}")]
@@ -143,7 +143,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
-        public IActionResult Delete(string ID)
+        public async Task<IActionResult> Delete(string ID)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
             if (problem == null)
@@ -157,7 +157,7 @@ namespace API.Controllers
             if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
             {
                 _problemRepository.Remove(problem);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
             else
@@ -169,7 +169,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
-        public IActionResult Update(string ID, ProblemInputUpdate input)
+        public async Task<IActionResult> Update(string ID, ProblemInputUpdate input)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
             if (problem == null)
@@ -196,7 +196,7 @@ namespace API.Controllers
                 problem.Tags = input.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();
                 problem.UpdatedAt = DateTime.Now;
                 _problemRepository.Update(problem);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
             else
@@ -248,7 +248,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult CreateTestCase(string ID, TestcaseInput input)
+        public async Task<IActionResult> CreateTestCase(string ID, TestcaseInput input)
         {
             Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
             if (problem == null)
@@ -271,8 +271,8 @@ namespace API.Controllers
                     TimeLimit = input.TimeLimit,
                     ProblemID = ID
                 };
-                _testcaseRepository.Add(testcase);
-                _unitOfWork.Commit();
+                await _testcaseRepository.AddAsync(testcase);
+                await _unitOfWork.CommitAsync();
                 return CreatedAtAction("GetTestcaseByID", "Problem", new { ID = ID, TCID = testcase.ID }, new { status = true, message = "Tạo testcase thành công" });
             }
             else
@@ -336,7 +336,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult UpdateTestcase(string ID, string TCID, TestcaseInput input)
+        public async Task<IActionResult> UpdateTestcase(string ID, string TCID, TestcaseInput input)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
             if (problem == null)
@@ -365,7 +365,7 @@ namespace API.Controllers
                     testcase.MemoryLimit = input.MemoryLimit;
                     testcase.TimeLimit = input.TimeLimit;
                     _testcaseRepository.Update(testcase);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
             }
@@ -378,7 +378,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult DeleteTestcase(string ID, string TCID)
+        public async Task<IActionResult> DeleteTestcase(string ID, string TCID)
         {
             Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
             if (problem == null)
@@ -403,7 +403,7 @@ namespace API.Controllers
                 else
                 {
                     _testcaseRepository.Remove(testcase);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
             }
@@ -473,8 +473,8 @@ namespace API.Controllers
                 }
                 submission.SubmissionDetails.Add(submitDetail);
             }
-            _submissionRepository.Add(submission);
-            _unitOfWork.Commit();
+            await _submissionRepository.AddAsync(submission);
+            await _unitOfWork.CommitAsync();
             return Ok(new SubmissionDTO { 
                 ID = submission.ID,
                 Status = submission.Status,
@@ -535,7 +535,7 @@ namespace API.Controllers
         [Authorize(Roles = "User")]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Report(string ID, ReportInput input)
+        public async Task<IActionResult> Report(string ID, ReportInput input)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
             if (problem == null)
@@ -555,8 +555,8 @@ namespace API.Controllers
                 UserID = User.FindFirst("ID")?.Value,
                 CreatedAt = DateTime.Now,
             };
-            _reportRepository.Add(report);
-            _unitOfWork.Commit();
+            await _reportRepository.AddAsync(report);
+            await _unitOfWork.CommitAsync();
             return Ok();
         }
     }

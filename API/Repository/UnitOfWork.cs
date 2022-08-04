@@ -9,6 +9,7 @@ namespace API.Repository
     public interface IUnitOfWork
     {
         void Commit();
+        Task CommitAsync();
     }
     public class UnitOfWork : IUnitOfWork
     {
@@ -20,6 +21,11 @@ namespace API.Repository
         public void Commit()
         {
             _context.SaveChanges();
+        }
+
+        public async Task CommitAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

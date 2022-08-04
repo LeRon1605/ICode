@@ -38,7 +38,7 @@ namespace API.Controllers
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Create(TagInput input)
+        public async Task<IActionResult> Create(TagInput input)
         {
             if (_tagRepository.isExist(tag => tag.Name == input.Name))
             {
@@ -56,8 +56,8 @@ namespace API.Controllers
                     Name = input.Name,
                     CreatedAt = DateTime.Now
                 };
-                _tagRepository.Add(tag);
-                _unitOfWork.Commit();
+                await _tagRepository.AddAsync(tag);
+                await _unitOfWork.CommitAsync();
                 return CreatedAtAction("GetByID", "Tag", new { id = tag.ID }, new { status = true, message = "Tạo mới tag thành công" });
             }
         }   
@@ -91,7 +91,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
-        public IActionResult Update(string ID, TagInput input)
+        public async Task<IActionResult> Update(string ID, TagInput input)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
             if (tag == null)
@@ -115,7 +115,7 @@ namespace API.Controllers
                 tag.Name = input.Name;
                 tag.UpdatedAt = DateTime.Now;
                 _tagRepository.Update(tag);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
         }
@@ -123,7 +123,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
-        public IActionResult Delete(string ID)
+        public async Task<IActionResult> Delete(string ID)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
             if (tag == null)
@@ -135,7 +135,7 @@ namespace API.Controllers
                 });
             }
             _tagRepository.Remove(tag);
-            _unitOfWork.Commit();
+            await _unitOfWork.CommitAsync();
             return NoContent();
         }
         [HttpGet("{ID}/problems")]

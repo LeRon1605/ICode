@@ -15,5 +15,6 @@ namespace API.Repository
         void Remove(T entity);
         void Add(T entity);
         bool isExist(Expression<Func<T, bool>> expression);
+        Task AddAsync(T entity);
     }
 }

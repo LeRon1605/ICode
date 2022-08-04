@@ -107,7 +107,7 @@ namespace API.Controllers
         [Authorize(Roles = "User")]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Update(string ID, ReportInput input)
+        public async Task<IActionResult> Update(string ID, ReportInput input)
         {
             Report report = _reportRepository.FindSingle(x => x.ID == ID);
             if (report == null)
@@ -124,7 +124,7 @@ namespace API.Controllers
                 report.Content = input.Content;
                 report.UpdatedAt = DateTime.Now;
                 _reportRepository.Remove(report);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
             else
@@ -136,7 +136,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Delete(string ID)
+        public async Task<IActionResult> Delete(string ID)
         {
             Report report = _reportRepository.FindSingle(x => x.ID == ID);
             if (report == null)
@@ -150,7 +150,7 @@ namespace API.Controllers
             if (report.UserID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
                 _reportRepository.Remove(report);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
             else
@@ -162,7 +162,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Reply(string ID, ReplyInput input)
+        public async Task<IActionResult> Reply(string ID, ReplyInput input)
         {
             Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
             if (report == null)
@@ -183,7 +183,7 @@ namespace API.Controllers
                         CreatedAt = DateTime.Now,
                     };
                     _reportRepository.Update(report);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
                 else
@@ -205,7 +205,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult UpdateReply(string ID, ReplyInput input)
+        public async Task<IActionResult> UpdateReply(string ID, ReplyInput input)
         {
             Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
             if (report == null)
@@ -231,7 +231,7 @@ namespace API.Controllers
                     report.Reply.Content = input.Content;
                     report.Reply.UpdatedAt = DateTime.Now;
                     _reportRepository.Update(report);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
             }
@@ -244,7 +244,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult DeleteReply(string ID)
+        public async Task<IActionResult> DeleteReply(string ID)
         {
             Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
             if (report == null)
@@ -268,7 +268,7 @@ namespace API.Controllers
                 else
                 {
                     _replyRepository.Remove(report.Reply);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
             }

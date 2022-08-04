@@ -84,7 +84,6 @@ namespace API.Helper
                     // So sánh thuật toán
                     if (!jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)) 
                     {
-                        Console.WriteLine(2);
                         return false;
                     }
                 }
@@ -92,7 +91,6 @@ namespace API.Helper
                 // Check if token is expire
                 if (validatedToken.ValidTo > DateTime.Now)
                 {
-                    Console.WriteLine(3);
                     return false;
                 }
 
@@ -100,7 +98,6 @@ namespace API.Helper
             }
             catch
             {
-                Console.WriteLine(4);
                 return false;
             }
         }

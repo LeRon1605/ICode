@@ -79,7 +79,7 @@ namespace API.Controllers
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Update(string ID, UserUpdate input)
+        public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
             string tokenID = User.FindFirst("ID")?.Value;
             if (tokenID == ID || _userRepository.GetUserWithRole(user => user.ID == tokenID).Role.Name == "Admin")
@@ -103,7 +103,7 @@ namespace API.Controllers
                 }
                 user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
                 user.UpdatedAt = DateTime.Now;
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return Ok(new UserDTO {
                     ID = user.ID,
                     Username = user.Username,
@@ -122,7 +122,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Delete(string ID)
+        public async Task<IActionResult> Delete(string ID)
         {
             User user = _userRepository.FindSingle(user => user.ID == ID);
             if (user == null)
@@ -136,7 +136,7 @@ namespace API.Controllers
             else
             {
                 _userRepository.Remove(user);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
                 return NoContent();
             }
         }
@@ -173,7 +173,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
         [ServiceFilter(typeof(ValidateIDAttribute))]
-        public IActionResult UpdateRoleOfUser(string ID, RoleUpdate input)
+        public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
             User user = _userRepository.GetUserWithRole(user => user.ID == ID);
             if (user == null)
@@ -199,7 +199,7 @@ namespace API.Controllers
                 {
                     user.RoleID = role.ID;
                     _userRepository.Update(user);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 } 
             }

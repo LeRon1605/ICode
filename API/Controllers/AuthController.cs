@@ -27,15 +27,13 @@ namespace API.Controllers
         private readonly ITokenRepository _tokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TokenProvider _tokenProvider;
-        private readonly IMail _mail;
-        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
+        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository)
         {
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
             _tokenRepository = tokenRepository;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
-            _mail = mail;
         }
         [HttpGet]
         [Authorize]
@@ -55,7 +53,7 @@ namespace API.Controllers
         }
         [HttpPost("register")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        public IActionResult Register(RegisterUser input)
+        public async Task<IActionResult> Register(RegisterUser input)
         {
             User user = new User
             {
@@ -76,14 +74,14 @@ namespace API.Controllers
             }
             else
             {
-                _userRepository.Add(user);
-                _unitOfWork.Commit();
+                await _userRepository.AddAsync(user);
+                await _unitOfWork.CommitAsync();
                 return CreatedAtAction("GetByID", "User", new { id = user.ID }, new { status = true, message = "Đăng kí tài khoản thành công" });
             }
         }
 
         [HttpPost("login")]
-        public IActionResult Login(LoginUser input)
+        public async Task<IActionResult> Login(LoginUser input)
         {
             string passwordHashed = Encryptor.MD5Hash(input.Password);
             User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && passwordHashed == user.Password);
@@ -106,8 +104,8 @@ namespace API.Controllers
                 ExpiredAt = DateTime.Now.AddHours(6),
                 IssuedAt = DateTime.Now
             };
-            _tokenRepository.Add(refreshToken);
-            _unitOfWork.Commit();
+            await _tokenRepository.AddAsync(refreshToken);
+            await _unitOfWork.CommitAsync();
             return Ok(new 
             { 
                 status = true,
@@ -118,8 +116,8 @@ namespace API.Controllers
             });
         }
 
-        [HttpPost("RefreshToken")]
-        public IActionResult RenewToken(Token token)
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RenewToken(Token token)
         {
             string jwtId = "";
             if (!_tokenProvider.ValidateToken(token.AccessToken, ref jwtId))
@@ -155,19 +153,19 @@ namespace API.Controllers
                 IssuedAt = DateTime.Now
             };
             _tokenRepository.Update(refreshToken);
-            _tokenRepository.Add(newRefreshToken);
-            _unitOfWork.Commit();
+            await _tokenRepository.AddAsync(newRefreshToken);
+            await _unitOfWork.CommitAsync();
             return Ok(new
             {
                 status = true,
                 userId = user.ID,
                 token = newToken.Token,
                 refreshToken = newRefreshToken.Token
-            }); ;
+            }); 
         }
 
         [HttpPost("forget-password")]
-        public IActionResult ForgetPassword(ForgetPassword input)
+        public async Task<IActionResult> ForgetPassword(ForgetPassword input)
         {
             User user = _userRepository.FindSingle(user => user.Username == input.Name || user.Email == input.Name);
             if (user == null)
@@ -203,7 +201,7 @@ namespace API.Controllers
                 user.ForgotPasswordTokenCreatedAt = DateTime.Now;
                 user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
                 _userRepository.Update(user);
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
             }
             return Ok(new 
             { 
@@ -214,7 +212,7 @@ namespace API.Controllers
         }
 
         [HttpPost(("forget-password/callback"))]
-        public IActionResult ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
+        public async Task<IActionResult> ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
         {
             User user = _userRepository.FindSingle(user => user.ID == userID);
             if (user == null)
@@ -242,7 +240,7 @@ namespace API.Controllers
                     user.ForgotPasswordTokenCreatedAt = null;
                     user.ForgotPasswordTokenExpireAt = null;
                     _userRepository.Update(user);
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
                     return Ok(new
                     {
                         status = true,
