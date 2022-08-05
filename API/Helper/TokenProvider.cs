@@ -1,7 +1,7 @@
 ﻿using API.Models.Entity;
+using CodeStudy.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;

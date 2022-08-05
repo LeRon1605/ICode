@@ -8,7 +8,8 @@ namespace CodeStudy.Models
 {
     public class ReplyInput
     {
-        [Required]
+        [Required(ErrorMessage = "Nội dung phản hồi không được để trống")]
+        [StringLength(256, MinimumLength = 10, ErrorMessage = "Nội dung phản hồi phải lớn hơn 10 kí tự")]
         public string Content { get; set; }
     }
 }

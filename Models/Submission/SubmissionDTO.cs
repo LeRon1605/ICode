@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace CodeStudy.Models
 {
@@ -14,12 +12,5 @@ namespace CodeStudy.Models
         public bool Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public string UserID { get; set; }
-    }
-    public class SubmissionInput
-    {
-        [Required]
-        public string Code { get; set; }
-        [Required]
-        public string Language { get; set; }
     }
 }
