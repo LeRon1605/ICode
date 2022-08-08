@@ -27,13 +27,15 @@ namespace API.Controllers
         private readonly ITokenRepository _tokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TokenProvider _tokenProvider;
-        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository)
+        private readonly IMail _mail;
+        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
         {
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
             _tokenRepository = tokenRepository;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _mail = mail;
         }
         [HttpGet]
         [Authorize]
@@ -203,12 +205,9 @@ namespace API.Controllers
                 _userRepository.Update(user);
                 await _unitOfWork.CommitAsync();
             }
-            return Ok(new 
-            { 
-                status = true,
-                userID = user.ID,
-                token = user.ForgotPasswordToken
-            });
+            string callbackURL = Url.ActionLink("ForgetPassword", "Auth", new { token = user.ForgotPasswordToken, userID = user.ID }, Request.Scheme, Request.Host.Value );
+            _ = Task.Run(async () => await _mail.SendMailAsync(user.Email, "Thay đổi mật khẩu", $"<a href={callbackURL}>Bấm vào đây</a>"));
+            return Ok();
         }
 
         [HttpPost(("forget-password/callback"))]
