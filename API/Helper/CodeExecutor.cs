@@ -31,8 +31,8 @@ namespace API.Helper
                 language = language,
                 versionIndex = "5",
                 stdin = input,
-                clientId = "9fea376f84355be2d3540d1b77709156",
-                clientSecret = "3fdc6e686139d8cac64f93afa6a21071a8a8777adf4d6e19c177f43af37e35af"
+                clientId = _configuration["JDoodle:ClientID"],
+                clientSecret = _configuration["JDoodle:SecretKey"]
             });
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.jdoodle.com/execute")
             {

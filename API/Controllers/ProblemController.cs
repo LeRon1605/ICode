@@ -107,6 +107,7 @@ namespace API.Controllers
         public IActionResult GetByID(string ID)
         {
             Problem problem = _problemRepository.GetProblemDetail(x => x.ID == ID);
+
             if (problem == null)
             {
                 return NotFound(new
@@ -115,7 +116,7 @@ namespace API.Controllers
                     message = "Problem Not Found"
                 });
             }
-            return Ok(new ProblemDTO
+            return Ok(new
             {
                 ID = problem.ID,
                 Description = problem.Description,
@@ -135,6 +136,14 @@ namespace API.Controllers
                     CreatedAt = x.CreatedAt,
                     UpdatedAt = x.UpdatedAt
                 }).ToList(),
+                Submissions = _submissionRepository.GetSubmissionsOfProblem(problem.ID).Select(x => new 
+                { 
+                    ID = x.ID,
+                    Status = x.Status,
+                    CreatedAt = x.CreatedAt,
+                    Language = x.Language,
+                    UserID = x.UserID
+                }),
                 CreatedAt = problem.CreatedAt,
                 UpdatedAt = problem.UpdatedAt
             });

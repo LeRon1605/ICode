@@ -12,6 +12,7 @@ namespace API.Repository
     public interface ISubmissionRepository: IRepository<Submission>
     {
         IEnumerable<Submission> GetSubmissionsDetail(Expression<Func<Submission, bool>> expression = null);
+        IEnumerable<Submission> GetSubmissionsOfProblem(string problemID, Expression<Func<Submission, bool>> expression = null);
     }
     public class SubmissionRepository: BaseRepository<Submission>, ISubmissionRepository
     {
@@ -26,6 +27,15 @@ namespace API.Repository
                 return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase);
             else
                 return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(expression);
+        }
+
+        public IEnumerable<Submission> GetSubmissionsOfProblem(string problemID, Expression<Func<Submission, bool>> expression = null)
+        {
+            if (expression == null)
+                return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(x => x.SubmissionDetails.Any(s => s.TestCase.ProblemID == problemID));
+            else
+                return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(expression).Where(x => x.SubmissionDetails.Any(s => s.TestCase.ProblemID == problemID));
+
         }
     }
 }

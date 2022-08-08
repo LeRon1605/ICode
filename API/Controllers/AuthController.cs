@@ -265,13 +265,5 @@ namespace API.Controllers
                 });
             }    
         }
-
-        [HttpGet("google")]
-        public IActionResult GoogleAuth()
-        {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GetGoogleAuth") };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
     }
 }

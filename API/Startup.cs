@@ -5,6 +5,7 @@ using API.Models.Data;
 using API.Models.DTO;
 using API.Repository;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -63,12 +64,6 @@ namespace API
                             RoleClaimType = ClaimTypes.Role
 
                         };
-                    })
-                    .AddGoogle(option =>
-                    {
-                        option.ClientId = "49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com";
-                        option.ClientSecret = "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";
-                        option.CallbackPath = "/auth/google/callback";
                     });
 
             services.AddDbContext<ICodeDbContext>(options =>

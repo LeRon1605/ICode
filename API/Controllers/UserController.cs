@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using API.Filter;
 using CodeStudy.Models;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -22,12 +23,14 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ISubmissionRepository _submissionRepository;
         private readonly IRoleRepository _roleRepository;
-        public UserController(IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository)
+        private readonly IMapper _mapper;
+        public UserController(IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _submissionRepository = submissionRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -37,14 +40,7 @@ namespace API.Controllers
             return Ok(new
             {
                 status = true,
-                data = _userRepository.FindAll().Select(user => new UserDTO
-                {
-                    ID = user.ID,
-                    Username = user.Username,
-                    Email = user.Email,
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt                
-                })
+                data = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userRepository.FindAll())
             }); 
         }   
 
@@ -64,14 +60,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(new UserDTO
-                {
-                    ID = user.ID,
-                    Username = user.Username,
-                    Email = user.Email,
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt
-                });
+                return Ok(_mapper.Map<User, UserDTO>(user));
             }
         }
 
@@ -104,13 +93,7 @@ namespace API.Controllers
                 user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
                 user.UpdatedAt = DateTime.Now;
                 await _unitOfWork.CommitAsync();
-                return Ok(new UserDTO {
-                    ID = user.ID,
-                    Username = user.Username,
-                    Email = user.Email,
-                    CreatedAt = user.CreatedAt,
-                    UpdatedAt = user.UpdatedAt
-                });
+                return Ok(_mapper.Map<User, UserDTO>(user));
             }
             else
             {

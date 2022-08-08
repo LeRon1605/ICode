@@ -17,7 +17,7 @@ namespace API.Mapper
 
             CreateMap<RegisterUser, User>()
                 .ForMember(dest => dest.ID, otp => otp.MapFrom(src => Guid.NewGuid().ToString()))
-                .ReverseMap();
+                .ForMember(dest => dest.CreatedAt, otp => otp.MapFrom(src => DateTime.Now));
 
         }
     }
