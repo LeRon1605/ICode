@@ -1,4 +1,5 @@
-﻿using System;
+﻿using API.Models.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace API.Models.Entity
         public DateTime? ForgotPasswordTokenCreatedAt { get; set; }
         public DateTime? ForgotPasswordTokenExpireAt { get; set; }
         public string RoleID { get; set; }
+        public AccountType Type { get; set; }
         public virtual Role Role { get; set; }
         public virtual ICollection<Submission> Submissions { get; set; }
         public virtual ICollection<Problem> Problems { get; set; }

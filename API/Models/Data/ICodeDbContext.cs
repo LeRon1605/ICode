@@ -235,5 +235,6 @@ namespace API.Models.Data
         public virtual DbSet<Submission> Submissions { get; set; }
         public virtual DbSet<SubmissionDetail> SubmissionDetails { get; set; }
         public virtual DbSet<TestCase> TestCases { get; set; }
+        public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

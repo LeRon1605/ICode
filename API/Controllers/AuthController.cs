@@ -1,8 +1,10 @@
 ﻿using API.Filter;
 using API.Helper;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -64,6 +66,7 @@ namespace API.Controllers
                 Password = Encryptor.MD5Hash(input.Password),
                 Username = input.Username,
                 CreatedAt = DateTime.Now,
+                Type = AccountType.Local,
                 Role = _roleRepository.FindSingle(role => role.Name == "User")
             };
             if (_userRepository.isExist(x => x.Username == user.Username || x.Email == user.Email))
@@ -86,7 +89,7 @@ namespace API.Controllers
         public async Task<IActionResult> Login(LoginUser input)
         {
             string passwordHashed = Encryptor.MD5Hash(input.Password);
-            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && passwordHashed == user.Password);
+            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && passwordHashed == user.Password && user.Type == AccountType.Local);
             if (user == null)
             {
                 return NotFound(new
@@ -169,7 +172,7 @@ namespace API.Controllers
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword(ForgetPassword input)
         {
-            User user = _userRepository.FindSingle(user => user.Username == input.Name || user.Email == input.Name);
+            User user = _userRepository.FindSingle(user => (user.Username == input.Name || user.Email == input.Name) && user.Type == AccountType.Local);
             if (user == null)
             {
                 return NotFound(new
@@ -213,6 +216,14 @@ namespace API.Controllers
         [HttpPost(("forget-password/callback"))]
         public async Task<IActionResult> ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Token required"
+                });
+            }
             User user = _userRepository.FindSingle(user => user.ID == userID);
             if (user == null)
             {
@@ -220,14 +231,6 @@ namespace API.Controllers
                 {
                     status = false,
                     message = "Không tìm thấy user"
-                });
-            }
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Token required"
                 });
             }
             if (user.ForgotPasswordToken != null)
@@ -263,6 +266,50 @@ namespace API.Controllers
                     message = "Invalid Action"
                 });
             }    
+        }
+
+        [HttpPost("google-signin")]
+        public async Task<IActionResult> SignInWithGoogle(string tokenID)
+        {
+            GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings();
+
+            settings.Audience = new List<string>() { "49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com" };
+
+            GoogleJsonWebSignature.Payload payload = GoogleJsonWebSignature.ValidateAsync(tokenID, settings).Result;
+            User user = _userRepository.FindSingle(user => user.Email == payload.Email && user.Type == AccountType.Google);
+            if (user == null)
+            {
+               user = new User
+               {
+                    ID = Guid.NewGuid().ToString(),
+                    Email = payload.Email,
+                    Password = Encryptor.MD5Hash("password_default"),
+                    Username = payload.Name,
+                    CreatedAt = DateTime.Now,
+                    Type = AccountType.Google,
+                    Role = _roleRepository.FindSingle(role => role.Name == "User")
+                };
+                await _userRepository.AddAsync(user);
+                await _unitOfWork.CommitAsync();
+            }
+            AccessToken token = _tokenProvider.GenerateToken(user);
+            RefreshToken refreshToken = new RefreshToken
+            {
+                ID = Guid.NewGuid().ToString(),
+                UserID = user.ID,
+                State = false,
+                Token = _tokenProvider.GenerateRandomToken(),
+                JwtID = token.ID,
+                ExpiredAt = DateTime.Now.AddHours(6),
+                IssuedAt = DateTime.Now
+            };
+            return Ok(new
+            {
+                status = true,
+                userId = user.ID,
+                token = token.Token,
+                refreshToken = refreshToken.Token
+            });
         }
     }
 }
