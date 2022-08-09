@@ -9,23 +9,20 @@ using System.Threading.Tasks;
 
 namespace API.Filter
 {
-    public class ValidateIDAttribute : IActionFilter
+    public class QueryConstraintAttribute : ActionFilterAttribute
     {
-        public void OnActionExecuted(ActionExecutedContext context)
-        {
-            
-        }
+        public string Key { get; set; }
 
-        public void OnActionExecuting(ActionExecutingContext context)
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (context.ActionArguments.ContainsKey("ID"))
+            if (context.ActionArguments.ContainsKey(Key))
             {
-                if (string.IsNullOrEmpty((string)context.ActionArguments["ID"]))
+                if (string.IsNullOrEmpty((string)context.ActionArguments[Key]))
                 {
                     context.Result = new BadRequestObjectResult(new
                     {
                         status = false,
-                        message = "Invalid ID"
+                        message = $"Invalid {Key}"
                     });
                     return;
                 }
@@ -35,7 +32,7 @@ namespace API.Filter
                 context.Result = new BadRequestObjectResult(new
                 {
                     status = false,
-                    message = "ID Required"
+                    message = $"{Key} Required"
                 });
                 return;
             }  

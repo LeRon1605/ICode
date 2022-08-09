@@ -66,7 +66,7 @@ namespace API.Controllers
         }   
         [HttpGet("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -87,7 +87,7 @@ namespace API.Controllers
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Update(string ID, TagInput input)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -119,7 +119,7 @@ namespace API.Controllers
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Delete(string ID)
         {
             Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
@@ -136,7 +136,7 @@ namespace API.Controllers
             return NoContent();
         }
         [HttpGet("{ID}/problems")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetProblemOfTag(string ID)
         {
             Tag tag = _tagRepository.GetTagWithProblem(x => x.ID == ID);

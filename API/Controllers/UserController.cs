@@ -48,7 +48,7 @@ namespace API.Controllers
         }
         [HttpGet("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             User user = _userRepository.FindSingle(user => user.ID == ID);
@@ -68,7 +68,7 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
@@ -97,7 +97,7 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
@@ -120,7 +120,7 @@ namespace API.Controllers
 
         [HttpGet("{ID}/role")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetRole(string ID)
         {
             User user = _userRepository.GetUserWithRole(user => user.ID == ID);
@@ -149,7 +149,7 @@ namespace API.Controllers
         [HttpPut("{ID}/role")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
             User user = _userRepository.GetUserWithRole(user => user.ID == ID);
@@ -184,7 +184,7 @@ namespace API.Controllers
 
         [HttpGet("{ID}/submissions")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetSubmitOfUser(string ID)
         {
             User user = _userRepository.FindSingle(user => user.ID == ID);

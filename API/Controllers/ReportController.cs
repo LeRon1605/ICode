@@ -69,7 +69,7 @@ namespace API.Controllers
         }
         [HttpGet("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             Report report = _reportRepository.FindSingle(x => x.ID == ID);
@@ -105,7 +105,7 @@ namespace API.Controllers
         }
         [HttpPut("{ID}")]
         [Authorize(Roles = "User")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, ReportInput input)
         {
@@ -134,7 +134,7 @@ namespace API.Controllers
         }
         [HttpDelete("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
@@ -160,7 +160,7 @@ namespace API.Controllers
         }
         [HttpPost("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Reply(string ID, ReplyInput input)
         {
@@ -203,7 +203,7 @@ namespace API.Controllers
         }
         [HttpPut("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateReply(string ID, ReplyInput input)
         {
@@ -242,7 +242,7 @@ namespace API.Controllers
         }
         [HttpDelete("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteReply(string ID)
         {

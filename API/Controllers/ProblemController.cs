@@ -67,7 +67,7 @@ namespace API.Controllers
                     status = false,
                     message = "Tag not found"
                 });
-            }    
+            }
             Problem problem = new Problem
             {
                 ID = Guid.NewGuid().ToString(),
@@ -92,7 +92,7 @@ namespace API.Controllers
             return CreatedAtAction("GetByID", "Problem", new { ID = problem.ID }, new { status = true, message = "Tạo mới problem thành công" });
         }
         [HttpGet("{ID}")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             Problem problem = _problemRepository.GetProblemDetail(x => x.ID == ID);
@@ -110,7 +110,7 @@ namespace API.Controllers
         [HttpDelete("{ID}")]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Delete(string ID)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
@@ -136,7 +136,7 @@ namespace API.Controllers
         [HttpPut("{ID}")]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Update(string ID, ProblemInputUpdate input)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
@@ -174,7 +174,7 @@ namespace API.Controllers
         }
         [HttpGet("{ID}/testcases")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetTestCases(string ID)
         {
             Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
@@ -214,7 +214,7 @@ namespace API.Controllers
         }
         [HttpPost("{ID}/testcases")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> CreateTestCase(string ID, TestcaseInput input)
         {
@@ -250,7 +250,7 @@ namespace API.Controllers
         }
         [HttpGet("{ID}/testcases/{TCID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetTestcaseByID(string ID, string TCID)
         {
             Problem problem = _problemRepository.GetProblemWithTestcase(x => x.ID == ID);
@@ -302,7 +302,7 @@ namespace API.Controllers
         }
         [HttpPut("{ID}/testcases/{TCID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateTestcase(string ID, string TCID, TestcaseInput input)
         {
@@ -344,7 +344,7 @@ namespace API.Controllers
         }
         [HttpDelete("{ID}/testcases/{TCID}")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteTestcase(string ID, string TCID)
         {
@@ -382,7 +382,7 @@ namespace API.Controllers
         }
         [HttpPost("{ID}/submissions")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Submit(string ID, SubmissionInput input)
         {
@@ -447,7 +447,7 @@ namespace API.Controllers
         }
         [HttpGet("{ID}/submissions")]
         [Authorize]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         public IActionResult GetSubmitOfProblem(string ID)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
@@ -459,22 +459,13 @@ namespace API.Controllers
                     message = "Problem not found"
                 });
             }
-            List<Submission> submissions;
-            if (User.FindFirst("Role")?.Value == "User")
-            {
-                string userID = User.FindFirst("ID")?.Value;
-                submissions = _submissionRepository.GetSubmissionsDetail(x => x.UserID == userID && x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
-            }
-            else
-            {
-                submissions = _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
-            }
+            IEnumerable<Submission> submissions = _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
             return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(submissions));
         }
 
         [HttpPost("{ID}/reports")]
         [Authorize(Roles = "User")]
-        [ServiceFilter(typeof(ValidateIDAttribute))]
+        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Report(string ID, ReportInput input)
         {
