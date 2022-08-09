@@ -4,6 +4,7 @@ using API.Mapper;
 using API.Models.Data;
 using API.Models.DTO;
 using API.Repository;
+using API.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -78,7 +79,8 @@ namespace API
 
             services.AddAutoMapper(typeof(Startup));
 
-            
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITokenService, TokenService>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITokenRepository, TokenRepository>();
@@ -92,7 +94,6 @@ namespace API
             services.AddScoped<IReplyRepository, ReplyRepository>();
             services.AddSingleton<ICodeExecutor, CodeExecutor>();
             services.AddSingleton<ExceptionHandler>();
-            services.AddSingleton<ValidateIDAttribute>();
             services.AddSingleton<TokenProvider, JWTTokenProvider>();
             services.AddSingleton<IMail, Mail>();
 

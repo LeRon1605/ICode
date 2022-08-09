@@ -3,6 +3,7 @@ using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using API.Services;
 using CodeStudy.Models;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
@@ -24,14 +25,18 @@ namespace API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly IUserService _userSerivce;
+        private readonly ITokenService _tokenService;
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
         private readonly ITokenRepository _tokenRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly TokenProvider _tokenProvider;
         private readonly IMail _mail;
-        public AuthController(TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
+        public AuthController(IUserService userService, ITokenService tokenSerivce,TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
         {
+            _userSerivce = userService;
+            _tokenService = tokenSerivce;
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
             _tokenRepository = tokenRepository;
@@ -43,256 +48,129 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Register(RegisterUser input)
         {
-            User user = new User
-            {
-                ID = Guid.NewGuid().ToString(),
-                Email = input.Email,
-                Password = Encryptor.MD5Hash(input.Password),
-                Username = input.Username,
-                CreatedAt = DateTime.Now,
-                Type = AccountType.Local,
-                Role = _roleRepository.FindSingle(role => role.Name == "User")
-            };
-            if (_userRepository.isExist(x => x.Username == user.Username || x.Email == user.Email))
+            if (_userSerivce.Exist(input.Username, input.Email))
             {
                 return Conflict(new
                 {
-                    status = false,
                     message = "Tên tài khoản hoặc email đã tồn tại"
                 });
             }
             else
             {
-                await _userRepository.AddAsync(user);
-                await _unitOfWork.CommitAsync();
-                return CreatedAtAction("GetByID", "User", new { id = user.ID }, new { status = true, message = "Đăng kí tài khoản thành công" });
+                await _userSerivce.Add(input);
+                return Ok(new 
+                { 
+                    message = "Đăng kí tài khoản thành công" 
+                });
             }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginUser input)
         {
-            string passwordHashed = Encryptor.MD5Hash(input.Password);
-            User user = _userRepository.GetUserWithRole(user => (user.Username == input.Name || user.Email == input.Name) && passwordHashed == user.Password && user.Type == AccountType.Local);
+            User user = _userSerivce.Login(input.Name, input.Password, new LocalAuth());
             if (user == null)
             {
                 return NotFound(new
                 {
-                    status = false,
                     message = "Tài khoản không tồn tại"
                 });
             }
-            AccessToken token = _tokenProvider.GenerateToken(user);
-            RefreshToken refreshToken = new RefreshToken
-            {
-                ID = Guid.NewGuid().ToString(),
-                UserID = user.ID,
-                State = false,
-                Token = _tokenProvider.GenerateRandomToken(),
-                JwtID = token.ID,
-                ExpiredAt = DateTime.Now.AddHours(6),
-                IssuedAt = DateTime.Now
-            };
-            await _tokenRepository.AddAsync(refreshToken);
-            await _unitOfWork.CommitAsync();
+            Token token = await _tokenService.GenerateToken(user); 
             return Ok(new 
-            { 
-                status = true,
+            {
                 message = "Đăng nhập thành công",
-                userId = user.ID,
-                token = token.Token,
-                refreshToken = refreshToken.Token
+                access_token = token.AccessToken,
+                refresh_token = token.RefreshToken
             });
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RenewToken(Token token)
+        public async Task<IActionResult> Refresh(Token token)
         {
-            string jwtId = "";
-            if (!_tokenProvider.ValidateToken(token.AccessToken, ref jwtId))
+            string jwtId = _tokenService.ValidateToken(token.AccessToken);
+            if (jwtId == null)
             {
                 return BadRequest(new 
                 { 
                     message = "Invalid Token"
                 });
             }
-            RefreshToken refreshToken = _tokenRepository.FindSingle(x => x.Token == token.RefreshToken);
-            if (refreshToken == null || refreshToken.State || refreshToken.JwtID != jwtId)
+
+            Token newToken = await _tokenService.RefreshToken(jwtId, token.RefreshToken);
+            if (newToken == null)
             {
-                return BadRequest(new
-                {
-                    message = "Invalid Refresh Token"
+                return BadRequest(new 
+                { 
+                    message = "Invalid refresh_token"    
                 });
             }
-            User user = _userRepository.GetUserWithRole(user => user.ID == refreshToken.UserID);
-            if (user == null)
+            else
             {
-                return NotFound();
+                return Ok(new
+                {
+                    access_token = newToken.AccessToken,
+                    refresh_token = newToken.RefreshToken
+                });
             }
-            refreshToken.State = true;
-            AccessToken newToken = _tokenProvider.GenerateToken(user);
-            RefreshToken newRefreshToken = new RefreshToken
-            {
-                ID = Guid.NewGuid().ToString(),
-                UserID = user.ID,
-                State = false,
-                Token = _tokenProvider.GenerateRandomToken(),
-                JwtID = newToken.ID,
-                ExpiredAt = DateTime.Now.AddHours(6),
-                IssuedAt = DateTime.Now
-            };
-            _tokenRepository.Update(refreshToken);
-            await _tokenRepository.AddAsync(newRefreshToken);
-            await _unitOfWork.CommitAsync();
-            return Ok(new
-            {
-                status = true,
-                userId = user.ID,
-                token = newToken.Token,
-                refreshToken = newRefreshToken.Token
-            }); 
         }
 
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword(ForgetPassword input)
         {
-            User user = _userRepository.FindSingle(user => (user.Username == input.Name || user.Email == input.Name) && user.Type == AccountType.Local);
+            User user = _userSerivce.FindByName(input.Name);
             if (user == null)
             {
                 return NotFound(new
                 {
-                    status = false,
                     message = "Không tìm thấy user"
                 });
             }
-            if (user.ForgotPasswordToken != null)
-            {
-                if (user.ForgotPasswordTokenExpireAt < DateTime.Now)
-                {
-                    user.ForgotPasswordToken = _tokenProvider.GenerateRandomToken();
-                    user.ForgotPasswordTokenCreatedAt = DateTime.Now;
-                    user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
-                    _userRepository.Update(user);
-                    _unitOfWork.Commit();
-                }
-                else
-                {
-                    return Conflict(new
-                    {
-                        status = false,
-                        message = "Token còn hạn"
-                    });
-                }
-            }
-            else
-            {
-                user.ForgotPasswordToken = _tokenProvider.GenerateRandomToken();
-                user.ForgotPasswordTokenCreatedAt = DateTime.Now;
-                user.ForgotPasswordTokenExpireAt = DateTime.Now.AddHours(6);
-                _userRepository.Update(user);
-                await _unitOfWork.CommitAsync();
-            }
-            string callbackURL = Url.ActionLink("ForgetPassword", "Auth", new { token = user.ForgotPasswordToken, userID = user.ID }, Request.Scheme, Request.Host.Value );
+            string forgetPasswordToken = await _tokenService.GenerateForgerPasswordToken(user);
+            string callbackURL = Url.ActionLink("ForgetPassword", "Auth", new { token = forgetPasswordToken, userID = user.ID }, Request.Scheme, Request.Host.Value );
             _ = Task.Run(async () => await _mail.SendMailAsync(user.Email, "Thay đổi mật khẩu", $"<a href={callbackURL}>Bấm vào đây</a>"));
             return Ok();
         }
 
         [HttpPost(("forget-password/callback"))]
+        [QueryConstraint(Key = "token")]
         public async Task<IActionResult> ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
         {
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Token required"
-                });
-            }
-            User user = _userRepository.FindSingle(user => user.ID == userID);
+            User user = _userSerivce.FindById(userID);
             if (user == null)
             {
                 return NotFound(new
                 {
-                    status = false,
                     message = "Không tìm thấy user"
                 });
             }
-            if (user.ForgotPasswordToken != null)
+            if (await _userSerivce.ChangePassword(user, token, input.Password))
             {
-                if (user.ForgotPasswordToken == token && user.ForgotPasswordTokenExpireAt >= DateTime.Now)
-                {
-                    user.Password = Encryptor.MD5Hash(input.Password);
-                    user.ForgotPasswordToken = null;
-                    user.ForgotPasswordTokenCreatedAt = null;
-                    user.ForgotPasswordTokenExpireAt = null;
-                    _userRepository.Update(user);
-                    await _unitOfWork.CommitAsync();
-                    return Ok(new
-                    {
-                        status = true,
-                        message = "Đổi mật khẩu thành công"
-                    });
-                }
-                else
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        message = "Invalid Token"
-                    });
-                }
+                return Ok();
             }
-            else
-            {
-                return BadRequest(new
-                {
-                    status = false,
-                    message = "Invalid Action"
-                });
-            }    
+            return BadRequest();
         }
 
         [HttpPost("google-signin")]
+        [QueryConstraint(Key = "tokenID")]
         public async Task<IActionResult> SignInWithGoogle(string tokenID)
         {
-            GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings();
+            GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new List<string>() { "49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com" }
+            };
 
-            settings.Audience = new List<string>() { "49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com" };
-
-            GoogleJsonWebSignature.Payload payload = GoogleJsonWebSignature.ValidateAsync(tokenID, settings).Result;
-            User user = _userRepository.FindSingle(user => user.Email == payload.Email && user.Type == AccountType.Google);
+            GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(tokenID, settings);
+            User user = _userSerivce.Login(payload.Email, "password_default", new GoogleAuth());
             if (user == null)
             {
-               user = new User
-               {
-                    ID = Guid.NewGuid().ToString(),
-                    Email = payload.Email,
-                    Password = Encryptor.MD5Hash("password_default"),
-                    Username = payload.Name,
-                    CreatedAt = DateTime.Now,
-                    Type = AccountType.Google,
-                    Role = _roleRepository.FindSingle(role => role.Name == "User")
-                };
-                await _userRepository.AddAsync(user);
-                await _unitOfWork.CommitAsync();
+                user = await _userSerivce.AddGoogle(payload.Email, payload.Name);
             }
-            AccessToken token = _tokenProvider.GenerateToken(user);
-            RefreshToken refreshToken = new RefreshToken
-            {
-                ID = Guid.NewGuid().ToString(),
-                UserID = user.ID,
-                State = false,
-                Token = _tokenProvider.GenerateRandomToken(),
-                JwtID = token.ID,
-                ExpiredAt = DateTime.Now.AddHours(6),
-                IssuedAt = DateTime.Now
-            };
+            Token token = await _tokenService.GenerateToken(user);
             return Ok(new
             {
-                status = true,
-                userId = user.ID,
-                token = token.Token,
-                refreshToken = refreshToken.Token
+                token = token.AccessToken,
+                refreshToken = token.RefreshToken
             });
         }
     }
