@@ -3,6 +3,7 @@ using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,8 @@ namespace API.Controllers
         private readonly ISubmissionRepository _submissionRepository;
         private readonly IReportRepository _reportRepository;
         private readonly ICodeExecutor _codeExecutor;
-        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository, ISubmissionRepository submissionRepository, ICodeExecutor codeExecutor, IReportRepository reportRepository)
+        private readonly IMapper _mapper;
+        public ProblemController(IUnitOfWork unitOfWork, IProblemRepository problemRepository, ITagRepository tagRepository, ITestcaseRepository testcaseRepository, ISubmissionRepository submissionRepository, ICodeExecutor codeExecutor, IReportRepository reportRepository, IMapper mapper)
         {
             _reportRepository = reportRepository;
             _unitOfWork = unitOfWork;
@@ -39,32 +41,19 @@ namespace API.Controllers
             _submissionRepository = submissionRepository;
             _testcaseRepository = testcaseRepository;
             _codeExecutor = codeExecutor;
+            _mapper = mapper;
         }
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_problemRepository.GetProblemDetailMulti().Select(x => new  
-            { 
-                ID = x.ID,
-                Description = x.Description,
-                Name = x.Name,
-                Article = new UserDTO
-                {
-                    ID = x.Article.ID,
-                    Username = x.Article.Username,
-                    Email = x.Article.Email,
-                    CreatedAt = x.Article.CreatedAt,
-                    UpdatedAt = x.Article.UpdatedAt
-                },
-                Tags = x.Tags.Select(tag => new TagDTO { 
-                   ID = tag.ID,
-                   Name = tag.Name,
-                   CreatedAt = tag.CreatedAt,
-                   UpdatedAt = tag.UpdatedAt
-                }).ToList(),
-                CreatedAt = x.CreatedAt,
-                UpdatedAt = x.UpdatedAt
-            }));
+            return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemRepository.FindAll()));
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Find(int page, int pageSize, string tag = "", string keyword = "")
+        {
+            PagingList<Problem> list = await _problemRepository.GetPageAsync(page, pageSize, problem => (keyword == "" || problem.Tags.Any(x => x.Name.Contains(tag)) && problem.Name.Contains(keyword)), problem => problem.Tags, problem => problem.Article);
+            return Ok(_mapper.Map<PagingList<Problem>, PagingList<ProblemDTO>>(list));
         }
         [HttpPost]
         [Authorize]
@@ -116,37 +105,7 @@ namespace API.Controllers
                     message = "Problem Not Found"
                 });
             }
-            return Ok(new
-            {
-                ID = problem.ID,
-                Description = problem.Description,
-                Name = problem.Name,
-                Article = new UserDTO
-                {
-                    ID = problem.Article.ID,
-                    Username = problem.Article.Username,
-                    Email = problem.Article.Email,
-                    CreatedAt = problem.Article.CreatedAt,
-                    UpdatedAt = problem.Article.UpdatedAt
-                },
-                Tags = problem.Tags.Select(x => new TagDTO
-                {
-                    ID = x.ID,
-                    Name = x.Name,
-                    CreatedAt = x.CreatedAt,
-                    UpdatedAt = x.UpdatedAt
-                }).ToList(),
-                Submissions = _submissionRepository.GetSubmissionsOfProblem(problem.ID).Select(x => new 
-                { 
-                    ID = x.ID,
-                    Status = x.Status,
-                    CreatedAt = x.CreatedAt,
-                    Language = x.Language,
-                    UserID = x.UserID
-                }),
-                CreatedAt = problem.CreatedAt,
-                UpdatedAt = problem.UpdatedAt
-            });
+            return Ok(_mapper.Map<Problem, ProblemDTO>(problem));
         }
         [HttpDelete("{ID}")]
         [Authorize]
@@ -484,14 +443,7 @@ namespace API.Controllers
             }
             await _submissionRepository.AddAsync(submission);
             await _unitOfWork.CommitAsync();
-            return Ok(new SubmissionDTO { 
-                ID = submission.ID,
-                Status = submission.Status,
-                Code = submission.Code,
-                CreatedAt = submission.CreatedAt,
-                Language = submission.Language,
-                UserID = submission.UserID
-            });
+            return Ok(_mapper.Map<Submission, SubmissionDTO>(submission));
         }
         [HttpGet("{ID}/submissions")]
         [Authorize]
@@ -511,7 +463,7 @@ namespace API.Controllers
             if (User.FindFirst("Role")?.Value == "User")
             {
                 string userID = User.FindFirst("ID")?.Value;
-                submissions = _submissionRepository.GetSubmissionsDetail(x => x.UserID == userID).ToList();
+                submissions = _submissionRepository.GetSubmissionsDetail(x => x.UserID == userID && x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
             }
             else
             {

@@ -1,4 +1,5 @@
 ﻿using API.Models.Data;
+using API.Models.DTO;
 using API.Models.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;

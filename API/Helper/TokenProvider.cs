@@ -36,10 +36,10 @@ namespace API.Helper
                 {
                     new Claim("ID", user.ID),
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role.Name),
+                    new Claim("Role", user.Role.Name),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 },
-                expires: DateTime.UtcNow.AddSeconds(30),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             );
             return new AccessToken

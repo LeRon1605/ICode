@@ -1,4 +1,5 @@
-﻿using API.Models.Entity;
+﻿using API.Models.DTO;
+using API.Models.Entity;
 using AutoMapper;
 using CodeStudy.Models;
 using System;
@@ -12,9 +13,17 @@ namespace API.Mapper
     {
         public AutoMapperConfiguration()
         {
-            CreateMap<UserDTO, User>()
-                .ReverseMap();
+            CreateMap<User, UserDTO>();
+            CreateMap<Tag, TagDTO>();
+            CreateMap<Submission, SubmissionDTO>();
+            CreateMap<SubmissionDetail, SubmissionDetailDTO>();
+            CreateMap<Problem, ProblemDTO>()
+                .ForMember(dest => dest.Author, otp => otp.MapFrom(src => src.Article));
 
+            CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();
+            CreateMap<PagingList<User>, PagingList<UserDTO>>();
+            CreateMap<PagingList<Tag>, PagingList<TagDTO>>();
+            CreateMap<PagingList<Submission>, PagingList<SubmissionDTO>>();
             CreateMap<RegisterUser, User>()
                 .ForMember(dest => dest.ID, otp => otp.MapFrom(src => Guid.NewGuid().ToString()))
                 .ForMember(dest => dest.CreatedAt, otp => otp.MapFrom(src => DateTime.Now));

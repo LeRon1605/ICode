@@ -1,6 +1,9 @@
 ﻿using API.Filter;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using AutoMapper;
+using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,37 +20,25 @@ namespace API.Controllers
     {
         private readonly ISubmissionRepository _submissionRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public SubmissionController(IUnitOfWork unitOfWork, ISubmissionRepository submissionRepository)
+        private readonly IMapper _mapper;
+        public SubmissionController(IUnitOfWork unitOfWork, ISubmissionRepository submissionRepository, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _submissionRepository = submissionRepository;
+            _mapper = mapper;
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
-            return Ok(new
-            {
-                status = true,
-                data = _submissionRepository.GetSubmissionsDetail().Select(x => new
-                {
-                    ID = x.ID,
-                    Code = x.Code,
-                    Language = x.Language,
-                    Status = x.Status,
-                    UserID = x.UserID,
-                    ProblemID = x.SubmissionDetails.First().TestCase.ProblemID,
-                    CreatedAt = x.CreatedAt,
-                    details = x.SubmissionDetails.Select(detail => new
-                    {
-                        TestcaseID = detail.TestCaseID,
-                        Time = detail.Time,
-                        Memory = detail.Memory,
-                        Description = detail.Description,
-                        Status = detail.Status
-                    })
-                })
-            });
+            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.FindAll()));
+        }
+        [HttpGet("search")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Find(int page, int pageSize, bool? status = null, string keyword = "")
+        {
+            PagingList<Submission> list = await _submissionRepository.GetPageAsync(page, pageSize, submission => (keyword == "" || submission.User.Username.Contains(keyword)) && (status == null || submission.Status == status), submission => submission.SubmissionDetails);
+            return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
         }
         [HttpGet("{ID}")]
         [Authorize]
@@ -68,25 +59,8 @@ namespace API.Controllers
                 {
                     return Ok(new
                     {
-                        status = true,
-                        data = new
-                        {
-                            ID = submission.ID,
-                            Code = submission.Code,
-                            Language = submission.Language,
-                            Status = submission.Status,
-                            UserID = submission.UserID,
-                            ProblemID = submission.SubmissionDetails.First().TestCase.ProblemID,
-                            CreatedAt = submission.CreatedAt,
-                            details = submission.SubmissionDetails.Select(detail => new
-                            {
-                                TestcaseID = detail.TestCaseID,
-                                Time = detail.Time,
-                                Memory = detail.Memory,
-                                Description = detail.Description,
-                                Status = detail.Status
-                            })
-                        }
+                        submission = _mapper.Map<Submission, SubmissionDTO>(submission),
+                        detail = _mapper.Map<IEnumerable<SubmissionDetail>, IEnumerable<SubmissionDetailDTO>>(submission.SubmissionDetails)
                     });
                 }
                 else

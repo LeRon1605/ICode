@@ -33,17 +33,19 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
+        [HttpGet("search")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
+        {
+            PagingList<User> list = await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
+            return Ok(_mapper.Map<PagingList<User>, PagingList<UserDTO>>(list)); 
+        }
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
-            return Ok(new
-            {
-                status = true,
-                data = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userRepository.FindAll())
-            }); 
-        }   
-
+            return Ok(_mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userRepository.FindAll()));
+        }
         [HttpGet("{ID}")]
         [Authorize]
         [ServiceFilter(typeof(ValidateIDAttribute))]

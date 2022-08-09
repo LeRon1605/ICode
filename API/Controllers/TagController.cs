@@ -2,6 +2,7 @@
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,21 +20,23 @@ namespace API.Controllers
     {
         private readonly ITagRepository _tagRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public TagController(IUnitOfWork unitOfWork, ITagRepository tagRepository)
+        private readonly IMapper _mapper;
+        public TagController(IUnitOfWork unitOfWork, ITagRepository tagRepository, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _tagRepository = tagRepository;
+            _mapper = mapper;
+        }
+        [HttpGet("search")]
+        public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
+        {
+            PagingList<Tag> list = await _tagRepository.GetPageAsync(page, pageSize, tag => tag.Name.Contains(keyword));
+            return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
         }
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_tagRepository.FindAll().Select(tag => new TagDTO
-            {
-                ID = tag.ID,
-                Name = tag.Name,
-                CreatedAt = tag.CreatedAt,
-                UpdatedAt = tag.UpdatedAt
-            }));
+            return Ok(_mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagRepository.FindAll()));
         }
         [HttpPost]
         [Authorize]
@@ -78,13 +81,7 @@ namespace API.Controllers
             return Ok(new
             {
                 status = true,
-                data = new TagDTO
-                {
-                    ID = tag.ID,
-                    Name = tag.Name,
-                    CreatedAt = tag.CreatedAt,
-                    UpdatedAt = tag.UpdatedAt
-                }
+                data = _mapper.Map<Tag, TagDTO>(tag)
             });
         }    
         [HttpPut("{ID}")]
