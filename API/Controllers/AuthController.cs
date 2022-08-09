@@ -39,22 +39,6 @@ namespace API.Controllers
             _roleRepository = roleRepository;
             _mail = mail;
         }
-        [HttpGet]
-        [Authorize]
-        public IActionResult GetUser()
-        {
-            User user = _userRepository.GetUserWithRole(x => x.ID == User.FindFirst("ID").Value);
-            if (user == null) return NotFound();
-            return Ok(new
-            {
-                ID = user.ID,
-                Username = user.Username,
-                Email = user.Email,
-                CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt,
-                Role = user.Role.Name
-            });
-        }
         [HttpPost("register")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Register(RegisterUser input)

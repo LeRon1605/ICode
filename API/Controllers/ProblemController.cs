@@ -469,27 +469,7 @@ namespace API.Controllers
             {
                 submissions = _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == ID).Select(detail => detail.SubmitID).Contains(x.ID)).ToList();
             }
-            return Ok(new
-            {
-                status = true,
-                data = submissions.Select(x => new
-                {
-                    ID = x.ID,
-                    Code = x.Code,
-                    Language = x.Language,
-                    Status = x.Status,
-                    UserID = x.UserID,
-                    CreatedAt = x.CreatedAt,
-                    details = x.SubmissionDetails.Select(detail => new
-                    {
-                        TestcaseID = detail.TestCaseID,
-                        Time = detail.Time,
-                        Memory = detail.Memory,
-                        Description = detail.Description,
-                        Status = detail.Status
-                    })
-                })
-            });
+            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(submissions));
         }
 
         [HttpPost("{ID}/reports")]

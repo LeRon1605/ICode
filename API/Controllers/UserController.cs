@@ -67,40 +67,32 @@ namespace API.Controllers
         }
 
         [HttpPut("{ID}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ValidateIDAttribute))]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
-            string tokenID = User.FindFirst("ID")?.Value;
-            if (tokenID == ID || _userRepository.GetUserWithRole(user => user.ID == tokenID).Role.Name == "Admin")
+            User user = _userRepository.FindSingle(user => user.ID == ID);
+            if (user == null)
             {
-                User user = _userRepository.FindSingle(user => user.ID == ID);
-                if (user == null)
+                return NotFound(new
                 {
-                    return NotFound(new
-                    {
-                        status = false,
-                        message = "Không tồn tại user"
-                    });
-                }
-                if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
-                {
-                    return Conflict(new
-                    {
-                        status = false,
-                        message = "Username đã tồn tại không thể cập nhật"
-                    });
-                }
-                user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
-                user.UpdatedAt = DateTime.Now;
-                await _unitOfWork.CommitAsync();
-                return Ok(_mapper.Map<User, UserDTO>(user));
+                    status = false,
+                    message = "Không tồn tại user"
+                });
             }
-            else
+            if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
             {
-                return Forbid();
+                return Conflict(new
+                {
+                    status = false,
+                    message = "Username đã tồn tại không thể cập nhật"
+                });
             }
+            user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
+            user.UpdatedAt = DateTime.Now;
+            await _unitOfWork.CommitAsync();
+            return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
         [HttpDelete("{ID}")]
