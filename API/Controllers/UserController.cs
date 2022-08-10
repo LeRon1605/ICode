@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using API.Filter;
 using CodeStudy.Models;
 using AutoMapper;
+using API.Services;
 
 namespace API.Controllers
 {
@@ -19,17 +20,13 @@ namespace API.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IUserRepository _userRepository;
-        private readonly ISubmissionRepository _submissionRepository;
-        private readonly IRoleRepository _roleRepository;
+        private readonly IUserService _userService;
+        private readonly IRoleService _roleService;
         private readonly IMapper _mapper;
-        public UserController(IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository, IMapper mapper)
+        public UserController(IUserService userService, IRoleService roleService, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
-            _submissionRepository = submissionRepository;
+            _userService = userService;
+            _roleService = roleService;
             _mapper = mapper;
         }
 
@@ -37,26 +34,25 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
         {
-            PagingList<User> list = await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
+            PagingList<User> list = await _userService.GetPageAsync(page, pageSize, keyword);
             return Ok(_mapper.Map<PagingList<User>, PagingList<UserDTO>>(list)); 
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
-            return Ok(_mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userRepository.FindAll()));
+            return Ok(_mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userService.GetAll()));
         }
         [HttpGet("{ID}")]
         [Authorize]
         [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
                 return NotFound(new
                 {
-                    status = false,
                     message = "Không tìm thấy User"
                 });
             }
@@ -72,27 +68,26 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
                 return NotFound(new
                 {
-                    status = false,
                     message = "Không tồn tại user"
                 });
             }
-            if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
+            if (await _userService.Update(user, input))
+            {
+                return Ok(_mapper.Map<User, UserDTO>(user));
+            }
+            else
             {
                 return Conflict(new
                 {
-                    status = false,
                     message = "Username đã tồn tại không thể cập nhật"
                 });
             }
-            user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
-            user.UpdatedAt = DateTime.Now;
-            await _unitOfWork.CommitAsync();
-            return Ok(_mapper.Map<User, UserDTO>(user));
+
         }
 
         [HttpDelete("{ID}")]
@@ -101,19 +96,14 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Không tồn tại user"
-                });
+                return NotFound();
             }
             else
             {
-                _userRepository.Remove(user);
-                await _unitOfWork.CommitAsync();
+                await _userService.Remove(user);
                 return NoContent();
             }
         }
@@ -123,26 +113,14 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public IActionResult GetRole(string ID)
         {
-            User user = _userRepository.GetUserWithRole(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Không tồn tại user"
-                });
+                return NotFound();
             }
             else
             {
-                return Ok(new
-                {
-                    status = true,
-                    data = new RoleDTO
-                    {
-                        Name = user.Role.Name,
-                        Priority = user.Role.Priority
-                    }
-                });
+                return Ok(_mapper.Map<Role, RoleDTO>(_roleService.FindById(user.RoleID)));
             }
         }
 
@@ -152,33 +130,21 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
-            User user = _userRepository.GetUserWithRole(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Không tồn tại user"
-                });
+                return NotFound();
             }
             else
             {
-                Role role = _roleRepository.findByName(input.Name);
-                if (role == null)
+                if (await _userService.UpdateRole(user, input.Name))
                 {
-                    return NotFound(new
-                    {
-                        status = false,
-                        message = "Không tồn tại Role"
-                    });
+                    return NoContent();
                 }
                 else
                 {
-                    user.RoleID = role.ID;
-                    _userRepository.Update(user);
-                    await _unitOfWork.CommitAsync();
-                    return NoContent();
-                } 
+                    return NotFound();
+                }
             }
         }
 
@@ -187,31 +153,14 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public IActionResult GetSubmitOfUser(string ID)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Không tồn tại user"
-                });
+                return NotFound();
             }
             else
             {
-                return Ok(new
-                {
-                    status = true,
-                    UserID = ID,
-                    data = _submissionRepository.GetSubmissionsDetail(x => x.UserID == ID).Select(x => new
-                    {
-                        ID = x.ID,
-                        Code = x.Code,
-                        Language = x.Language,
-                        Status = x.Status,
-                        ProblemID = x.SubmissionDetails.First().TestCase.ProblemID,
-                        CreatedAt = x.CreatedAt
-                    })
-                });
+                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_userService.GetSubmitOfUser(ID)));
             }
         }
     }

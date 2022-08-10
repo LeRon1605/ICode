@@ -1,22 +1,11 @@
 ﻿using API.Filter;
 using API.Helper;
-using API.Models.DTO;
 using API.Models.Entity;
-using API.Repository;
 using API.Services;
 using CodeStudy.Models;
 using Google.Apis.Auth;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -27,21 +16,11 @@ namespace API.Controllers
     {
         private readonly IUserService _userSerivce;
         private readonly ITokenService _tokenService;
-        private readonly IUserRepository _userRepository;
-        private readonly IRoleRepository _roleRepository;
-        private readonly ITokenRepository _tokenRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly TokenProvider _tokenProvider;
         private readonly IMail _mail;
-        public AuthController(IUserService userService, ITokenService tokenSerivce,TokenProvider tokenProvider, IUnitOfWork unitOfWork, IUserRepository userRepository, IRoleRepository roleRepository, ITokenRepository tokenRepository, IMail mail)
+        public AuthController(IUserService userService, ITokenService tokenSerivce, IMail mail)
         {
             _userSerivce = userService;
             _tokenService = tokenSerivce;
-            _tokenProvider = tokenProvider;
-            _unitOfWork = unitOfWork;
-            _tokenRepository = tokenRepository;
-            _userRepository = userRepository;
-            _roleRepository = roleRepository;
             _mail = mail;
         }
         [HttpPost("register")]
@@ -66,9 +45,9 @@ namespace API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginUser input)
+        public async Task<IActionResult> Login(LoginUser input, [FromServices] ILocalAuth authHandler)
         {
-            User user = _userSerivce.Login(input.Name, input.Password, new LocalAuth());
+            User user = _userSerivce.Login(input.Name, input.Password, authHandler);
             if (user == null)
             {
                 return NotFound(new
@@ -153,7 +132,7 @@ namespace API.Controllers
 
         [HttpPost("google-signin")]
         [QueryConstraint(Key = "tokenID")]
-        public async Task<IActionResult> SignInWithGoogle(string tokenID)
+        public async Task<IActionResult> SignInWithGoogle(string tokenID, [FromServices] IGoogleAuth authHandler)
         {
             GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings
             {
@@ -161,7 +140,7 @@ namespace API.Controllers
             };
 
             GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(tokenID, settings);
-            User user = _userSerivce.Login(payload.Email, "password_default", new GoogleAuth());
+            User user = _userSerivce.Login(payload.Email, Constant.PASSWORD_DEFAULT, authHandler);
             if (user == null)
             {
                 user = await _userSerivce.AddGoogle(payload.Email, payload.Name);

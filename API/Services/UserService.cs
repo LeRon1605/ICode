@@ -19,17 +19,25 @@ namespace API.Services
         User FindByName(string name);
         User FindById(string id);
         Task<bool> ChangePassword(User user, string token, string password);
+        IEnumerable<User> GetAll();
+        Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword);
+        Task<bool> Update(User user, UserUpdate input);
+        Task Remove(User user);
+        Task<bool> UpdateRole(User user, string role);
+        IEnumerable<Submission> GetSubmitOfUser(string Id);
 
     }
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ISubmissionRepository _submissionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRoleRepository _roleRepository;
-        public UserService(IUserRepository userRepository, IRoleRepository roleRepository, IUnitOfWork unitOfWork)
+        public UserService(IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository,IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
+            _submissionRepository = submissionRepository;
             _unitOfWork = unitOfWork;
         }
         public async Task Add(RegisterUser input)
@@ -54,7 +62,7 @@ namespace API.Services
             {
                 ID = Guid.NewGuid().ToString(),
                 Email = email,
-                Password = Encryptor.MD5Hash("password_default"),
+                Password = Encryptor.MD5Hash(Constant.PASSWORD_DEFAULT),
                 Username = name,
                 CreatedAt = DateTime.Now,
                 Type = AccountType.Google,
@@ -97,9 +105,59 @@ namespace API.Services
         {
             return _userRepository.FindSingle(user => (user.Username == name || user.Email == name) && user.Type == AccountType.Local);
         }
+
+        public IEnumerable<User> GetAll()
+        {
+            return _userRepository.FindAll();
+        }
+
+        public async Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword)
+        {
+            return await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
+        }
+
+        public IEnumerable<Submission> GetSubmitOfUser(string Id)
+        {
+            return _submissionRepository.GetSubmissionsDetail(x => x.UserID == Id);
+        }
+
         public User Login(string name, string password, IAuth auth)
         {
             return _userRepository.GetUserWithRole(auth.Login(name, password));
+        }
+
+        public async Task Remove(User user)
+        {
+            _userRepository.Remove(user);
+            await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<bool> Update(User user, UserUpdate input)
+        {
+            if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
+            {
+                return false;
+            }
+            user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
+            user.UpdatedAt = DateTime.Now;
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateRole(User user, string role)
+        {
+            Role entity = _roleRepository.findByName(role);
+            if (entity == null)
+            {
+                return false;
+            }
+            else
+            {
+                user.RoleID = entity.ID;
+                _userRepository.Update(user);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
         }
     }
 }

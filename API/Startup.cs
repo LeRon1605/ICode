@@ -81,6 +81,10 @@ namespace API
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<ITagService, TagService>();
+            services.AddSingleton<ILocalAuth, LocalAuth>();
+            services.AddSingleton<IGoogleAuth, GoogleAuth>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITokenRepository, TokenRepository>();
