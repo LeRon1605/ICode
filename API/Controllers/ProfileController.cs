@@ -1,5 +1,6 @@
 ﻿using API.Models.Entity;
 using API.Repository;
+using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -17,19 +18,17 @@ namespace API.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        public ProfileController(IUserRepository userRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public ProfileController(IUserService userService, IMapper mapper)
         {
-            _userRepository = userRepository;
-            _unitOfWork = unitOfWork;
+            _userService = userService;
             _mapper = mapper;
         }
         [HttpGet]
         public IActionResult GetProfile()
         {
-            User user = _userRepository.FindSingle(user => user.ID == User.FindFirst("ID").Value);
+            User user = _userService.FindById(User.FindFirst("ID").Value);
             if (user == null)
             {
                 return NotFound();
@@ -39,23 +38,41 @@ namespace API.Controllers
         [HttpPut]
         public async Task<IActionResult> Update(UserUpdate input)
         {
-            User user = _userRepository.FindSingle(user => user.ID == User.FindFirst("ID").Value);
+            User user = _userService.FindById(User.FindFirst("ID").Value);
             if (user == null)
             {
                 return NotFound();
             }
-            if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
-            {
-                return Conflict(new
-                {
-                    status = false,
-                    message = "Username đã tồn tại không thể cập nhật"
-                });
-            }
-            user.Username = input.Username;
-            user.UpdatedAt = DateTime.Now;
-            await _unitOfWork.CommitAsync();
+            await _userService.Update(user, input);
             return Ok(_mapper.Map<User, UserDTO>(user));
+        }
+
+        [HttpGet("submissions")]
+        public IActionResult GetProblemOfUser()
+        {
+            User user = _userService.FindById(User.FindFirst("ID").Value);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value)));
+            }
+        }
+
+        [HttpGet("submissions")]
+        public IActionResult GetSubmitOfUser()
+        {
+            User user = _userService.FindById(User.FindFirst("ID").Value);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_userService.GetSubmitOfUser(User.FindFirst("ID").Value)));
+            }
         }
     }
 }

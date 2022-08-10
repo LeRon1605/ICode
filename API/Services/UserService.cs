@@ -13,12 +13,14 @@ namespace API.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IProblemRepository _problemRepository;
         private readonly ISubmissionRepository _submissionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRoleRepository _roleRepository;
-        public UserService(IUserRepository userRepository, IRoleRepository roleRepository, ISubmissionRepository submissionRepository,IUnitOfWork unitOfWork)
+        public UserService(IUserRepository userRepository, IProblemRepository problemRepository,IRoleRepository roleRepository, ISubmissionRepository submissionRepository,IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
+            _problemRepository = problemRepository;
             _roleRepository = roleRepository;
             _submissionRepository = submissionRepository;
             _unitOfWork = unitOfWork;
@@ -97,6 +99,11 @@ namespace API.Services
         public async Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword)
         {
             return await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
+        }
+
+        public IEnumerable<Problem> GetProblemCreatedByUser(string Id)
+        {
+            return _problemRepository.FindMulti(problem => problem.ArticleID == Id);
         }
 
         public IEnumerable<Submission> GetSubmitOfUser(string Id)

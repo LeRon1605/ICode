@@ -23,5 +23,6 @@ namespace API.Services
         Task Remove(User user);
         Task<bool> UpdateRole(User user, string role);
         IEnumerable<Submission> GetSubmitOfUser(string Id);
+        IEnumerable<Problem> GetProblemCreatedByUser(string Id);
     }
 }
