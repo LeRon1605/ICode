@@ -97,16 +97,11 @@ namespace API.Services
             };
         }
 
-        public string validateToken(string accessToken)
+        public string ValidateToken(string accessToken)
         {
             string jwtId = null;
             _tokenProvider.ValidateToken(accessToken, ref jwtId);
             return jwtId;
-        }
-
-        public string ValidateToken(string accessToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }

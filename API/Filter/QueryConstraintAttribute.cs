@@ -21,7 +21,6 @@ namespace API.Filter
                 {
                     context.Result = new BadRequestObjectResult(new
                     {
-                        status = false,
                         message = $"Invalid {Key}"
                     });
                     return;
@@ -31,7 +30,6 @@ namespace API.Filter
             {
                 context.Result = new BadRequestObjectResult(new
                 {
-                    status = false,
                     message = $"{Key} Required"
                 });
                 return;

@@ -15,6 +15,7 @@ namespace API.Mapper
         {
             CreateMap<User, UserDTO>();
             CreateMap<Tag, TagDTO>();
+            CreateMap<Role, RoleDTO>();
             CreateMap<Submission, SubmissionDTO>();
             CreateMap<SubmissionDetail, SubmissionDetailDTO>();
             CreateMap<Problem, ProblemDTO>()

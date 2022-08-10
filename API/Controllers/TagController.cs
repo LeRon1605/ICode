@@ -2,6 +2,7 @@
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -18,50 +19,37 @@ namespace API.Controllers
     [ApiController]
     public class TagController : ControllerBase
     {
-        private readonly ITagRepository _tagRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ITagService _tagService;
         private readonly IMapper _mapper;
-        public TagController(IUnitOfWork unitOfWork, ITagRepository tagRepository, IMapper mapper)
+        public TagController(ITagService tagService, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _tagRepository = tagRepository;
+            _tagService = tagService;
             _mapper = mapper;
         }
         [HttpGet("search")]
         public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
         {
-            PagingList<Tag> list = await _tagRepository.GetPageAsync(page, pageSize, tag => tag.Name.Contains(keyword));
+            PagingList<Tag> list = await _tagService.GetPageAsync(page, pageSize, keyword);
             return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
         }
         [HttpGet]
         public IActionResult GetAll()
         {
-            return Ok(_mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagRepository.FindAll()));
+            return Ok(_mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagService.GetAll()));
         }
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(TagInput input)
         {
-            if (_tagRepository.isExist(tag => tag.Name == input.Name))
+            if (_tagService.Exist(input.Name))
             {
-                return Conflict(new
-                {
-                    status = false,
-                    message = $"Tag với tên '{input.Name}' đã tồn tại"
-                });
+                return Conflict();
             }
             else
             {
-                Tag tag = new Tag
-                {
-                    ID = Guid.NewGuid().ToString(),
-                    Name = input.Name,
-                    CreatedAt = DateTime.Now
-                };
-                await _tagRepository.AddAsync(tag);
-                await _unitOfWork.CommitAsync();
-                return CreatedAtAction("GetByID", "Tag", new { id = tag.ID }, new { status = true, message = "Tạo mới tag thành công" });
+                await _tagService.Add(input.Name);
+                return Ok();
             }
         }   
         [HttpGet("{ID}")]
@@ -69,20 +57,12 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
-            Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
+            Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Tag not found"
-                });
+                return NotFound();
             }
-            return Ok(new
-            {
-                status = true,
-                data = _mapper.Map<Tag, TagDTO>(tag)
-            });
+            return Ok(_mapper.Map<Tag, TagDTO>(tag));
         }    
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
@@ -90,30 +70,18 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Update(string ID, TagInput input)
         {
-            Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
+            Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Tag not found"
-                });
-            }    
-            if (_tagRepository.isExist(tag => tag.Name == input.Name))
+                return NotFound();
+            }
+            if (await _tagService.Update(tag, input.Name))
             {
-                return Conflict(new
-                {
-                    status = false,
-                    message = $"Tag với tên '{input.Name}' đã tồn tại"
-                });
+                return NoContent();
             }
             else
             {
-                tag.Name = input.Name;
-                tag.UpdatedAt = DateTime.Now;
-                _tagRepository.Update(tag);
-                await _unitOfWork.CommitAsync();
-                return NoContent();
+                return Conflict();
             }
         }
         [HttpDelete("{ID}")]
@@ -122,49 +90,27 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Delete(string ID)
         {
-            Tag tag = _tagRepository.FindSingle(x => x.ID == ID);
+            Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Tag not found"
-                });
+                return NotFound();
             }
-            _tagRepository.Remove(tag);
-            await _unitOfWork.CommitAsync();
+            await _tagService.Remove(tag);
             return NoContent();
         }
         [HttpGet("{ID}/problems")]
         [QueryConstraint(Key = "ID")]
         public IActionResult GetProblemOfTag(string ID)
         {
-            Tag tag = _tagRepository.GetTagWithProblem(x => x.ID == ID);
+            Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Tag not found"
-                });
+                return NotFound();
             }
             return Ok(new
             {
-                status = true,
-                data = new
-                {
-                    tagID = tag.ID, 
-                    Name = tag.Name,
-                    problems = tag.Problems.Select(x => new 
-                    {
-                        ID = x.ID,
-                        Name = x.Name,
-                        Description = x.Description,
-                        ArticleID = x.ArticleID,
-                        CreatedAt = x.CreatedAt,
-                        UpdatedAt = x.UpdatedAt
-                    })
-                }
+                tag = _mapper.Map<Tag, TagDTO>(tag),
+                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_tagService.GetProblemOfTag(ID))
             });
         }
     }
