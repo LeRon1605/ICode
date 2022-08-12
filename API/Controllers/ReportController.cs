@@ -2,6 +2,8 @@
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using API.Services;
+using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,14 +19,14 @@ namespace API.Controllers
     [ApiController]
     public class ReportController : ControllerBase
     {
-        private readonly IReportRepository _reportRepository;
-        private readonly IReplyRepository _replyRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        public ReportController(IUnitOfWork unitOfWork, IReportRepository reportRepository, IReplyRepository replyRepository)
+        private readonly IProblemService _problemService;
+        private readonly IReportService _reportService;
+        private readonly IMapper _mapper;
+        public ReportController(IReportService reportService, IProblemService problemService, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _reportRepository = reportRepository;
-            _replyRepository = replyRepository;
+            _reportService = reportService;
+            _problemService = problemService;
+            _mapper = mapper;
         }
         [HttpGet]
         [Authorize]
@@ -32,39 +34,11 @@ namespace API.Controllers
         {
             if (User.FindFirst("Role")?.Value == "Admin")
             {
-                return Ok(new
-                {
-                    status = true,
-                    data = _reportRepository.GetReportsDetail().Select(x => new
-                    {
-                        ID = x.ID,
-                        Content = x.Content,
-                        Title = x.Title,
-                        ProblemID = x.ProblemID,
-                        UserID = x.UserID,
-                        CreatedAt = x.CreatedAt,
-                        UpdatedAt = x.UpdatedAt,
-                        Reply = x.Reply == null ? null : new { Content = x.Reply.Content, CreatedAt = x.Reply.CreatedAt, UpdatedAt = x.Reply.UpdatedAt }
-                    })
-                });
+                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetAll()));
             }
             else
             {
-                string userID = User.FindFirst("ID")?.Value;
-                return Ok(new
-                {
-                    status = true,
-                    data = _reportRepository.GetReportsDetail(x => x.UserID == userID).Select(x => new
-                    {
-                        ID = x.ID,
-                        Content = x.Content,
-                        Title = x.Title,
-                        ProblemID = x.ProblemID,
-                        CreatedAt = x.CreatedAt,
-                        UpdatedAt = x.UpdatedAt,
-                        Reply = x.Reply == null ? null : new { Content = x.Reply.Content, CreatedAt = x.Reply.CreatedAt, UpdatedAt = x.Reply.UpdatedAt }
-                    })
-                });
+                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportsOfUser(User.FindFirst("ID").Value)));
             }  
         }
         [HttpGet("{ID}")]
@@ -72,31 +46,14 @@ namespace API.Controllers
         [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
-            Report report = _reportRepository.FindSingle(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }    
             if (report.UserID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
-                return Ok(new
-                {
-                    status = true,
-                    data = new 
-                    {
-                        ID = report.ID,
-                        Title = report.Title,
-                        Content = report.Content,
-                        UserID = report.UserID,
-                        ProblemID = report.ProblemID,
-                        CreatedAt = report.CreatedAt,
-                        UpdatedAt = report.UpdatedAt
-                    }
-                });
+                return Ok(_mapper.Map<Report, ReportDTO>(report));
             }
             else
             {
@@ -109,22 +66,14 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, ReportInput input)
         {
-            Report report = _reportRepository.FindSingle(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }
             if (report.UserID == User.FindFirst("ID").Value)
             {
-                report.Title = input.Title;
-                report.Content = input.Content;
-                report.UpdatedAt = DateTime.Now;
-                _reportRepository.Remove(report);
-                await _unitOfWork.CommitAsync();
+                await _reportService.Update(report, input);
                 return NoContent();
             }
             else
@@ -138,19 +87,14 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            Report report = _reportRepository.FindSingle(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }
             if (report.UserID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
-                _reportRepository.Remove(report);
-                await _unitOfWork.CommitAsync();
+                await _reportService.Remove(report);
                 return NoContent();
             }
             else
@@ -164,35 +108,20 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Reply(string ID, ReplyInput input)
         {
-            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }
-            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
-                if (report.Reply == null)
+                if (await _reportService.Reply(report, input))
                 {
-                    report.Reply = new Reply
-                    {
-                        Content = input.Content,
-                        CreatedAt = DateTime.Now,
-                    };
-                    _reportRepository.Update(report);
-                    await _unitOfWork.CommitAsync();
                     return NoContent();
                 }
                 else
                 {
-                    return Conflict(new 
-                    { 
-                        status = false,
-                        message = "Đã reply cho report này"
-                    });
+                    return Conflict();
                 }
                 
             }
@@ -207,32 +136,23 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateReply(string ID, ReplyInput input)
         {
-            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }
-            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
-                if (report.Reply == null)
+                if (await _reportService.UpdateReply(report, input))
                 {
-                    return NotFound(new
-                    {
-                        status = false,
-                        message = "Không tồn tại reply"
-                    });
+                    return NoContent();
                 }
                 else
                 {
-                    report.Reply.Content = input.Content;
-                    report.Reply.UpdatedAt = DateTime.Now;
-                    _reportRepository.Update(report);
-                    await _unitOfWork.CommitAsync();
-                    return NoContent();
+                    return NotFound(new
+                    {
+                        message = "Không tồn tại reply"
+                    });
                 }
             }
             else
@@ -246,30 +166,23 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteReply(string ID)
         {
-            Report report = _reportRepository.GetReportWithProblem(x => x.ID == ID);
+            Report report = _reportService.FindByID(ID);
             if (report == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Report Not Found"
-                });
+                return NotFound();
             }
-            if (report.Problem.ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
+            if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst("ID").Value || User.FindFirst("Role").Value == "Admin")
             {
-                if (report.Reply == null)
+                if (await _reportService.RemoveReply(report))
                 {
-                    return NotFound(new
-                    {
-                        status = false,
-                        message = "Không tồn tại reply"
-                    });
+                    return NoContent();
                 }
                 else
                 {
-                    _replyRepository.Remove(report.Reply);
-                    await _unitOfWork.CommitAsync();
-                    return NoContent();
+                    return NotFound(new
+                    {
+                        message = "Không tồn tại reply"
+                    });
                 }
             }
             else
