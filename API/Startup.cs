@@ -83,6 +83,8 @@ namespace API
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ITagService, TagService>();
+            services.AddScoped<ITestcaseService, TestcaseService>();
+            services.AddScoped<ISubmissionService, SubmissionService>();
             services.AddScoped<IProblemService, ProblemService>();
             services.AddScoped<IReportService, ReportService>();
             services.AddSingleton<ILocalAuth, LocalAuth>();

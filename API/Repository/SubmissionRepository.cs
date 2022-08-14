@@ -11,6 +11,7 @@ namespace API.Repository
 {
     public interface ISubmissionRepository: IRepository<Submission>
     {
+        Submission GetSubmissionDetailSingle(Expression<Func<Submission, bool>> expression);
         IEnumerable<Submission> GetSubmissionsDetail(Expression<Func<Submission, bool>> expression = null);
         IEnumerable<Submission> GetSubmissionsOfProblem(string problemID, Expression<Func<Submission, bool>> expression = null);
     }
@@ -19,6 +20,11 @@ namespace API.Repository
         public SubmissionRepository(ICodeDbContext context): base(context)
         {
 
+        }
+
+        public Submission GetSubmissionDetailSingle(Expression<Func<Submission, bool>> expression)
+        {
+            return _context.Submissions.Include(x => x.SubmissionDetails).FirstOrDefault(expression);
         }
 
         public IEnumerable<Submission> GetSubmissionsDetail(Expression<Func<Submission, bool>> expression = null)

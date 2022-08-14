@@ -2,6 +2,7 @@
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
+using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -18,49 +19,43 @@ namespace API.Controllers
     [ApiController]
     public class SubmissionController : ControllerBase
     {
-        private readonly ISubmissionRepository _submissionRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISubmissionService _submissionService;
         private readonly IMapper _mapper;
-        public SubmissionController(IUnitOfWork unitOfWork, ISubmissionRepository submissionRepository, IMapper mapper)
+        public SubmissionController(ISubmissionService submissionService, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
-            _submissionRepository = submissionRepository;
+            _submissionService = submissionService;
             _mapper = mapper;
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
-            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.FindAll()));
+            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll()));
         }
         [HttpGet("search")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Find(int page, int pageSize, bool? status = null, string keyword = "")
         {
-            PagingList<Submission> list = await _submissionRepository.GetPageAsync(page, pageSize, submission => (keyword == "" || submission.User.Username.Contains(keyword)) && (status == null || submission.Status == status), submission => submission.SubmissionDetails);
+            PagingList<Submission> list = await _submissionService.GetPageAsync(page, pageSize, status, keyword);
             return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
         }
         [HttpGet("{ID}")]
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Submission submission = _submissionRepository.GetSubmissionsDetail(x => x.ID == ID).FirstOrDefault();
+            Submission submission = _submissionService.FindById(ID);
             if (submission == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Not found"
-                });
+                return NotFound();
             }
             else
             {
-                if (User.FindFirst("Role")?.Value == "Admin" || submission.UserID == User.FindFirst("ID")?.Value)
+                if (User.FindFirst("Role").Value == "Admin" || submission.UserID == User.FindFirst("ID").Value)
                 {
                     return Ok(new
                     {
                         submission = _mapper.Map<Submission, SubmissionDTO>(submission),
-                        detail = _mapper.Map<IEnumerable<SubmissionDetail>, IEnumerable<SubmissionDetailDTO>>(submission.SubmissionDetails)
+                        detail = _mapper.Map<IEnumerable<SubmissionDetail>, IEnumerable<SubmissionDetailDTO>>(_submissionService.GetDetail(ID))
                     });
                 }
                 else
@@ -74,24 +69,15 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            Submission submission = _submissionRepository.FindSingle(x => x.ID == ID);
+            Submission submission = _submissionService.FindById(ID);
             if (submission == null)
             {
-                return NotFound(new
-                {
-                    status = false,
-                    message = "Not found"
-                });
+                return NotFound();
             }
             else
             {
-                _submissionRepository.Remove(submission);
-                await _unitOfWork.CommitAsync();
-                return Ok(new
-                {
-                    status = true,
-                    message = "Delete successfully"
-                });
+                await _submissionService.Remove(submission);
+                return Ok();
             }
         }
     }
