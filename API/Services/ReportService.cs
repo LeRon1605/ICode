@@ -19,17 +19,8 @@ namespace API.Services
             _replyRepository = replyRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task Add(ReportInput input, string authorID, string problemID)
+        public async Task Add(Report report)
         {
-            Report report = new Report
-            {
-                ID = Guid.NewGuid().ToString(),
-                Content = input.Content,
-                Title = input.Title,
-                ProblemID = problemID,
-                UserID = authorID,
-                CreatedAt = DateTime.Now,
-            };
             await _reportRepository.AddAsync(report);
             await _unitOfWork.CommitAsync();
         }

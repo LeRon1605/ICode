@@ -18,10 +18,11 @@ namespace API.Mapper
             CreateMap<Role, RoleDTO>();
             CreateMap<Report, ReportDTO>();
             CreateMap<Reply, ReplyDTO>();
+            CreateMap<TestCase, TestcaseDTO>();
             CreateMap<Submission, SubmissionDTO>();
             CreateMap<SubmissionDetail, SubmissionDetailDTO>();
             CreateMap<Problem, ProblemDTO>()
-                .ForMember(dest => dest.Author, otp => otp.MapFrom(src => src.Article));
+                .ForMember(dest => dest.AuthorId, otp => otp.MapFrom(src => src.ArticleID));
 
             CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();
             CreateMap<PagingList<User>, PagingList<UserDTO>>();

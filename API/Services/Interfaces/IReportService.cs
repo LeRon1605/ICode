@@ -8,7 +8,7 @@ namespace API.Services
     public interface IReportService
     {
         Report FindByID(string ID);
-        Task Add(ReportInput input, string authorID, string problemID);
+        Task Add(Report report);
         Task Update(Report report, ReportInput input);
         Task Remove(Report report);
         Task<bool> Reply(Report report, ReplyInput input);

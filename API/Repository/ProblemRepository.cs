@@ -24,18 +24,18 @@ namespace API.Repository
 
         public Problem GetProblemDetail(Expression<Func<Problem, bool>> expression)
         {
-            return _context.Problems.Include(x => x.Article).Include(x => x.Tags).FirstOrDefault(expression);
+            return _context.Problems.Include(x => x.Tags).FirstOrDefault(expression);
         }
 
         public IEnumerable<Problem> GetProblemDetailMulti(Expression<Func<Problem, bool>> expression)
         {
             if (expression == null)
             {
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags);
+                return _context.Problems.Include(x => x.Tags);
             }
             else
             {
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(expression);
+                return _context.Problems.Include(x => x.Tags).Where(expression);
             }
         }
 

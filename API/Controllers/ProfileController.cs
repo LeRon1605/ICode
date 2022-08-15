@@ -19,10 +19,12 @@ namespace API.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ISubmissionService _submissionService;
         private readonly IMapper _mapper;
-        public ProfileController(IUserService userService, IMapper mapper)
+        public ProfileController(IUserService userService, ISubmissionService submissionService,IMapper mapper)
         {
             _userService = userService;
+            _submissionService = submissionService;
             _mapper = mapper;
         }
         [HttpGet]
@@ -47,7 +49,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
-        [HttpGet("submissions")]
+        [HttpGet("problems")]
         public IActionResult GetProblemOfUser()
         {
             User user = _userService.FindById(User.FindFirst("ID").Value);
@@ -71,7 +73,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_userService.GetSubmitOfUser(User.FindFirst("ID").Value)));
+                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value)));
             }
         }
     }

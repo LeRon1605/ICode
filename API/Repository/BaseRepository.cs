@@ -71,7 +71,7 @@ namespace API.Repository
             return Task.FromResult(new PagingList<T>
             {
                 Page = page,
-                TotalPage = (int)Math.Floor( data.Count() / page * 1.0),
+                TotalPage = (int)Math.Floor( data.Count() / pageSize * 1.0),
                 Data = data.Skip(pageSize * (page - 1)).Take(pageSize)
             });
         }

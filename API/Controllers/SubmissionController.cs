@@ -33,6 +33,8 @@ namespace API.Controllers
             return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll()));
         }
         [HttpGet("search")]
+        [QueryConstraint(Key = "page")]
+        [QueryConstraint(Key = "pageSize")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Find(int page, int pageSize, bool? status = null, string keyword = "")
         {

@@ -31,6 +31,8 @@ namespace API.Controllers
         }
 
         [HttpGet("search")]
+        [QueryConstraint(Key = "page")]
+        [QueryConstraint(Key = "pageSize")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
         {

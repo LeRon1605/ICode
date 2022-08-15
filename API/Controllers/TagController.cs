@@ -27,6 +27,8 @@ namespace API.Controllers
             _mapper = mapper;
         }
         [HttpGet("search")]
+        [QueryConstraint(Key = "page")]
+        [QueryConstraint(Key = "pageSize")]
         public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
         {
             PagingList<Tag> list = await _tagService.GetPageAsync(page, pageSize, keyword);
