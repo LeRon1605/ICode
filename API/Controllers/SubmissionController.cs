@@ -1,16 +1,13 @@
 ﻿using API.Filter;
+using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
-using API.Repository;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -26,12 +23,14 @@ namespace API.Controllers
             _submissionService = submissionService;
             _mapper = mapper;
         }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
         {
             return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll()));
         }
+
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
         [QueryConstraint(Key = "pageSize")]
@@ -41,6 +40,7 @@ namespace API.Controllers
             PagingList<Submission> list = await _submissionService.GetPageAsync(page, pageSize, status, keyword);
             return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
         }
+
         [HttpGet("{ID}")]
         [Authorize]
         public IActionResult GetByID(string ID)
@@ -48,11 +48,15 @@ namespace API.Controllers
             Submission submission = _submissionService.FindById(ID);
             if (submission == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Submission does not exist."
+                });
             }
             else
             {
-                if (User.FindFirst("Role").Value == "Admin" || submission.UserID == User.FindFirst("ID").Value)
+                if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN || submission.UserID == User.FindFirst(Constant.ID).Value)
                 {
                     return Ok(new
                     {
@@ -66,6 +70,7 @@ namespace API.Controllers
                 }
             }
         }
+
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
@@ -74,7 +79,11 @@ namespace API.Controllers
             Submission submission = _submissionService.FindById(ID);
             if (submission == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Submission does not exist."
+                });
             }
             else
             {

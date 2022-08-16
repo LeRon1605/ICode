@@ -25,8 +25,8 @@ namespace API.Filter
                 }
                 context.Result = new BadRequestObjectResult(new 
                 { 
-                    message = "Validation Error",
-                    details = list
+                    error = "Validation error.",
+                    detail = list
                 });
                 return;
             }

@@ -1,14 +1,12 @@
 ﻿using API.Filter;
+using API.Helper;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -20,12 +18,14 @@ namespace API.Controllers
         private readonly ITestcaseService _testcaseService;
         private readonly IProblemService _problemService;
         private readonly IMapper _mapper;
+
         public TestcaseController(ITestcaseService testcaseService, IProblemService problemService, IMapper mapper)
         {
             _testcaseService = testcaseService;
             _problemService = problemService;
             _mapper = mapper;
         }
+
         [HttpGet("{ID}")]
         [Authorize]
         public IActionResult GetTestcaseByID(string ID)
@@ -33,16 +33,24 @@ namespace API.Controllers
             TestCase testcase = _testcaseService.FindById(ID);
             if (testcase == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Testcase does not exist."
+                });
             }
             else
             {
                 Problem problem = _problemService.FindByID(testcase.ProblemID);
                 if (problem == null)
                 {
-                    return NotFound();
+                    return NotFound(new ErrorResponse
+                    {
+                        error = "Resource not found.",
+                        detail = "Problem does not exist."
+                    });
                 }
-                if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+                if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
                 {
                     return Ok(_mapper.Map<TestCase, TestcaseDTO>(testcase));
                 }
@@ -50,9 +58,9 @@ namespace API.Controllers
                 {
                     return Forbid();
                 }
-
             }
         }
+
         [HttpPut("{ID}")]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
@@ -61,16 +69,24 @@ namespace API.Controllers
             TestCase testcase = _testcaseService.FindById(ID);
             if (testcase == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Testcase does not exist."
+                });
             }
             else
             {
                 Problem problem = _problemService.FindByID(testcase.ProblemID);
                 if (problem == null)
                 {
-                    return NotFound();
+                    return NotFound(new ErrorResponse
+                    {
+                        error = "Resource not found.",
+                        detail = "Problem does not exist."
+                    });
                 }
-                if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+                if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
                 {
                     await _testcaseService.Update(ID, input);
                     return NoContent();
@@ -81,6 +97,7 @@ namespace API.Controllers
                 }
             }
         }
+
         [HttpDelete("{ID}")]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
@@ -89,16 +106,24 @@ namespace API.Controllers
             TestCase testcase = _testcaseService.FindById(ID);
             if (testcase == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Testcase does not exist."
+                });
             }
             else
             {
                 Problem problem = _problemService.FindByID(testcase.ProblemID);
                 if (problem == null)
                 {
-                    return NotFound();
+                    return NotFound(new ErrorResponse
+                    {
+                        error = "Resource not found.",
+                        detail = "Problem does not exist."
+                    });
                 }
-                if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+                if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
                 {
                     await _testcaseService.Remove(ID);
                     return NoContent();

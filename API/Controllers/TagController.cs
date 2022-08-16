@@ -1,16 +1,12 @@
 ﻿using API.Filter;
 using API.Models.DTO;
 using API.Models.Entity;
-using API.Repository;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -26,6 +22,7 @@ namespace API.Controllers
             _tagService = tagService;
             _mapper = mapper;
         }
+
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
         [QueryConstraint(Key = "pageSize")]
@@ -34,11 +31,13 @@ namespace API.Controllers
             PagingList<Tag> list = await _tagService.GetPageAsync(page, pageSize, keyword);
             return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
         }
+
         [HttpGet]
         public IActionResult GetAll()
         {
             return Ok(_mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagService.GetAll()));
         }
+
         [HttpPost]
         [Authorize]
         [ServiceFilter(typeof(ExceptionHandler))]
@@ -46,7 +45,11 @@ namespace API.Controllers
         {
             if (_tagService.Exist(input.Name))
             {
-                return Conflict();
+                return Conflict(new ErrorResponse 
+                { 
+                    error = "Create tag failed",
+                    detail = $"Tag '{input.Name}' already exist."
+                });
             }
             else
             {
@@ -54,28 +57,36 @@ namespace API.Controllers
                 return Ok();
             }
         }   
+
         [HttpGet("{ID}")]
         [Authorize]
-        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Tag does not exist."
+                });
             }
             return Ok(_mapper.Map<Tag, TagDTO>(tag));
         }    
+
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Update(string ID, TagInput input)
         {
             Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Tag does not exist."
+                });
             }
             if (await _tagService.Update(tag, input.Name))
             {
@@ -83,31 +94,43 @@ namespace API.Controllers
             }
             else
             {
-                return Conflict();
+                return Conflict(new ErrorResponse
+                {
+                    error = "Create tag failed",
+                    detail = $"Tag '{input.Name}' already exist."
+                });
             }
         }
+
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> Delete(string ID)
         {
             Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Tag does not exist."
+                });
             }
             await _tagService.Remove(tag);
             return NoContent();
         }
+
         [HttpGet("{ID}/problems")]
-        [QueryConstraint(Key = "ID")]
         public IActionResult GetProblemOfTag(string ID)
         {
             Tag tag = _tagService.FindById(ID);
             if (tag == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Tag does not exist."
+                });
             }
             return Ok(new
             {

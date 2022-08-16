@@ -34,9 +34,9 @@ namespace API.Helper
                 audience: null,
                 claims: new Claim[]
                 {
-                    new Claim("ID", user.ID),
+                    new Claim(Constant.ID, user.ID),
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim("Role", user.Role.Name),
+                    new Claim(Constant.ROLE, user.Role.Name),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 },
                 expires: DateTime.UtcNow.AddMinutes(30),

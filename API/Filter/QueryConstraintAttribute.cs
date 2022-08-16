@@ -1,11 +1,5 @@
-﻿using API.Models.Data;
-using API.Repository;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace API.Filter
 {
@@ -21,7 +15,7 @@ namespace API.Filter
                 {
                     context.Result = new BadRequestObjectResult(new
                     {
-                        message = $"Invalid {Key}"
+                        message = $"Invalid {Key}."
                     });
                     return;
                 }
@@ -30,7 +24,7 @@ namespace API.Filter
             {
                 context.Result = new BadRequestObjectResult(new
                 {
-                    message = $"{Key} Required"
+                    message = $"The request is required to provide {Key} query."
                 });
                 return;
             }  

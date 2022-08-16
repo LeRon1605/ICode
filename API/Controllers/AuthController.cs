@@ -1,5 +1,6 @@
 ﻿using API.Filter;
 using API.Helper;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Services;
 using CodeStudy.Models;
@@ -17,30 +18,30 @@ namespace API.Controllers
         private readonly IUserService _userSerivce;
         private readonly ITokenService _tokenService;
         private readonly IMail _mail;
+
         public AuthController(IUserService userService, ITokenService tokenSerivce, IMail mail)
         {
             _userSerivce = userService;
             _tokenService = tokenSerivce;
             _mail = mail;
         }
+
         [HttpPost("register")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Register(RegisterUser input)
         {
             if (_userSerivce.Exist(input.Username, input.Email))
             {
-                return Conflict(new
+                return Conflict(new ErrorResponse
                 {
-                    message = "Tên tài khoản hoặc email đã tồn tại"
+                    error = "Register failed.",
+                    detail = "Username or email already exist."
                 });
             }
             else
             {
                 await _userSerivce.Add(input);
-                return Ok(new 
-                { 
-                    message = "Đăng kí tài khoản thành công" 
-                });
+                return Ok();
             }
         }
 
@@ -50,15 +51,15 @@ namespace API.Controllers
             User user = _userSerivce.Login(input.Name, input.Password, authHandler);
             if (user == null)
             {
-                return NotFound(new
+                return NotFound(new ErrorResponse
                 {
-                    message = "Tài khoản không tồn tại"
+                    error = "Login failed.",
+                    detail = "User doest not exist."
                 });
             }
             Token token = await _tokenService.GenerateToken(user); 
             return Ok(new 
             {
-                message = "Đăng nhập thành công",
                 access_token = token.AccessToken,
                 refresh_token = token.RefreshToken
             });
@@ -70,18 +71,20 @@ namespace API.Controllers
             string jwtId = _tokenService.ValidateToken(token.AccessToken);
             if (jwtId == null)
             {
-                return BadRequest(new 
+                return BadRequest(new ErrorResponse 
                 { 
-                    message = "Invalid Token"
+                    error = "Invalid token.",
+                    detail = "Validated acccess_token error."
                 });
             }
 
             Token newToken = await _tokenService.RefreshToken(jwtId, token.RefreshToken);
             if (newToken == null)
             {
-                return BadRequest(new 
+                return BadRequest(new ErrorResponse 
                 { 
-                    message = "Invalid refresh_token"    
+                    error = "Invalid token.",
+                    detail = "Refresh token has been used or doesn't exist."
                 });
             }
             else
@@ -100,9 +103,10 @@ namespace API.Controllers
             User user = _userSerivce.FindByName(input.Name);
             if (user == null)
             {
-                return NotFound(new
+                return NotFound(new ErrorResponse
                 {
-                    message = "Không tìm thấy user"
+                    error = "Resource not found.",
+                    detail = "User doesn't exist."
                 });
             }
             string forgetPasswordToken = await _tokenService.GenerateForgerPasswordToken(user);
@@ -118,16 +122,21 @@ namespace API.Controllers
             User user = _userSerivce.FindById(userID);
             if (user == null)
             {
-                return NotFound(new
+                return NotFound(new ErrorResponse
                 {
-                    message = "Không tìm thấy user"
+                    error = "Resource not found.",
+                    detail = "User doesn't exist."
                 });
             }
             if (await _userSerivce.ChangePassword(user, token, input.Password))
             {
                 return Ok();
             }
-            return BadRequest();
+            return BadRequest(new ErrorResponse
+            {
+                error = "Invalid token.",
+                detail = "Token incorrect or already been used."
+            });
         }
 
         [HttpPost("google-signin")]

@@ -23,12 +23,14 @@ namespace API.Controllers
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
         private readonly IMapper _mapper;
+
         public UserController(IUserService userService, IRoleService roleService, IMapper mapper)
         {
             _userService = userService;
             _roleService = roleService;
             _mapper = mapper;
         }
+
 
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
@@ -39,6 +41,7 @@ namespace API.Controllers
             PagingList<User> list = await _userService.GetPageAsync(page, pageSize, keyword);
             return Ok(_mapper.Map<PagingList<User>, PagingList<UserDTO>>(list)); 
         }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
@@ -47,15 +50,15 @@ namespace API.Controllers
         }
         [HttpGet("{ID}")]
         [Authorize]
-        [QueryConstraint(Key = "ID")]
         public IActionResult GetByID(string ID)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
+                return NotFound(new ErrorResponse
                 {
-                    message = "Không tìm thấy User"
+                    error = "Resource not found.",
+                    detail = "User does not exist."
                 });
             }
             else
@@ -66,16 +69,16 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
-        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound(new
+                return NotFound(new ErrorResponse
                 {
-                    message = "Không tồn tại user"
+                    error = "Resource not found.",
+                    detail = "User does not exist."
                 });
             }
             if (await _userService.Update(user, input))
@@ -84,9 +87,10 @@ namespace API.Controllers
             }
             else
             {
-                return Conflict(new
+                return Conflict(new ErrorResponse
                 {
-                    message = "Username đã tồn tại không thể cập nhật"
+                    error = "Update failed.",
+                    detail = "Username or email already exist."
                 });
             }
 
@@ -94,14 +98,17 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
-        [QueryConstraint(Key = "ID")]
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User does not exist."
+                });
             }
             else
             {
@@ -112,13 +119,16 @@ namespace API.Controllers
 
         [HttpGet("{ID}/role")]
         [Authorize(Roles = "Admin")]
-        [QueryConstraint(Key = "ID")]
         public IActionResult GetRole(string ID)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User does not exist."
+                });
             }
             else
             {
@@ -129,13 +139,16 @@ namespace API.Controllers
         [HttpPut("{ID}/role")]
         [Authorize(Roles = "Admin")]
         [ServiceFilter(typeof(ExceptionHandler))]
-        [QueryConstraint(Key = "ID")]
         public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User does not exist."
+                });
             }
             else
             {
@@ -145,20 +158,27 @@ namespace API.Controllers
                 }
                 else
                 {
-                    return NotFound();
+                    return NotFound(new ErrorResponse
+                    {
+                        error = "Resource not found.",
+                        detail = "Role does not exist."
+                    });
                 }
             }
         }
 
         [HttpGet("{ID}/submissions")]
         [Authorize]
-        [QueryConstraint(Key = "ID")]
         public IActionResult GetSubmitOfUser(string ID)
         {
             User user = _userService.FindById(ID);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User does not exist."
+                });
             }
             else
             {

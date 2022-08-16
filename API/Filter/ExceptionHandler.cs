@@ -21,11 +21,14 @@ namespace API.Filter
             {
                 return;
             }
-
-            var result = new ObjectResult(new
+            var result = new JsonResult(new
             {
-                status = false,
-                message = context.Exception
+                error = "Exception.",
+                detail = new 
+                {
+                    message = context.Exception.Message,
+                    stack = context.Exception.StackTrace
+                }
             });
             result.StatusCode = 500;
             context.Result = result;

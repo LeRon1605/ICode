@@ -1,4 +1,5 @@
 ﻿using API.Filter;
+using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Services;
@@ -54,11 +55,20 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(ProblemInput input)
         {
-            if (input.Tags.Any(x => _tagSerivce.FindById(x) == null))
+            IEnumerable<string> tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null);
+            if (tags != null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Create problem failed.",
+                    detail = new
+                    {
+                        message = "Tags does not exist.",
+                        value = tags
+                    }
+                });
             }
-            await _problemService.Add(input, User.FindFirst("ID").Value);
+            await _problemService.Add(input, User.FindFirst(Constant.ID).Value);
             return Ok();
         }
 
@@ -68,7 +78,10 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse { 
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
             problem.Tags = _problemService.GetTagsOfProblem(ID);
             return Ok(_mapper.Map<Problem, ProblemDTO>(problem));
@@ -82,9 +95,13 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
-            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
             {
                 await _problemService.Remove(ID);
                 return NoContent();
@@ -103,13 +120,26 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
-            if (input.Tags.Any(x => _tagSerivce.FindById(x) == null))
+            IEnumerable<string> tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null);
+            if (tags != null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Create problem failed.",
+                    detail = new
+                    {
+                        message = "Tags does not exist.",
+                        value = tags
+                    }
+                });
             }
-            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
             {
                 await _problemService.Update(ID, input);
                 return NoContent();
@@ -127,9 +157,13 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
-            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
             {
 
                 return Ok(_mapper.Map<IEnumerable<TestCase>, IEnumerable<TestcaseDTO>>(_testcaseService.GetTestcaseOfProblem(ID)));
@@ -148,9 +182,13 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
-            if (problem.ArticleID == User.FindFirst("ID")?.Value || User.FindFirst("Role")?.Value == "Admin")
+            if (problem.ArticleID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
                 await _testcaseService.Add(new TestCase
                 {
@@ -178,13 +216,17 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
             Submission submission = await _submissionService.Submit(new Submission
             {
                 ID = Guid.NewGuid().ToString(),
                 Status = false,
-                UserID = User.FindFirst("ID")?.Value,
+                UserID = User.FindFirst(Constant.ID).Value,
                 Code = input.Code,
                 Language = input.Language,
                 CreatedAt = DateTime.Now,
@@ -201,7 +243,11 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
             return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionsOfProblem(ID)));
         }
@@ -214,7 +260,11 @@ namespace API.Controllers
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
             }
             await _reportService.Add(new Report
             {
@@ -222,7 +272,7 @@ namespace API.Controllers
                 Content = input.Content,
                 Title = input.Title,
                 ProblemID = ID,
-                UserID = User.FindFirst("ID")?.Value,
+                UserID = User.FindFirst(Constant.ID).Value,
                 CreatedAt = DateTime.Now,
             });
             return Ok();
