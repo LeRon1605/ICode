@@ -136,7 +136,6 @@ namespace API
             {
                 endpoints.MapControllers();
             });
-
         }
     }
 }
