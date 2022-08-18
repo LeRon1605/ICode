@@ -1,16 +1,19 @@
 ﻿using API.Extension;
 using API.Filter;
 using API.Helper;
+using API.Migrations;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -247,6 +250,55 @@ namespace API.Controllers
             }, ID);
             
             return Ok(_mapper.Map<Submission, SubmissionDTO>(submission));
+        }
+
+        [HttpPost("{ID}/submissions")]
+        [Consumes("multipart/form-data")]
+        [Authorize]
+        [ServiceFilter(typeof(ExceptionHandler))]
+        public async Task<IActionResult> Submit(string ID, IFormFile file)
+        {
+            Problem problem = _problemService.FindByID(ID);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            if (file != null && file.Length > 0)
+            {
+                string code = null;
+                using (var stream = new StreamReader(file.OpenReadStream()))
+                {
+                    code = await stream.ReadToEndAsync();
+                };
+                if (code == null)
+                {
+                    return BadRequest(new
+                    {
+                        error = "Submit failed.",
+                        detail = "Invalid file, can't read content from file."
+                    });
+                }
+                Submission submission = await _submissionService.Submit(new Submission
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Status = false,
+                    UserID = User.FindFirst(Constant.ID).Value,
+                    Code = code,
+                    Language = "cpp",
+                    CreatedAt = DateTime.Now,
+                    SubmissionDetails = new List<SubmissionDetail>()
+                }, ID);
+                return Ok(_mapper.Map<Submission, SubmissionDTO>(submission));
+            }
+            return BadRequest(new ErrorResponse
+            {
+                error = "Submit failed.",
+                detail = "File empty."
+            });
         }
 
         [HttpGet("{ID}/submissions")]
