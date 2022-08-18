@@ -13,7 +13,8 @@ namespace API.Mapper
     {
         public AutoMapperConfiguration()
         {
-            CreateMap<User, UserDTO>();
+            CreateMap<User, UserDTO>()
+                    .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender ? "Male" : "Female"));
             CreateMap<Tag, TagDTO>();
             CreateMap<Role, RoleDTO>();
             CreateMap<Report, ReportDTO>();

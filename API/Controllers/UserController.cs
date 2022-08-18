@@ -94,11 +94,7 @@ namespace API.Controllers
                     detail = "User does not exist."
                 });
             }
-            if (await _userService.Update(user, input))
-            {
-                return Ok(_mapper.Map<User, UserDTO>(user));
-            }
-            else
+            if (_userService.Exist(input.Username, input.Username))
             {
                 return Conflict(new ErrorResponse
                 {
@@ -106,7 +102,8 @@ namespace API.Controllers
                     detail = "Username or email already exist."
                 });
             }
-
+            await _userService.Update(user, input);
+            return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
         [HttpDelete("{ID}")]

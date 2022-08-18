@@ -19,5 +19,7 @@ namespace CodeStudy.Models
         [Required(ErrorMessage = "Mật khẩu xác nhận không được để trống")]
         [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không chính xác")]
         public string ConfirmPassword { get; set; }
+        [Required(ErrorMessage = "Giới tính không được để trống")]
+        public bool Gender { get; set; }
     }
 }

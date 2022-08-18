@@ -46,6 +46,10 @@ namespace API.Models.Data
                       .IsRequired();
                 entity.Property(user => user.Email)
                       .IsRequired();
+                entity.Property(user => user.Avatar)
+                      .IsRequired();
+                entity.Property(user => user.Gender)
+                      .IsRequired();
                 entity.Property(user => user.CreatedAt)
                       .IsRequired();
                 entity.Property(user => user.UpdatedAt)

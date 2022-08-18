@@ -19,7 +19,7 @@ namespace API.Services
         Task<bool> ChangePassword(User user, string token, string password);
         IEnumerable<User> GetAll();
         Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword);
-        Task<bool> Update(User user, UserUpdate input);
+        Task Update(User user, UserUpdate input);
         Task Remove(User user);
         Task<bool> UpdateRole(User user, string role);
         IEnumerable<Submission> GetSubmitOfUser(string Id);

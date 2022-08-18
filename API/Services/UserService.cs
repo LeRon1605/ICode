@@ -33,6 +33,8 @@ namespace API.Services
                 Email = input.Email,
                 Password = Encryptor.MD5Hash(input.Password),
                 Username = input.Username,
+                Avatar = input.Gender ? Constant.MALE_AVT : Constant.FEMALE_AVT,
+                Gender = input.Gender,
                 CreatedAt = DateTime.Now,
                 Type = AccountType.Local,
                 Role = _roleRepository.FindSingle(role => role.Name == "User")
@@ -122,16 +124,11 @@ namespace API.Services
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task<bool> Update(User user, UserUpdate input)
+        public async Task Update(User user, UserUpdate input)
         {
-            if (!string.IsNullOrEmpty(input.Username) && _userRepository.isExist(user => user.Username == input.Username))
-            {
-                return false;
-            }
             user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
             user.UpdatedAt = DateTime.Now;
             await _unitOfWork.CommitAsync();
-            return true;
         }
 
         public async Task<bool> UpdateRole(User user, string role)
