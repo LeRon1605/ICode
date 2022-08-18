@@ -13,6 +13,8 @@ using API.Filter;
 using CodeStudy.Models;
 using AutoMapper;
 using API.Services;
+using Microsoft.Extensions.Caching.Distributed;
+using API.Extension;
 
 namespace API.Controllers
 {
@@ -34,9 +36,8 @@ namespace API.Controllers
 
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
-        [QueryConstraint(Key = "pageSize")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
+        public async Task<IActionResult> Find(int page, int pageSize , string keyword = "")
         {
             PagingList<User> list = await _userService.GetPageAsync(page, pageSize, keyword);
             return Ok(_mapper.Map<PagingList<User>, PagingList<UserDTO>>(list)); 
@@ -44,9 +45,21 @@ namespace API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
         {
-            return Ok(_mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userService.GetAll()));
+            IEnumerable<UserDTO> users = await cache.GetRecordAsync<IEnumerable<UserDTO>>("users");
+            bool isFromCache = true;
+            if (users == null)
+            {
+                users = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userService.GetAll());
+                await cache.SetRecordAsync("users", users);
+                isFromCache = false;
+            }
+            return Ok(new
+            {
+                data = users,
+                from = isFromCache ? "cache" : "db"
+            });
         }
         [HttpGet("{ID}")]
         [Authorize]

@@ -1,4 +1,5 @@
-﻿using API.Filter;
+﻿using API.Extension;
+using API.Filter;
 using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
@@ -9,6 +10,7 @@ using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,11 +35,17 @@ namespace API.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult GetReports()
+        public async Task<IActionResult> GetReports([FromServices] IDistributedCache cache)
         {
             if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetAll()));
+                IEnumerable<ReportDTO> reports = await cache.GetRecordAsync<IEnumerable<ReportDTO>>("reports_admin");
+                if (reports == null)
+                {
+                    reports = _mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetAll());
+                    await cache.SetRecordAsync("reports_admin", reports);
+                }
+                return Ok(reports);
             }
             else
             {

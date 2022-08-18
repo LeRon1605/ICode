@@ -1,4 +1,5 @@
-﻿using API.Filter;
+﻿using API.Extension;
+using API.Filter;
 using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
@@ -7,6 +8,7 @@ using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,15 +38,26 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
         {
-            return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.FindAll()));
+            IEnumerable<ProblemDTO> problems = await cache.GetRecordAsync<IEnumerable<ProblemDTO>>("problems");
+            bool isFromCache = true;
+            if (problems == null)
+            {
+                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.FindAll());
+                await cache.SetRecordAsync("problems", problems);
+                isFromCache = false;
+            }
+            return Ok(new
+            {
+                data = problems,
+                from = isFromCache ? "cache" : "db"
+            });
         }
 
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
-        [QueryConstraint(Key = "pageSize")]
-        public async Task<IActionResult> Find(int page, int pageSize, string tag = "", string keyword = "")
+        public async Task<IActionResult> Find(int page, int pageSize = 5, string tag = "", string keyword = "")
         {
             PagingList<Problem> list = await _problemService.GetPage(page, pageSize, tag, keyword);
             return Ok(_mapper.Map<PagingList<Problem>, PagingList<ProblemDTO>>(list));
@@ -55,8 +68,8 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(ProblemInput input)
         {
-            IEnumerable<string> tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null);
-            if (tags != null)
+            string[] tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null).ToArray();
+            if (tags.Count() > 0)
             {
                 return NotFound(new ErrorResponse
                 {
@@ -126,8 +139,8 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            IEnumerable<string> tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null);
-            if (tags != null)
+            string[] tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null).ToArray();
+            if (tags.Count() > 0)
             {
                 return NotFound(new ErrorResponse
                 {

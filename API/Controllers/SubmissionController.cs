@@ -1,4 +1,5 @@
-﻿using API.Filter;
+﻿using API.Extension;
+using API.Filter;
 using API.Helper;
 using API.Models.DTO;
 using API.Models.Entity;
@@ -7,6 +8,7 @@ using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -26,16 +28,27 @@ namespace API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
         {
-            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll()));
+            IEnumerable<SubmissionDTO> submissions = await cache.GetRecordAsync<IEnumerable<SubmissionDTO>>("submissions");
+            bool isFromCache = true;
+            if (submissions == null)
+            {
+                submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll());
+                await cache.SetRecordAsync("submission", submissions);
+                isFromCache = false;
+            }
+            return Ok(new
+            {
+                data = submissions,
+                from = isFromCache ? "cache" : "db"
+            });
         }
 
         [HttpGet("search")]
         [QueryConstraint(Key = "page")]
-        [QueryConstraint(Key = "pageSize")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Find(int page, int pageSize, bool? status = null, string keyword = "")
+        public async Task<IActionResult> Find(int page, int pageSize = 5, bool? status = null, string keyword = "")
         {
             PagingList<Submission> list = await _submissionService.GetPageAsync(page, pageSize, status, keyword);
             return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));

@@ -107,6 +107,12 @@ namespace API
 
             services.AddHttpClient();
             services.AddSwaggerGen();
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "127.0.0.1";
+                options.InstanceName = "ICode";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
