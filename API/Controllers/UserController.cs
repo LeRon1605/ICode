@@ -65,7 +65,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -85,7 +85,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -102,7 +102,7 @@ namespace API.Controllers
                     detail = "Username or email already exist."
                 });
             }
-            await _userService.Update(user, input);
+            await _userService.Update(ID, input);
             return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
@@ -111,7 +111,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -122,7 +122,7 @@ namespace API.Controllers
             }
             else
             {
-                await _userService.Remove(user);
+                await _userService.Remove(ID);
                 return NoContent();
             }
         }
@@ -131,7 +131,7 @@ namespace API.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult GetRole(string ID)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -151,7 +151,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -181,7 +181,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetSubmitOfUser(string ID)
         {
-            User user = _userService.FindById(ID);
+            User user = _userService.FindByID(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse

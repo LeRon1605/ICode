@@ -1,4 +1,5 @@
-﻿using API.Models.Entity;
+﻿using API.Migrations;
+using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
 using System;
@@ -24,11 +25,6 @@ namespace API.Services
             await _unitOfWork.CommitAsync();
         }
 
-        public TestCase FindById(string Id)
-        {
-            return _testcaseRepository.FindSingle(x => x.ID == Id);
-        }
-
         public IEnumerable<TestCase> GetTestcaseOfProblem(string problemId)
         {
             return _testcaseRepository.FindMulti(x => x.ProblemID == problemId);
@@ -37,19 +33,38 @@ namespace API.Services
         public async Task<bool> Remove(string ID)
         {
             TestCase testcase = _testcaseRepository.FindSingle(x => x.ID == ID);
-            if (testcase == null) return false;
+            if (testcase == null)
+            {
+                return false;
+            }
             _testcaseRepository.Remove(testcase);
             await _unitOfWork.CommitAsync();
             return true;
         }
-        public async Task<bool> Update(string ID, TestcaseInput input)
+
+        public TestCase FindByID(string ID)
+        {
+            return _testcaseRepository.FindSingle(testcase => testcase.ID == ID);
+        }
+
+        public IEnumerable<TestCase> GetAll()
+        {
+            return _testcaseRepository.FindAll();
+        }
+
+        public async Task<bool> Update(string ID, object entity)
         {
             TestCase testcase = _testcaseRepository.FindSingle(x => x.ID == ID);
-            if (testcase == null) return false;
-            testcase.Input = input.Input;
-            testcase.Output = input.Output;
-            testcase.MemoryLimit = input.MemoryLimit;
-            testcase.TimeLimit = input.TimeLimit;
+            if (testcase == null)
+            {
+                return false;
+            }
+            TestcaseInput data = entity as TestcaseInput;
+            testcase.Input = data.Input;
+            testcase.Output = data.Output;
+            testcase.MemoryLimit = data.MemoryLimit;
+            testcase.TimeLimit = data.TimeLimit;
+            testcase.UpdatedAt = DateTime.Now;
             _testcaseRepository.Update(testcase);
             await _unitOfWork.CommitAsync();
             return true;

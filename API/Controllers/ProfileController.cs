@@ -34,7 +34,7 @@ namespace API.Controllers
         [HttpGet]
         public IActionResult GetProfile()
         {
-            User user = _userService.FindById(User.FindFirst(Constant.ID).Value);
+            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -50,7 +50,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update([FromForm] UserUpdate input, [FromForm] IFormFile avatar, [FromServices] IUploadService uploadService)
         {
-            User user = _userService.FindById(User.FindFirst(Constant.ID).Value);
+            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -87,14 +87,14 @@ namespace API.Controllers
                     }
                 }
             }
-            await _userService.Update(user, input);
+            await _userService.Update(User.FindFirst(Constant.ID).Value, input);
             return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
         [HttpGet("problems")]
         public IActionResult GetProblemOfUser()
         {
-            User user = _userService.FindById(User.FindFirst(Constant.ID).Value);
+            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -112,7 +112,7 @@ namespace API.Controllers
         [HttpGet("submissions")]
         public IActionResult GetSubmitOfUser()
         {
-            User user = _userService.FindById(User.FindFirst(Constant.ID).Value);
+            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
             {
                 return NotFound(new ErrorResponse

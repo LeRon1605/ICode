@@ -6,6 +6,7 @@ using API.Services;
 using CodeStudy.Models;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,12 +17,14 @@ namespace API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userSerivce;
+        private readonly IRoleService _roleService;
         private readonly ITokenService _tokenService;
         private readonly IMail _mail;
 
-        public AuthController(IUserService userService, ITokenService tokenSerivce, IMail mail)
+        public AuthController(IUserService userService, IRoleService roleService, ITokenService tokenSerivce, IMail mail)
         {
             _userSerivce = userService;
+            _roleService = roleService;
             _tokenService = tokenSerivce;
             _mail = mail;
         }
@@ -40,7 +43,18 @@ namespace API.Controllers
             }
             else
             {
-                await _userSerivce.Add(input);
+                await _userSerivce.Add(new User
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Email = input.Email,
+                    Password = Encryptor.MD5Hash(input.Password),
+                    Username = input.Username,
+                    Avatar = input.Gender ? Constant.MALE_AVT : Constant.FEMALE_AVT,
+                    Gender = input.Gender,
+                    CreatedAt = DateTime.Now,
+                    Type = AccountType.Local,
+                    Role = _roleService.FindByName(Constant.USER)
+                });
                 return Ok();
             }
         }
@@ -119,7 +133,7 @@ namespace API.Controllers
         [QueryConstraint(Key = "token")]
         public async Task<IActionResult> ForgetPassword(string token, string userID, ForgetPasswordSubmit input)
         {
-            User user = _userSerivce.FindById(userID);
+            User user = _userSerivce.FindByID(userID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse

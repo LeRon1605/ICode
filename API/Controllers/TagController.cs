@@ -8,6 +8,7 @@ using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static StackExchange.Redis.Role;
@@ -67,7 +68,12 @@ namespace API.Controllers
             }
             else
             {
-                await _tagService.Add(input.Name);
+                await _tagService.Add(new Tag
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Name = input.Name,
+                    CreatedAt = DateTime.Now
+                });
                 return Ok();
             }
         }   
@@ -76,7 +82,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Tag tag = _tagService.FindById(ID);
+            Tag tag = _tagService.FindByID(ID);
             if (tag == null)
             {
                 return NotFound(new ErrorResponse
@@ -93,7 +99,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, TagInput input)
         {
-            Tag tag = _tagService.FindById(ID);
+            Tag tag = _tagService.FindByID(ID);
             if (tag == null)
             {
                 return NotFound(new ErrorResponse
@@ -102,7 +108,7 @@ namespace API.Controllers
                     detail = "Tag does not exist."
                 });
             }
-            if (await _tagService.Update(tag, input.Name))
+            if (await _tagService.Update(ID, input))
             {
                 return NoContent();
             }
@@ -121,8 +127,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            Tag tag = _tagService.FindById(ID);
-            if (tag == null)
+            if (!await _tagService.Remove(ID))
             {
                 return NotFound(new ErrorResponse
                 {
@@ -130,14 +135,13 @@ namespace API.Controllers
                     detail = "Tag does not exist."
                 });
             }
-            await _tagService.Remove(tag);
             return NoContent();
         }
 
         [HttpGet("{ID}/problems")]
         public async Task<IActionResult> GetProblemOfTag(string ID, [FromServices] IDistributedCache cache)
         {
-            Tag tag = _tagService.FindById(ID);
+            Tag tag = _tagService.FindByID(ID);
             if (tag == null)
             {
                 return NotFound(new ErrorResponse

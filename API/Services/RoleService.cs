@@ -1,4 +1,5 @@
-﻿using API.Models.Entity;
+﻿using API.Helper;
+using API.Models.Entity;
 using API.Repository;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace API.Services
     public interface IRoleService
     {
         Role FindById(string ID);
+        Role FindByName(string Name);
     }
     public class RoleService : IRoleService
     {
@@ -21,6 +23,11 @@ namespace API.Services
         public Role FindById(string ID)
         {
             return _roleRepository.FindSingle(x => x.ID == ID);
+        }
+
+        public Role FindByName(string Name)
+        {
+            return _roleRepository.FindSingle(x => x.Name == Name);
         }
     }
 }

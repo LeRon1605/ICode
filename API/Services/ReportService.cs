@@ -19,6 +19,12 @@ namespace API.Services
             _replyRepository = replyRepository;
             _unitOfWork = unitOfWork;
         }
+
+        public IEnumerable<Report> GetAll()
+        {
+            return _reportRepository.GetReportsDetail();
+        }
+
         public async Task Add(Report report)
         {
             await _reportRepository.AddAsync(report);
@@ -30,29 +36,52 @@ namespace API.Services
             return _reportRepository.GetReportsDetailSingle(x => x.ID == ID);
         }
 
-        public IEnumerable<Report> GetAll()
-        {
-            return _reportRepository.GetReportsDetail();
-        }
-
         public IEnumerable<Report> GetReportsOfUser(string userID)
         {
             return _reportRepository.GetReportsDetail(x => x.UserID == userID);
         }
 
-        public async Task Remove(Report report)
+        //public async Task Remove(Report report)
+        //{
+        //    _reportRepository.Remove(report);
+        //    await _unitOfWork.CommitAsync();
+        //}
+
+        //public async Task Update(Report report, ReportInput input)
+        //{
+        //    report.Title = input.Title;
+        //    report.Content = input.Content;
+        //    report.UpdatedAt = DateTime.Now;
+        //    _reportRepository.Update(report);
+        //    await _unitOfWork.CommitAsync();
+        //}
+
+        public async Task<bool> Remove(string ID)
         {
+            Report report = _reportRepository.FindSingle(report => report.ID == ID);
+            if (report == null)
+            {
+                return false;
+            }
             _reportRepository.Remove(report);
             await _unitOfWork.CommitAsync();
+            return true;
         }
 
-        public async Task Update(Report report, ReportInput input)
+        public async Task<bool> Update(string ID, object entity)
         {
-            report.Title = input.Title;
-            report.Content = input.Content;
+            Report report = _reportRepository.FindSingle(report => report.ID == ID);
+            if (report == null)
+            {
+                return false;
+            }
+            ReportInput data = entity as ReportInput;
+            report.Title = data.Title;
+            report.Content = data.Content;
             report.UpdatedAt = DateTime.Now;
             _reportRepository.Update(report);
             await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<bool> Reply(Report report, ReplyInput input)

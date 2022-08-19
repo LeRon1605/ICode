@@ -1,4 +1,5 @@
 ﻿using API.Helper;
+using API.Migrations;
 using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
@@ -25,22 +26,48 @@ namespace API.Services
             _submissionRepository = submissionRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task Add(RegisterUser input)
+
+
+        public IEnumerable<User> GetAll()
         {
-            User user = new User
-            {
-                ID = Guid.NewGuid().ToString(),
-                Email = input.Email,
-                Password = Encryptor.MD5Hash(input.Password),
-                Username = input.Username,
-                Avatar = input.Gender ? Constant.MALE_AVT : Constant.FEMALE_AVT,
-                Gender = input.Gender,
-                CreatedAt = DateTime.Now,
-                Type = AccountType.Local,
-                Role = _roleRepository.FindSingle(role => role.Name == "User")
-            };
-            await _userRepository.AddAsync(user);
+            return _userRepository.FindAll();
+        }
+
+        public async Task Add(User entity)
+        {
+            await _userRepository.AddAsync(entity);
             await _unitOfWork.CommitAsync();
+        }
+
+        public User FindByID(string ID)
+        {
+            return _userRepository.FindSingle(user => user.ID == ID);
+        }
+
+        public async Task<bool> Remove(string ID)
+        {
+            User user = _userRepository.FindSingle(user => user.ID == ID);
+            if (user == null)
+            {
+                return false;
+            }
+            _userRepository.Remove(user);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public async Task<bool> Update(string ID, object entity)
+        {
+            User user = _userRepository.FindSingle(user => user.ID == ID);
+            if (user == null)
+            {
+                return false;
+            }
+            UserUpdate data = entity as UserUpdate;
+            user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
+            user.UpdatedAt = DateTime.Now;
+            await _unitOfWork.CommitAsync();
+            return true;
         }
 
         public async Task<User> AddGoogle(string email, string name)
@@ -93,11 +120,6 @@ namespace API.Services
             return _userRepository.FindSingle(user => (user.Username == name || user.Email == name) && user.Type == AccountType.Local);
         }
 
-        public IEnumerable<User> GetAll()
-        {
-            return _userRepository.FindAll();
-        }
-
         public async Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword)
         {
             return await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
@@ -116,19 +138,6 @@ namespace API.Services
         public User Login(string name, string password, IAuth auth)
         {
             return _userRepository.GetUserWithRole(auth.Login(name, password));
-        }
-
-        public async Task Remove(User user)
-        {
-            _userRepository.Remove(user);
-            await _unitOfWork.CommitAsync();
-        }
-
-        public async Task Update(User user, UserUpdate input)
-        {
-            user.Username = (string.IsNullOrEmpty(input.Username)) ? user.Username : input.Username;
-            user.UpdatedAt = DateTime.Now;
-            await _unitOfWork.CommitAsync();
         }
 
         public async Task<bool> UpdateRole(User user, string role)

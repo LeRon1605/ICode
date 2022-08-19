@@ -7,14 +7,9 @@ using System.Threading.Tasks;
 
 namespace API.Services
 {
-    public interface ITagService
+    public interface ITagService: IService<Tag>
     {
         bool Exist(string name);
-        Task Add(string name);
-        Tag FindById(string Id);
-        Task Remove(Tag tag);
-        Task<bool> Update(Tag tag, string name);
-        IEnumerable<Tag> GetAll();
         Task<PagingList<Tag>> GetPageAsync(int page, int pageSize, string keyword);
         IEnumerable<Problem> GetProblemOfTag(string Id);
     }

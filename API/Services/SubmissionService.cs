@@ -23,15 +23,6 @@ namespace API.Services
             _testcaseService = testcaseService;
             _codeExecutor = codeExecutor;
         }
-        public IEnumerable<Submission> FindAll()
-        {
-            return _submissionRepository.FindAll();
-        }
-
-        public Submission FindById(string Id)
-        {
-            return _submissionRepository.FindSingle(x => x.ID == Id);
-        }
 
         public IEnumerable<SubmissionDetail> GetDetail(string Id)
         {
@@ -51,12 +42,6 @@ namespace API.Services
         public IEnumerable<Submission> GetSubmissionsOfProblem(string problemId)
         {
             return _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == problemId).Select(detail => detail.SubmitID).Contains(x.ID));
-        }
-
-        public async Task Remove(Submission submission)
-        {
-            _submissionRepository.Remove(submission);
-            await _unitOfWork.CommitAsync();
         }
 
         public async Task<Submission> Submit(Submission submission, string problemID)
@@ -100,6 +85,39 @@ namespace API.Services
             await _submissionRepository.AddAsync(submission);
             await _unitOfWork.CommitAsync();
             return submission;
+        }
+
+        public async Task Add(Submission entity)
+        {
+            await _submissionRepository.AddAsync(entity);
+            await _unitOfWork.CommitAsync();
+        }
+
+        public Submission FindByID(string ID)
+        {
+            return _submissionRepository.FindSingle(submission => submission.ID == ID);
+        }
+
+        public IEnumerable<Submission> GetAll()
+        {
+            return _submissionRepository.FindAll();
+        }
+
+        public async Task<bool> Remove(string ID)
+        {
+            Submission submission = _submissionRepository.FindSingle(submission => submission.ID == ID);
+            if (submission == null)
+            {
+                return false;
+            }
+            _submissionRepository.Remove(submission);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public Task<bool> Update(string ID, object entity)
+        {
+            throw new NotImplementedException();
         }
     }
 }

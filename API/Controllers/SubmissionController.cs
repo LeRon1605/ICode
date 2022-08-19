@@ -34,7 +34,7 @@ namespace API.Controllers
             bool isFromCache = true;
             if (submissions == null)
             {
-                submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.FindAll());
+                submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetAll());
                 await cache.SetRecordAsync("submission", submissions);
                 isFromCache = false;
             }
@@ -58,7 +58,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Submission submission = _submissionService.FindById(ID);
+            Submission submission = _submissionService.FindByID(ID);
             if (submission == null)
             {
                 return NotFound(new ErrorResponse
@@ -89,8 +89,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
-            Submission submission = _submissionService.FindById(ID);
-            if (submission == null)
+            if (!await _submissionService.Remove(ID))
             {
                 return NotFound(new ErrorResponse
                 {
@@ -100,7 +99,6 @@ namespace API.Controllers
             }
             else
             {
-                await _submissionService.Remove(submission);
                 return Ok();
             }
         }

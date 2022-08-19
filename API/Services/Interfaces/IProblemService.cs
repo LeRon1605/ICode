@@ -8,14 +8,9 @@ using System.Threading.Tasks;
 
 namespace API.Services
 {
-    public interface IProblemService
+    public interface IProblemService: IService<Problem>
     {
-        Problem FindByID(string ID);
-        IEnumerable<Problem> FindAll();
         ICollection<Tag> GetTagsOfProblem(string ID);
         Task<PagingList<Problem>> GetPage(int page, int pageSize, string tag, string keyword);
-        Task Add(ProblemInput input, string authorID);
-        Task<bool> Remove(string ID);
-        Task<bool> Update(string ID, ProblemInputUpdate input);
     }
 }

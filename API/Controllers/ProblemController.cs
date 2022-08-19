@@ -47,7 +47,7 @@ namespace API.Controllers
             bool isFromCache = true;
             if (problems == null)
             {
-                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.FindAll());
+                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.GetAll());
                 await cache.SetRecordAsync("problems", problems);
                 isFromCache = false;
             }
@@ -71,7 +71,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(ProblemInput input)
         {
-            string[] tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null).ToArray();
+            string[] tags = input.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
             if (tags.Count() > 0)
             {
                 return NotFound(new ErrorResponse
@@ -84,7 +84,26 @@ namespace API.Controllers
                     }
                 });
             }
-            await _problemService.Add(input, User.FindFirst(Constant.ID).Value);
+            Problem problem = new Problem
+            {
+                ID = Guid.NewGuid().ToString(),
+                Name = input.Name,
+                Status = false,
+                Description = input.Description,
+                ArticleID = User.FindFirst(Constant.ID).Value,
+                CreatedAt = DateTime.Now,
+                TestCases = input.TestCases.Select(x => new TestCase
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Input = x.Input,
+                    Output = x.Output,
+                    CreatedAt = DateTime.Now,
+                    MemoryLimit = x.MemoryLimit,
+                    TimeLimit = x.TimeLimit,
+                }).ToList(),
+                Tags = input.Tags.Select(x => _tagSerivce.FindByID(x)).ToList()
+            };
+            await _problemService.Add(problem);
             return Ok();
         }
 
@@ -142,7 +161,7 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            string[] tags = input.Tags.Where(x => _tagSerivce.FindById(x) == null).ToArray();
+            string[] tags = input.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
             if (tags.Count() > 0)
             {
                 return NotFound(new ErrorResponse

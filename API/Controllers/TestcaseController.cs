@@ -30,7 +30,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetTestcaseByID(string ID)
         {
-            TestCase testcase = _testcaseService.FindById(ID);
+            TestCase testcase = _testcaseService.FindByID(ID);
             if (testcase == null)
             {
                 return NotFound(new ErrorResponse
@@ -66,7 +66,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateTestcase(string ID, TestcaseInput input)
         {
-            TestCase testcase = _testcaseService.FindById(ID);
+            TestCase testcase = _testcaseService.FindByID(ID);
             if (testcase == null)
             {
                 return NotFound(new ErrorResponse
@@ -103,7 +103,7 @@ namespace API.Controllers
         [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteTestcase(string ID)
         {
-            TestCase testcase = _testcaseService.FindById(ID);
+            TestCase testcase = _testcaseService.FindByID(ID);
             if (testcase == null)
             {
                 return NotFound(new ErrorResponse

@@ -1,4 +1,5 @@
-﻿using API.Models.DTO;
+﻿using API.Migrations;
+using API.Models.DTO;
 using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
@@ -21,38 +22,11 @@ namespace API.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task Add(ProblemInput input, string authorID)
-        {
-            await _problemRepository.AddAsync(new Problem
-            {
-                ID = Guid.NewGuid().ToString(),
-                Name = input.Name,
-                Status = false,
-                Description = input.Description,
-                ArticleID = authorID,
-                CreatedAt = DateTime.Now,
-                TestCases = input.TestCases.Select(x => new TestCase
-                {
-                    ID = Guid.NewGuid().ToString(),
-                    Input = x.Input,
-                    Output = x.Output,
-                    CreatedAt = DateTime.Now,
-                    MemoryLimit = x.MemoryLimit,
-                    TimeLimit = x.TimeLimit,
-                }).ToList(),
-                Tags = input.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList()
-            });
-            await _unitOfWork.CommitAsync();
-        }
         public ICollection<Tag> GetTagsOfProblem(string ID)
         {
             return _problemRepository.GetProblemDetail(x => x.ID == ID).Tags;
         }
 
-        public IEnumerable<Problem> FindAll()
-        {
-            return _problemRepository.GetProblemDetailMulti();
-        }
 
         public Problem FindByID(string ID)
         {
@@ -73,14 +47,26 @@ namespace API.Services
             return true;
         }
 
-        public async Task<bool> Update(string ID, ProblemInputUpdate input)
+        public IEnumerable<Problem> GetAll()
+        {
+            return _problemRepository.GetProblemDetailMulti();
+        }
+
+        public async Task Add(Problem entity)
+        {
+            await _problemRepository.AddAsync(entity);
+            await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<bool> Update(string ID, object entity)
         {
             Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
             if (problem == null) return false;
-            problem.Name = input.Name;
-            problem.Description = input.Description;
-            problem.Status = input.Status;
-            problem.Tags = input.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();
+            ProblemInputUpdate data = entity as ProblemInputUpdate;
+            problem.Name = data.Name;
+            problem.Description = data.Description;
+            problem.Status = data.Status;
+            problem.Tags = data.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();
             problem.UpdatedAt = DateTime.Now;
             _problemRepository.Update(problem);
             await _unitOfWork.CommitAsync();

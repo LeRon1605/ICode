@@ -92,7 +92,7 @@ namespace API.Controllers
             }
             if (report.UserID == User.FindFirst(Constant.ID).Value)
             {
-                await _reportService.Update(report, input);
+                await _reportService.Update(ID, input);
                 return NoContent();
             }
             else
@@ -117,7 +117,7 @@ namespace API.Controllers
             }
             if (report.UserID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                await _reportService.Remove(report);
+                await _reportService.Remove(ID);
                 return NoContent();
             }
             else
