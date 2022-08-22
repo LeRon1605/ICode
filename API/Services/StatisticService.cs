@@ -2,6 +2,7 @@
 using API.Repository;
 using AutoMapper;
 using CodeStudy.Models;
+using Models;
 using Models.Statistic;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace API.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<Statistic> GetNewUser(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date;i = i.AddDays(1))
@@ -60,7 +61,7 @@ namespace API.Services
             return _userRepository.GetTopUserProductive();
         }
 
-        public IEnumerable<Statistic> GetProblemSubmitInRange(DateTime startDate, DateTime endDate, bool? state)
+        public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, bool? state)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
@@ -76,9 +77,30 @@ namespace API.Services
             return statisticList;
         }
 
-        public IEnumerable<ProblemStatistic> GetProblemSubmit()
+        public IEnumerable<ProblemStatistic> GetSubmitOfProblem()
         {
             return _problemRepository.GetHotProblem();
+        }
+
+        public IEnumerable<UserRank> GetUserRank()
+        {
+            return _userRepository.GetUserProblemSolve();
+        }
+
+        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate)
+        {
+            List<Statistic> statisticList = new List<Statistic>();
+            for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
+            {
+                IEnumerable<UserRank> data = _userRepository.GetUserProblemSolveInDay(i).ToList();
+                statisticList.Add(new Statistic
+                {
+                    Total = data.Count(),
+                    Data = data,
+                    Date = i
+                });
+            }
+            return statisticList;
         }
     }
 }

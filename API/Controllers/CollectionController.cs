@@ -7,6 +7,7 @@ using CodeStudy.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Models;
 using Models.Statistic;
 using System;
 using System.Collections.Generic;
@@ -30,17 +31,23 @@ namespace API.Controllers
         }
 
         [HttpGet("ardent-users")]
-        public async Task<IActionResult> GetTopUser(DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> GetTopArdentUser(DateTime? startDate, DateTime? endDate)
         {
             if (startDate == null || endDate == null)
             {
-                IEnumerable<SubmissionStatistic> data = await _cache.GetRecordAsync<IEnumerable<SubmissionStatistic>>("ardent-users");
-                if (data == null)
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>("ardent-users");
+                if (cache_data == null)
                 {
-                    data = _statisticService.GetUserSubmit();
-                    await _cache.SetRecordAsync("ardent-user", data, TimeSpan.FromMinutes(5));
+                    cache_data = new CacheData
+                    {
+                        RecordID = "ardent-users",
+                        Data = _statisticService.GetUserSubmit(),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(5)
+                    };
+                    await _cache.SetRecordAsync("ardent-users", cache_data, TimeSpan.FromMinutes(5));
                 }
-                return Ok(data);
+                return Ok(cache_data);
             }
             else
             {
@@ -53,7 +60,7 @@ namespace API.Controllers
         {
             DateTime start = startDate == null ? DateTime.Now : (DateTime)startDate;
             DateTime end = endDate == null ? DateTime.Now : (DateTime)endDate;
-            IEnumerable<Statistic> data = _statisticService.GetNewUser(start, end);
+            IEnumerable<Statistic> data = _statisticService.GetNewUserInRange(start, end);
             return Ok(data);
         }
 
@@ -62,17 +69,48 @@ namespace API.Controllers
         {
             if (startDate == null || endDate == null)
             {
-                IEnumerable<ProblemStatistic> data = await _cache.GetRecordAsync<IEnumerable<ProblemStatistic>>("hot-problems");
-                if (data == null)
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>("hot-problems");
+                if (cache_data == null)
                 {
-                    data = _statisticService.GetProblemSubmit();
-                    await _cache.SetRecordAsync("hot-problems", data, TimeSpan.FromMinutes(15));
+                    cache_data = new CacheData
+                    {
+                        RecordID = "hot-problems",
+                        Data = _statisticService.GetSubmitOfProblem(),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(15)
+                    };
+                    await _cache.SetRecordAsync("hot-problems", cache_data, TimeSpan.FromMinutes(15));
                 }
-                return Ok(data);
+                return Ok(cache_data);
             }
             else
             {
-                return Ok(_statisticService.GetProblemSubmitInRange((DateTime)startDate, (DateTime)endDate));
+                return Ok(_statisticService.GetSubmitOfProblemInRange((DateTime)startDate, (DateTime)endDate));
+            }
+        }
+
+        [HttpGet("rank")]
+        public async Task<IActionResult> GetUserRank(DateTime? startDate, DateTime? endDate)
+        { 
+            if (startDate == null || endDate == null)
+            {
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>("rank");
+                if (cache_data == null)
+                {
+                    cache_data = new CacheData
+                    {
+                        RecordID = "rank",
+                        Data = _statisticService.GetUserRank(),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(15)
+                    };
+                    await _cache.SetRecordAsync("rank", cache_data);
+                }
+                return Ok(cache_data);
+            }
+            else
+            {
+                return Ok(_statisticService.GetUserRankInRange((DateTime)startDate, (DateTime)endDate));
             }
         }
     }
