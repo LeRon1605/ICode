@@ -116,5 +116,29 @@ namespace API.Controllers
                 return Ok(_statisticService.GetUserRankInRange((DateTime)startDate, (DateTime)endDate));
             }
         }
+
+        [HttpGet("new-problems")]
+        public async Task<IActionResult> GetNewProblem(DateTime? startDate, DateTime? endDate)
+        {
+            DateTime start = startDate == null ? DateTime.Now.Date : (DateTime)startDate;
+            DateTime end = endDate == null ? DateTime.Now.Date : (DateTime)endDate;
+            if (start == DateTime.Now.Date && end == DateTime.Now.Date)
+            {
+                CacheData data = await _cache.GetRecordAsync<CacheData>("new-problems");
+                if (data == null)
+                {
+                    data = new CacheData
+                    {
+                        RecordID = "new-problems",
+                        Data = _statisticService.GetNewProblemInRange(start, end),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(10)
+                    };
+                    await _cache.SetRecordAsync("new-problems", data, TimeSpan.FromMinutes(10));
+                }
+                return Ok(data);
+            }
+            return Ok(_statisticService.GetNewProblemInRange(start, end));
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace API.Repository
     {
         User GetUserWithRole(Expression<Func<User, bool>> expression);
         User GetUserWithSubmit(Expression<Func<User, bool>> expression);
+        Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression = null);
         IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser();
         IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression = null);
         IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take = 5, Expression <Func<User, bool>> expression = null);
@@ -37,6 +38,19 @@ namespace API.Repository
                 return _context.Users.Where(user => user.CreatedAt.Date == Date.Date);
             else
                 return _context.Users.Where(user => user.CreatedAt.Date == Date.Date).Where(expression);
+        }
+
+        public Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression)
+        {
+            User user = _context.Users.Include(x => x.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).ThenInclude(x => x.Tags).FirstOrDefault(x => x.ID == UserID);
+            if (user == null)
+            {
+                return null;
+            }
+            if (expression == null)
+                return Task.FromResult(user.Submissions.Where(x => x.Status).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()));
+            else
+                return Task.FromResult(user.Submissions.Where(x => x.Status).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Where(expression));
         }
 
         public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()
@@ -67,7 +81,7 @@ namespace API.Repository
                         User = group.Select(x => x.User).FirstOrDefault(),
                         Details = group.GroupBy(x => x.Problem.ID).Select(x => new ProblemSolvedStatisticDetail
                         {
-                            Submit = x.Select(x => x.Submit).OrderByDescending(x => x.CreatedAt).FirstOrDefault(),
+                            Submit = x.Select(x => x.Submit).OrderBy(x => x.CreatedAt).FirstOrDefault(),
                             Problem = x.Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).FirstOrDefault()
                         }).ToList()
                     });

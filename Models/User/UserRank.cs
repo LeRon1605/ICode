@@ -7,9 +7,9 @@ namespace Models
 {
     public class UserRank
     {
-        public UserDTO User { get; set; }
         public int Rank { get; set; }
         public int ProblemSovled { get; set; }
+        public UserDTO User { get; set; }
         public object Detail { get; set; }
     }
 }

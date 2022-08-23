@@ -92,7 +92,7 @@ namespace API.Controllers
         }
 
         [HttpGet("problems")]
-        public IActionResult GetProblemOfUser()
+        public async Task<IActionResult> GetProblemOfUser(string name, string tag, string status = "author")
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
@@ -105,12 +105,24 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value)));
+                switch (status)
+                {
+                    case "author":
+                        return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value, name, tag)));
+                    case "solved":
+                        return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(await _userService.GetProblemSolvedByUser(User.FindFirst("ID").Value, name, tag)));
+                    default:
+                        return BadRequest(new ErrorResponse
+                        {
+                            error = "Invalid action.",
+                            detail = $"Status '{status}' is not a valid action."
+                        });
+                }
             }
         }
 
         [HttpGet("submissions")]
-        public IActionResult GetSubmitOfUser()
+        public IActionResult GetSubmitOfUser(bool? status = null)
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
@@ -123,7 +135,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value)));
+                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value, status)));
             }
         }
     }

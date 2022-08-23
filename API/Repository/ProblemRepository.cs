@@ -16,10 +16,11 @@ namespace API.Repository
     {
         Problem GetProblemDetail(Expression<Func<Problem, bool>> expression);
         Problem GetProblemWithTestcase(Expression<Func<Problem, bool>> expression);
+        IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null);
         IEnumerable<Problem> GetProblemDetailMulti(Expression<Func<Problem, bool>> expression = null);
         IEnumerable<Problem> GetProblemWithSubmission();
-        IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date, int take = 5);
-        IEnumerable<ProblemStatistic> GetHotProblem(int take = 5);
+        IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date);
+        IEnumerable<ProblemStatistic> GetHotProblem();
     }
     public class ProblemRepository: BaseRepository<Problem>, IProblemRepository
     {
@@ -29,7 +30,7 @@ namespace API.Repository
             _mapper = mapper;
         }
 
-        public IEnumerable<ProblemStatistic> GetHotProblem(int take = 5)
+        public IEnumerable<ProblemStatistic> GetHotProblem()
         {
             return _context.Problems.Include(problem => problem.TestCases)
                                     .ThenInclude(testcase => testcase.SubmissionDetails)
@@ -40,11 +41,10 @@ namespace API.Repository
                                         SubmitCount = problem.TestCases.First().SubmissionDetails.Count(),
                                         SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.Status).Count()
                                     })
-                                    .OrderByDescending(x => x.SubmitCount)
-                                    .Take(take);
+                                    .OrderByDescending(x => x.SubmitCount);
         }
 
-        public IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date, int take)
+        public IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date)
         {
             return _context.Problems.Include(problem => problem.TestCases)
                                     .ThenInclude(testcase => testcase.SubmissionDetails)
@@ -55,8 +55,15 @@ namespace API.Repository
                                         SubmitCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count(),
                                         SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date && x.Submission.Status).Count()
                                     })
-                                    .OrderByDescending(x => x.SubmitCount)
-                                    .Take(take);
+                                    .OrderByDescending(x => x.SubmitCount);
+        }
+
+        public IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null)
+        {
+            if (expression == null)
+                return _context.Problems.Include(x => x.Tags).Where(x => x.CreatedAt.Date == date);
+            else
+                return _context.Problems.Include(x => x.Tags).Where(x => x.CreatedAt.Date == date).Where(expression);
         }
 
         public Problem GetProblemDetail(Expression<Func<Problem, bool>> expression)

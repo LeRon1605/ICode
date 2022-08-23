@@ -125,9 +125,9 @@ namespace API.Services
             return await _userRepository.GetPageAsync(page, pageSize, user => user.Username.Contains(keyword) || user.Email.Contains(keyword));
         }
 
-        public IEnumerable<Problem> GetProblemCreatedByUser(string Id)
+        public IEnumerable<Problem> GetProblemCreatedByUser(string Id, string problemName, string tag)
         {
-            return _problemRepository.FindMulti(problem => problem.ArticleID == Id);
+            return _problemRepository.GetProblemDetailMulti(problem => problem.ArticleID == Id && (string.IsNullOrWhiteSpace(problemName) || problem.Name.Contains(problemName)) && (string.IsNullOrEmpty(tag) || problem.Tags.Any(x => x.ID == tag)));
         }
 
         public IEnumerable<Submission> GetSubmitOfUser(string Id)
@@ -154,6 +154,11 @@ namespace API.Services
                 await _unitOfWork.CommitAsync();
                 return true;
             }
+        }
+
+        public async Task<IEnumerable<Problem>> GetProblemSolvedByUser(string Id, string problemName, string tag)
+        {
+            return await _userRepository.GetProblemSolvedByUser(Id, x => (string.IsNullOrWhiteSpace(problemName) || problemName.Contains(problemName)) && (string.IsNullOrWhiteSpace(tag) || x.Tags.Any(x => x.ID == tag)));
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.Statistic;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -128,6 +129,22 @@ namespace API.Services
                 });
             }
             return statisticList;
+        }
+
+        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate)
+        {
+            List<Statistic> statistics = new List<Statistic>();
+            for (DateTime i = startDate.Date;i <= endDate.Date; i = i.AddDays(1))
+            {
+                IEnumerable<Problem> problems = _problemRepository.GetNewProblem(i);
+                statistics.Add(new Statistic
+                {
+                    Total = problems.Count(),
+                    Data = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(problems),
+                    Date = i
+                });
+            }
+            return statistics;
         }
     }
 }
