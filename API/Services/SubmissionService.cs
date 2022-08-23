@@ -6,6 +6,7 @@ using CodeStudy.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace API.Services
@@ -34,9 +35,9 @@ namespace API.Services
             return await _submissionRepository.GetPageAsync(page, pageSize, submission => (keyword == "" || submission.User.Username.Contains(keyword)) && (status == null || submission.Status == status), submission => submission.SubmissionDetails);
         }
 
-        public IEnumerable<Submission> GetSubmissionOfUsers(string userId)
+        public IEnumerable<Submission> GetSubmissionOfUsers(string userId, bool? status)
         {
-            return _submissionRepository.FindMulti(x => x.UserID == userId);
+            return _submissionRepository.FindMulti(x => x.UserID == userId && (status == null || x.Status == (bool)status));
         }
 
         public IEnumerable<Submission> GetSubmissionsOfProblem(string problemId)

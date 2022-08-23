@@ -43,35 +43,34 @@ namespace Web.Pages
 
         public async Task<Task> HandleSubmit(EditContext context)
         {
-            //if (true)
-            //{
-            //    var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            //    var user = authState.User;
-            //    ProblemInput.ArticleID = user?.FindFirst(x => x.Type == "ID")?.Value;
-            //    ProblemInput.Tags = TagsName.Split(",").ToList();
-            //    var result = await ProblemService.CreateProblem(ProblemInput);
-            //    if (result == HttpStatusCode.Created)
-            //    {
-            //        await ToastService.Success("Thông báo", "Tạo problem thành công");
-            //        ProblemInput = new ProblemInput
-            //        {
-            //            TestCases = new List<TestcaseInput>(),
-            //            Tags = new List<string>()
-            //        };
-            //    }
-            //    else if (result == HttpStatusCode.Unauthorized)
-            //    {
-            //        await ToastService.Error("Thông báo", "Bạn chưa đăng nhập");
-            //    }
-            //    else
-            //    {
-            //        await ToastService.Error("Thông báo", "Lỗi server");
-            //    }
-            //}
-            //else
-            //{
-            //    await ToastService.Error("Thông báo", "Vui lòng tạo ít nhất một testcase");
-            //}
+            if (true)
+            {
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var user = authState.User;
+                ProblemInput.Tags = TagsName.Split(",").ToList();
+                var result = await ProblemService.CreateProblem(ProblemInput);
+                if (result == HttpStatusCode.Created)
+                {
+                    await ToastService.Success("Thông báo", "Tạo problem thành công");
+                    ProblemInput = new ProblemInput
+                    {
+                        TestCases = new List<TestcaseInput>(),
+                        Tags = new List<string>()
+                    };
+                }
+                else if (result == HttpStatusCode.Unauthorized)
+                {
+                    await ToastService.Error("Thông báo", "Bạn chưa đăng nhập");
+                }
+                else
+                {
+                    await ToastService.Error("Thông báo", "Lỗi server");
+                }
+            }
+            else
+            {
+                await ToastService.Error("Thông báo", "Vui lòng tạo ít nhất một testcase");
+            }
             return Task.CompletedTask;
         }
     }

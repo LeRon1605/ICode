@@ -18,6 +18,7 @@ namespace API.Services
         Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword);
         Task<bool> UpdateRole(User user, string role);
         IEnumerable<Submission> GetSubmitOfUser(string Id);
-        IEnumerable<Problem> GetProblemCreatedByUser(string Id);
+        IEnumerable<Problem> GetProblemCreatedByUser(string Id, string problemName, string tag);
+        Task<IEnumerable<Problem>> GetProblemSolvedByUser(string Id, string problemName, string tag);
     }
 }

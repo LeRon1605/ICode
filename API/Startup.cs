@@ -87,6 +87,7 @@ namespace API
             services.AddScoped<ISubmissionService, SubmissionService>();
             services.AddScoped<IProblemService, ProblemService>();
             services.AddScoped<IReportService, ReportService>();
+            services.AddScoped<IStatisticService, StatisticService>();
             services.AddSingleton<IUploadService, CloudinaryUploadService>();
             services.AddSingleton<ILocalAuth, LocalAuth>();
             services.AddSingleton<IGoogleAuth, GoogleAuth>();
