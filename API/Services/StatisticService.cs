@@ -2,6 +2,7 @@
 using API.Repository;
 using AutoMapper;
 using CodeStudy.Models;
+using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.Statistic;
 using System;
@@ -45,7 +46,7 @@ namespace API.Services
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserProductiveInDay(i).ToList();
+                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserActivityInDay(i).ToList();
                 statisticList.Add(new Statistic
                 {
                     Total = submission.Count(),
@@ -58,7 +59,7 @@ namespace API.Services
 
         public IEnumerable<SubmissionStatistic> GetUserSubmit()
         {
-            return _userRepository.GetTopUserProductive();
+            return _userRepository.GetTopUserActivity();
         }
 
         public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, bool? state)
@@ -84,19 +85,45 @@ namespace API.Services
 
         public IEnumerable<UserRank> GetUserRank()
         {
-            return _userRepository.GetUserProblemSolve();
+            List<UserRank> result = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new UserRank
+            {
+                ProblemSovled =  x.Details.Count(),
+                Detail = x.Details,
+                User = x.User
+            }).ToList();
+            result = result.OrderByDescending(x => x.ProblemSovled).ToList();
+            for (int i = 0;i < result.Count();i++)
+            {
+                result[i].Rank = i + 1;
+            }
+            return result;
         }
 
         public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate)
         {
+            List<ProblemSolvedStatistic> data = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new ProblemSolvedStatistic
+            {
+                User = x.User,
+                Details = x.Details.Where(x => x.Submit.CreatedAt.Date >= startDate.Date && x.Submit.CreatedAt.Date <= endDate.Date),
+            }).ToList();
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<UserRank> data = _userRepository.GetUserProblemSolveInDay(i).ToList();
+                List<UserRank> userRank = data.Select(x => new UserRank
+                {
+                    User = x.User,
+                    ProblemSovled = x.Details.Where(x => x.Submit.CreatedAt.Date == i).Count(),
+                    Detail = x.Details.Where(x => x.Submit.CreatedAt.Date == i).ToList()
+                }).ToList();
+                userRank = userRank.OrderByDescending(x => x.ProblemSovled).ToList();
+                for (int j = 0; j < userRank.Count(); j++)
+                {
+                    userRank[j].Rank = j + 1;
+                }
                 statisticList.Add(new Statistic
                 {
-                    Total = data.Count(),
-                    Data = data,
+                    Total = userRank.Count(),
+                    Data = userRank,
                     Date = i
                 });
             }

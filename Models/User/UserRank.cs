@@ -10,7 +10,6 @@ namespace Models
         public UserDTO User { get; set; }
         public int Rank { get; set; }
         public int ProblemSovled { get; set; }
-        public int TotalSubmit { get; set; }
-        public object Problems { get; set; }
+        public object Detail { get; set; }
     }
 }

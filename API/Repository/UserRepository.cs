@@ -18,11 +18,10 @@ namespace API.Repository
     {
         User GetUserWithRole(Expression<Func<User, bool>> expression);
         User GetUserWithSubmit(Expression<Func<User, bool>> expression);
+        IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser();
         IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression = null);
-        IEnumerable<SubmissionStatistic> GetTopUserProductiveInDay(DateTime Date, int take = 5, Expression <Func<User, bool>> expression = null);
-        IEnumerable<SubmissionStatistic> GetTopUserProductive(int take = 5, Expression<Func<User, bool>> expression = null);
-        IEnumerable<UserRank> GetUserProblemSolve(int take = 5, Expression<Func<User, bool>> expression = null);
-        IEnumerable<UserRank> GetUserProblemSolveInDay(DateTime date, int take = 5, Expression<Func<User, bool>> expression = null);
+        IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take = 5, Expression <Func<User, bool>> expression = null);
+        IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null);
     }
     public class UserRepository: BaseRepository<User>, IUserRepository
     {
@@ -40,7 +39,41 @@ namespace API.Repository
                 return _context.Users.Where(user => user.CreatedAt.Date == Date.Date).Where(expression);
         }
 
-        public IEnumerable<SubmissionStatistic> GetTopUserProductive(int take = 5, Expression<Func<User, bool>> expression = null)
+        public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()
+        {
+            return  (from user in _context.Users
+                    join submission in _context.Submissions
+                    on user.ID equals submission.UserID
+                    join submissionDetail in _context.SubmissionDetails
+                    on submission.ID equals submissionDetail.SubmitID
+                    join testCase in _context.TestCases
+                    on submissionDetail.TestCaseID equals testCase.ID
+                    join testcase in _context.TestCases
+                    on submissionDetail.TestCaseID equals testcase.ID
+                    join problem in _context.Problems
+                    on testCase.ProblemID equals problem.ID
+                    where submission.Status == true
+                    select new
+                    {
+                        UserID = user.ID,
+                        User = _mapper.Map<User, UserDTO>(user),
+                        Problem = _mapper.Map<Problem, ProblemDTO>(problem),
+                        Submit = _mapper.Map<Submission, SubmissionDTO>(submission)
+                    })
+                    .AsEnumerable()
+                    .GroupBy(x => x.UserID)
+                    .Select(group => new ProblemSolvedStatistic
+                    {
+                        User = group.Select(x => x.User).FirstOrDefault(),
+                        Details = group.GroupBy(x => x.Problem.ID).Select(x => new ProblemSolvedStatisticDetail
+                        {
+                            Submit = x.Select(x => x.Submit).OrderByDescending(x => x.CreatedAt).FirstOrDefault(),
+                            Problem = x.Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).FirstOrDefault()
+                        }).ToList()
+                    });
+        }
+
+        public IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null)
         {
             return _context.Users.Include(user => user.Submissions)
                                  .Select(user => new SubmissionStatistic
@@ -53,7 +86,7 @@ namespace API.Repository
                                  .Take(take);
         }
 
-        public IEnumerable<SubmissionStatistic> GetTopUserProductiveInDay(DateTime Date, int take, Expression<Func<User, bool>> expression)
+        public IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take, Expression<Func<User, bool>> expression)
         {
             if (expression == null)
             {
@@ -80,82 +113,6 @@ namespace API.Repository
                                      .OrderByDescending(x => x.SubmitCount)
                                      .Take(take);
             }
-        }
-
-        public IEnumerable<UserRank> GetUserProblemSolve(int take, Expression<Func<User, bool>> expression = null)
-        {
-            IEnumerable<User> users;
-            if (expression == null)
-            {
-                 users = _context.Users.Include(user => user.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase);
-            }
-            else
-            {
-                users = _context.Users.Include(user => user.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(expression);
-            }
-            List<UserRank> result = new List<UserRank>();
-            foreach (User user in users)
-            {
-                List<string> problemSolve = new List<string>();
-                foreach (Submission submission in user.Submissions.Where(x => x.Status))
-                {
-                    problemSolve.Add(submission.SubmissionDetails.First().TestCase.ProblemID);
-                }
-                result.Add(new UserRank
-                {
-                    User = _mapper.Map<User, UserDTO>(user),
-                    TotalSubmit = user.Submissions.Count(),
-                    ProblemSovled = problemSolve.Distinct().Count(),
-                    Problems = problemSolve.Distinct()
-                });
-            }
-            result = result.OrderByDescending(x => x.ProblemSovled).Take(take).ToList();
-            for (int i = 0;i < result.Count(); i++)
-            {
-                result[i].Rank = i + 1;
-            }
-            return result;
-        }
-
-        public IEnumerable<UserRank> GetUserProblemSolveInDay(DateTime date, int take = 5, Expression<Func<User, bool>> expression = null)
-        {
-            IEnumerable<User> users;
-            if (expression == null)
-            {
-                users = _context.Users.Include(user => user.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase);
-            }
-            else
-            {
-                users = _context.Users.Include(user => user.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(expression);
-            }
-            List<UserRank> result = new List<UserRank>();
-            foreach (User user in users)
-            {
-                List<string> problemSolved = new List<string>();
-                List<string> problemSolveInDay = new List<string>();
-                foreach (Submission submission in user.Submissions.Where(x => x.Status))
-                {
-                    if (!problemSolved.Contains(submission.SubmissionDetails.First().TestCase.ProblemID))
-                    {
-                        problemSolved.Add(submission.SubmissionDetails.First().TestCase.ProblemID);
-                        if (!problemSolveInDay.Contains(submission.SubmissionDetails.First().TestCase.ProblemID) && submission.CreatedAt.Date == date.Date)
-                            problemSolveInDay.Add(submission.SubmissionDetails.First().TestCase.ProblemID);
-                    }    
-                }
-                result.Add(new UserRank
-                {
-                    User = _mapper.Map<User, UserDTO>(user),
-                    TotalSubmit = user.Submissions.Where(x => x.CreatedAt.Date == date.Date).Count(),
-                    ProblemSovled = problemSolveInDay.Count(),
-                    Problems = problemSolved
-                });
-            }
-            result = result.OrderByDescending(x => x.ProblemSovled).Take(take).ToList();
-            for (int i = 0; i < result.Count(); i++)
-            {
-                result[i].Rank = i + 1;
-            }
-            return result;
         }
 
         public User GetUserWithRole(Expression<Func<User, bool>> expression)

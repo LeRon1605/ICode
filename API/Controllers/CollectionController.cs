@@ -1,17 +1,20 @@
 ﻿using API.Extension;
 using API.Filter;
+using API.Models.Data;
 using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Models;
 using Models.Statistic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -91,7 +94,7 @@ namespace API.Controllers
 
         [HttpGet("rank")]
         public async Task<IActionResult> GetUserRank(DateTime? startDate, DateTime? endDate)
-        { 
+        {
             if (startDate == null || endDate == null)
             {
                 CacheData cache_data = await _cache.GetRecordAsync<CacheData>("rank");
