@@ -82,7 +82,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, UserUpdate input)
         {
             User user = _userService.FindByID(ID);
@@ -108,7 +107,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             User user = _userService.FindByID(ID);
@@ -148,7 +146,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}/role")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateRoleOfUser(string ID, RoleUpdate input)
         {
             User user = _userService.FindByID(ID);

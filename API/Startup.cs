@@ -32,6 +32,7 @@ namespace API
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
         }
 
         public IConfiguration Configuration { get; }
@@ -40,7 +41,8 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers(config => {
-                config.Filters.Add(new ValidationModelAttribute());
+                config.Filters.Add<ValidationModelAttribute>();
+                config.Filters.Add<ExceptionHandler>();
             });
 
             services.AddOptions();

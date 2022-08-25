@@ -86,7 +86,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             if (!await _submissionService.Remove(ID))

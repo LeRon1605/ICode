@@ -41,12 +41,12 @@ namespace API.Services
 
         public User FindByID(string ID)
         {
-            return _userRepository.FindSingle(user => user.ID == ID);
+            return _userRepository.FindByID(ID);
         }
 
         public async Task<bool> Remove(string ID)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userRepository.FindByID(ID);
             if (user == null)
             {
                 return false;
@@ -58,33 +58,17 @@ namespace API.Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            User user = _userRepository.FindSingle(user => user.ID == ID);
+            User user = _userRepository.FindByID(ID);
             if (user == null)
             {
                 return false;
             }
             UserUpdate data = entity as UserUpdate;
             user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
+            user.Avatar = (string.IsNullOrWhiteSpace(data.UploadImage)) ? user.Avatar : data.UploadImage;
             user.UpdatedAt = DateTime.Now;
             await _unitOfWork.CommitAsync();
             return true;
-        }
-
-        public async Task<User> AddGoogle(string email, string name)
-        {
-            User user = new User
-            {
-                ID = Guid.NewGuid().ToString(),
-                Email = email,
-                Password = Encryptor.MD5Hash(Constant.PASSWORD_DEFAULT),
-                Username = name,
-                CreatedAt = DateTime.Now,
-                Type = AccountType.Google,
-                Role = _roleRepository.FindSingle(role => role.Name == "User")
-            };
-            await _userRepository.AddAsync(user);
-            await _unitOfWork.CommitAsync();
-            return user;
         }
 
         public async Task<bool> ChangePassword(User user, string token, string password)

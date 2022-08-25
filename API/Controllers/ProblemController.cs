@@ -11,11 +11,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace API.Controllers
 {
@@ -29,8 +32,9 @@ namespace API.Controllers
         private readonly ISubmissionService _submissionService;
         private readonly IReportService _reportService;
         private readonly IMapper _mapper;
+        private readonly ILogger<ProblemController> _logger;
 
-        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, IMapper mapper)
+        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, IMapper mapper, ILogger<ProblemController> logger)
         {
             _problemService = problemService;
             _tagSerivce = tagService;
@@ -38,37 +42,37 @@ namespace API.Controllers
             _testcaseService = testcaseService;
             _reportService = reportService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
+        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache, string name = "", string tag = "", int? page = null, int pageSize = 5)
         {
-            IEnumerable<ProblemDTO> problems = await cache.GetRecordAsync<IEnumerable<ProblemDTO>>("problems");
-            bool isFromCache = true;
-            if (problems == null)
+            if (page != null)
             {
-                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.GetAll());
-                await cache.SetRecordAsync("problems", problems);
-                isFromCache = false;
+                PagingList<Problem> list = await _problemService.GetPage((int)page, pageSize, tag, name);
+                return Ok(_mapper.Map<PagingList<Problem>, PagingList<ProblemDTO>>(list));
             }
-            return Ok(new
+            else
             {
-                data = problems,
-                from = isFromCache ? "cache" : "db"
-            });
-        }
-
-        [HttpGet("search")]
-        [QueryConstraint(Key = "page")]
-        public async Task<IActionResult> Find(int page, int pageSize = 5, string tag = "", string keyword = "")
-        {
-            PagingList<Problem> list = await _problemService.GetPage(page, pageSize, tag, keyword);
-            return Ok(_mapper.Map<PagingList<Problem>, PagingList<ProblemDTO>>(list));
+                CacheData data = await cache.GetRecordAsync<CacheData>("problems");
+                if (data == null)
+                {
+                    data = new CacheData
+                    {
+                        RecordID = "problems",
+                        Data = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.GetAll()),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddSeconds(30),
+                    };
+                    await cache.SetRecordAsync("problems", data, TimeSpan.FromSeconds(30));
+                }
+                return Ok(data);
+            }
         }
 
         [HttpPost]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(ProblemInput input)
         {
             string[] tags = input.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
@@ -124,7 +128,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             Problem problem = _problemService.FindByID(ID);
@@ -149,7 +152,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, ProblemInputUpdate input)
         {
             Problem problem = _problemService.FindByID(ID);
@@ -211,7 +213,6 @@ namespace API.Controllers
 
         [HttpPost("{ID}/testcases")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> CreateTestCase(string ID, TestcaseInput input)
         {
             Problem problem = _problemService.FindByID(ID);
@@ -245,7 +246,6 @@ namespace API.Controllers
 
         [HttpPost("{ID}/submissions")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Submit(string ID, SubmissionInput input)
         {
             Problem problem = _problemService.FindByID(ID);
@@ -274,7 +274,6 @@ namespace API.Controllers
         [HttpPost("{ID}/submissions")]
         [Consumes("multipart/form-data")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Submit(string ID, IFormFile file)
         {
             Problem problem = _problemService.FindByID(ID);
@@ -295,6 +294,7 @@ namespace API.Controllers
                 };
                 if (code == null)
                 {
+                    _logger.LogWarning("Cant read content from {File} At {Date} while Content Length is {Length}", file.FileName, DateTime.UtcNow, file.Length);
                     return BadRequest(new
                     {
                         error = "Submit failed.",
@@ -338,7 +338,6 @@ namespace API.Controllers
 
         [HttpPost("{ID}/reports")]
         [Authorize(Roles = "User")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Report(string ID, ReportInput input)
         {
             Problem problem = _problemService.FindByID(ID);

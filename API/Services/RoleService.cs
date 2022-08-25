@@ -22,7 +22,7 @@ namespace API.Services
         }
         public Role FindById(string ID)
         {
-            return _roleRepository.FindSingle(x => x.ID == ID);
+            return _roleRepository.FindByID(ID);
         }
 
         public Role FindByName(string Name)

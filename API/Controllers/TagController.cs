@@ -8,9 +8,11 @@ using CodeStudy.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 using static StackExchange.Redis.Role;
 
 namespace API.Controllers
@@ -27,35 +29,34 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("search")]
-        [QueryConstraint(Key = "page")]
-        public async Task<IActionResult> Find(int page, int pageSize, string keyword = "")
-        {
-            PagingList<Tag> list = await _tagService.GetPageAsync(page, pageSize, keyword);
-            return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
-        }
-
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
+        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache, int? page = null, int pageSize = 5, string name = "")
         {
-            IEnumerable<TagDTO> tags = await cache.GetRecordAsync<IEnumerable<TagDTO>>("tags");
-            bool isFromCache = true;
-            if (tags == null)
+            if (page == null)
             {
-                tags = _mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagService.GetAll());
-                await cache.SetRecordAsync("tags", tags);
-                isFromCache = false;
+                CacheData data = await cache.GetRecordAsync<CacheData>("tags");
+                if (data == null)
+                {
+                    data = new CacheData
+                    {
+                        RecordID = "tags",
+                        Data = _mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagService.GetAll()),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddSeconds(60)
+                    };
+                    await cache.SetRecordAsync("tags", data);
+                }
+                return Ok(data);
             }
-            return Ok(new
+            else
             {
-                data = tags,
-                from = isFromCache ? "cache" : "dbi"
-            });
+                PagingList<Tag> list = await _tagService.GetPageAsync((int)page, pageSize, name);
+                return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
+            }
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Create(TagInput input)
         {
             if (_tagService.Exist(input.Name))
@@ -96,7 +97,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, TagInput input)
         {
             Tag tag = _tagService.FindByID(ID);
@@ -124,7 +124,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize(Roles = "Admin")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             if (!await _tagService.Remove(ID))

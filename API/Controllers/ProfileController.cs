@@ -47,7 +47,6 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update([FromForm] UserUpdate input, [FromForm] IFormFile avatar, [FromServices] IUploadService uploadService)
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
@@ -83,7 +82,7 @@ namespace API.Controllers
                     }
                     else
                     {
-                        user.Avatar = avtUrl;
+                        input.UploadImage = avtUrl;
                     }
                 }
             }

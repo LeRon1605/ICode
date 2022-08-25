@@ -30,17 +30,17 @@ namespace API.Services
 
         public Problem FindByID(string ID)
         {
-            return _problemRepository.FindSingle(x => x.ID == ID);
+            return _problemRepository.FindByID(ID);
         }
 
         public async Task<PagingList<Problem>> GetPage(int page, int pageSize, string tag, string keyword)
         {
-            return await _problemRepository.GetPageAsync(page, pageSize, problem => (keyword == "" || problem.Tags.Any(x => x.Name.Contains(tag)) && problem.Name.Contains(keyword)), problem => problem.Tags, problem => problem.Article); 
+            return await _problemRepository.GetPageAsync(page, pageSize, problem => (problem.Tags.Any(x => x.Name.Contains(tag)) && problem.Name.Contains(keyword)), problem => problem.Tags, problem => problem.Article); 
         }
 
         public async Task<bool> Remove(string ID)
         {
-            Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
+            Problem problem = _problemRepository.FindByID(ID);
             if (problem == null) return false;
             _problemRepository.Remove(problem);
             await _unitOfWork.CommitAsync();
@@ -60,7 +60,7 @@ namespace API.Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            Problem problem = _problemRepository.FindSingle(x => x.ID == ID);
+            Problem problem = _problemRepository.FindByID(ID);
             if (problem == null) return false;
             ProblemInputUpdate data = entity as ProblemInputUpdate;
             problem.Name = data.Name;

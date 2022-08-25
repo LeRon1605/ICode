@@ -13,7 +13,6 @@ namespace API.Services
         bool Exist(string username, string email);
         User FindByName(string name);
         User Login(string name, string password, IAuth auth);
-        Task<User> AddGoogle(string email, string name);
         Task<bool> ChangePassword(User user, string token, string password);
         Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword);
         Task<bool> UpdateRole(User user, string role);

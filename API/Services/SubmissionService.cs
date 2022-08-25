@@ -57,29 +57,38 @@ namespace API.Services
                     Status = false,
                     TestCaseID = testcase.ID,
                 };
-                if (result.output == testcase.Output)
+                if (result.memory == null && result.cpuTime == null)
                 {
-                    if (Convert.ToSingle(result.cpuTime) <= testcase.TimeLimit)
+                    submitDetail.Description = "Compiler Error";
+                    submitDetail.Status = false;
+                    submission.Status = false;
+                }
+                else
+                {
+                    if (result.output == testcase.Output)
                     {
-                        if (Convert.ToSingle(result.memory) <= testcase.MemoryLimit)
+                        if (Convert.ToSingle(result.cpuTime) <= testcase.TimeLimit)
                         {
-                            submitDetail.Description = "Success";
-                            submitDetail.Status = true;
-                            submission.Status = true;
+                            if (Convert.ToSingle(result.memory) <= testcase.MemoryLimit)
+                            {
+                                submitDetail.Description = "Success";
+                                submitDetail.Status = true;
+                                submission.Status = true;
+                            }
+                            else
+                            {
+                                submitDetail.Description = "Memory Limit";
+                            }
                         }
                         else
                         {
-                            submitDetail.Description = "Memory Limit";
+                            submitDetail.Description = "Time Limit";
                         }
                     }
                     else
                     {
-                        submitDetail.Description = "Time Limit";
+                        submitDetail.Description = "Wrong Answer";
                     }
-                }
-                else
-                {
-                    submitDetail.Description = "Wrong Answer";
                 }
                 submission.SubmissionDetails.Add(submitDetail);
             }
@@ -96,7 +105,7 @@ namespace API.Services
 
         public Submission FindByID(string ID)
         {
-            return _submissionRepository.FindSingle(submission => submission.ID == ID);
+            return _submissionRepository.FindByID(ID);
         }
 
         public IEnumerable<Submission> GetAll()
@@ -106,7 +115,7 @@ namespace API.Services
 
         public async Task<bool> Remove(string ID)
         {
-            Submission submission = _submissionRepository.FindSingle(submission => submission.ID == ID);
+            Submission submission = _submissionRepository.FindByID(ID);
             if (submission == null)
             {
                 return false;

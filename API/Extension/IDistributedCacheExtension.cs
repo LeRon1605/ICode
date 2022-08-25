@@ -2,6 +2,9 @@
 using System.Threading.Tasks;
 using System;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Google.Apis.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace API.Extension
 {
@@ -19,6 +22,13 @@ namespace API.Extension
                 // expire data if dont use within unusedexpiretime
                 SlidingExpiration = unusedExpireTime
             });
+
+            ILogger<IDistributedCache> logger = LoggerFactory.Create(config =>
+            {
+                config.AddConsole();
+                config.AddDebug();
+            }).CreateLogger<IDistributedCache>();
+            logger.LogInformation("Caching data to redis, RecordID: {RecordID}, ExpireAt: {ExpireAt}", recordId, DateTime.Now.Add(absoluteExpireTime ?? TimeSpan.FromSeconds(60)));
         }
 
         public static async Task<T> GetRecordAsync<T>(this IDistributedCache cache, string recordId)

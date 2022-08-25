@@ -41,24 +41,9 @@ namespace API.Services
             return _reportRepository.GetReportsDetail(x => x.UserID == userID);
         }
 
-        //public async Task Remove(Report report)
-        //{
-        //    _reportRepository.Remove(report);
-        //    await _unitOfWork.CommitAsync();
-        //}
-
-        //public async Task Update(Report report, ReportInput input)
-        //{
-        //    report.Title = input.Title;
-        //    report.Content = input.Content;
-        //    report.UpdatedAt = DateTime.Now;
-        //    _reportRepository.Update(report);
-        //    await _unitOfWork.CommitAsync();
-        //}
-
         public async Task<bool> Remove(string ID)
         {
-            Report report = _reportRepository.FindSingle(report => report.ID == ID);
+            Report report = _reportRepository.FindByID(ID);
             if (report == null)
             {
                 return false;
@@ -70,14 +55,14 @@ namespace API.Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            Report report = _reportRepository.FindSingle(report => report.ID == ID);
+            Report report = _reportRepository.FindByID(ID);
             if (report == null)
             {
                 return false;
             }
             ReportInput data = entity as ReportInput;
-            report.Title = data.Title;
-            report.Content = data.Content;
+            report.Title = (string.IsNullOrWhiteSpace(data.Title)) ? report.Title : data.Title;
+            report.Content = (string.IsNullOrWhiteSpace(report.Content)) ? report.Content : data.Content;
             report.UpdatedAt = DateTime.Now;
             _reportRepository.Update(report);
             await _unitOfWork.CommitAsync();

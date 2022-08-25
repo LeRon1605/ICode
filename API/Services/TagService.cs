@@ -33,12 +33,12 @@ namespace API.Services
 
         public Tag FindByID(string ID)
         {
-            return _tagRepository.FindSingle(x => x.ID == ID);
+            return _tagRepository.FindByID(ID);
         }
 
         public async Task<bool> Remove(string ID)
         {
-            Tag tag = _tagRepository.FindSingle(tag => tag.ID == ID);
+            Tag tag = _tagRepository.FindByID(ID);
             if (tag == null)
             {
                 return false;
@@ -51,39 +51,22 @@ namespace API.Services
         public async Task<bool> Update(string ID, object entity)
         {
             TagInput data = entity as TagInput;
-            Tag tag = _tagRepository.FindSingle(tag => tag.ID == ID);
+            Tag tag = _tagRepository.FindByID(ID);
             if (tag == null || _tagRepository.isExist(tag => tag.Name == data.Name))
             {
                 return false;
             }
-            tag.Name = data.Name;
+            tag.Name = (string.IsNullOrWhiteSpace(data.Name)) ? tag.Name : data.Name;
             tag.UpdatedAt = DateTime.Now;
             _tagRepository.Update(tag);
             await _unitOfWork.CommitAsync();
             return true;
         }
 
-        //public async Task Add(string name)
-        //{
-        //    Tag tag = new Tag
-        //    {
-        //        ID = Guid.NewGuid().ToString(),
-        //        Name = name,
-        //        CreatedAt = DateTime.Now
-        //    };
-        //    await _tagRepository.AddAsync(tag);
-        //    await _unitOfWork.CommitAsync();
-        //}
-
         public bool Exist(string name)
         {
             return _tagRepository.isExist(tag => tag.Name == name);
         }
-
-        //public Tag FindById(string Id)
-        //{
-        //    return _tagRepository.FindSingle(x => x.ID == Id);
-        //}
 
 
         public async Task<PagingList<Tag>> GetPageAsync(int page, int pageSize, string keyword)
@@ -96,26 +79,9 @@ namespace API.Services
             return _tagRepository.GetTagWithProblem(tag => tag.ID == Id).Problems;
         }
 
-        //public async Task Remove(Tag tag)
-        //{
-        //    _tagRepository.Remove(tag);
-        //    await _unitOfWork.CommitAsync();
-        //}
-
-        //public async Task<bool> Update(Tag tag, string name)
-        //{
-        //    if (_tagRepository.isExist(tag => tag.Name == name))
-        //    {
-        //        return false;
-        //    }
-        //    else
-        //    {
-        //        tag.Name = name;
-        //        tag.UpdatedAt = DateTime.Now;
-        //        _tagRepository.Update(tag);
-        //        await _unitOfWork.CommitAsync();
-        //        return true;
-        //    }
-        //}
+        public IEnumerable<Tag> Find(string name)
+        {
+            return _tagRepository.FindMulti(x => x.Name.Contains(name));
+        }
     }
 }

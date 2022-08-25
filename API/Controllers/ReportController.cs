@@ -78,7 +78,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize(Roles = "User")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Update(string ID, ReportInput input)
         {
             Report report = _reportService.FindByID(ID);
@@ -103,7 +102,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Delete(string ID)
         {
             Report report = _reportService.FindByID(ID);
@@ -128,7 +126,6 @@ namespace API.Controllers
 
         [HttpPost("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Reply(string ID, ReplyInput input)
         {
             Report report = _reportService.FindByID(ID);
@@ -163,7 +160,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateReply(string ID, ReplyInput input)
         {
             Report report = _reportService.FindByID(ID);
@@ -198,7 +194,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}/reply")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteReply(string ID)
         {
             Report report = _reportService.FindByID(ID);

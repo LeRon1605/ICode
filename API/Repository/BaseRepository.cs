@@ -71,9 +71,19 @@ namespace API.Repository
             return Task.FromResult(new PagingList<T>
             {
                 Page = page,
-                TotalPage = (int)Math.Floor( data.Count() / pageSize * 1.0),
+                TotalPage = (int)(Math.Ceiling( (float)data.Count() / pageSize )),
                 Data = data.Skip(pageSize * (page - 1)).Take(pageSize)
             });
+        }
+
+        public T FindByID(string Id)
+        {
+            return _context.Set<T>().Find(Id);
+        }
+
+        public async Task<T> FindByIDAsync(string Id)
+        {
+            return await _context.Set<T>().FindAsync(Id);
         }
     }
 }

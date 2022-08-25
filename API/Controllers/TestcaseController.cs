@@ -63,7 +63,6 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> UpdateTestcase(string ID, TestcaseInput input)
         {
             TestCase testcase = _testcaseService.FindByID(ID);
@@ -100,7 +99,6 @@ namespace API.Controllers
 
         [HttpDelete("{ID}")]
         [Authorize]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> DeleteTestcase(string ID)
         {
             TestCase testcase = _testcaseService.FindByID(ID);

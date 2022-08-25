@@ -2,6 +2,8 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace API.Services
@@ -10,7 +12,8 @@ namespace API.Services
     {
         private readonly IConfiguration _configuration;
         private readonly Cloudinary _cloudinary;
-        public CloudinaryUploadService(IConfiguration configuration)
+        private readonly ILogger _logger;
+        public CloudinaryUploadService(IConfiguration configuration, ILoggerFactory factory)
         {
             _configuration = configuration;
             CloudinarySetting cloudinarySetting = _configuration.GetSection("Cloudinary").Get<CloudinarySetting>();
@@ -20,12 +23,14 @@ namespace API.Services
                 ApiKey = cloudinarySetting.ClientID,
                 ApiSecret = cloudinarySetting.SecretKey
             });
+            _logger = factory.CreateLogger<CloudinaryUploadService>();
         }
         public async Task<string> UploadAsync(ImageUploadParams image)
         {
             var result = await _cloudinary.UploadAsync(image);
             if (result.Error != null)
             {
+                _logger.LogWarning("Upload Error for file: '{File}'{Time}", image.File.FileName, DateTime.UtcNow);
                 return null;
             }
             else

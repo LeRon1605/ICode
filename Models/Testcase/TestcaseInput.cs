@@ -7,7 +7,6 @@ namespace CodeStudy.Models
 {
     public class TestcaseInput
     {
-        [Required(ErrorMessage = "Input cho testcase không được để trống")]
         public string Input { get; set; }
         [Required(ErrorMessage = "Output cho testcase không được để trống")]
         public string Output { get; set; }

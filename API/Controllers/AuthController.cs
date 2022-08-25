@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace API.Controllers
 {
@@ -30,7 +31,6 @@ namespace API.Controllers
         }
 
         [HttpPost("register")]
-        [ServiceFilter(typeof(ExceptionHandler))]
         public async Task<IActionResult> Register(RegisterUser input)
         {
             if (_userSerivce.Exist(input.Username, input.Email))
@@ -166,7 +166,17 @@ namespace API.Controllers
             User user = _userSerivce.Login(payload.Email, Constant.PASSWORD_DEFAULT, authHandler);
             if (user == null)
             {
-                user = await _userSerivce.AddGoogle(payload.Email, payload.Name);
+                user = new User
+                {
+                    ID = Guid.NewGuid().ToString(),
+                    Email = payload.Email,
+                    Password = Encryptor.MD5Hash(Constant.PASSWORD_DEFAULT),
+                    Username = payload.Name,
+                    CreatedAt = DateTime.Now,
+                    Type = AccountType.Google,
+                    Role = _roleService.FindByName(Constant.USER)
+                };
+                await _userSerivce.Add(user);
             }
             Token token = await _tokenService.GenerateToken(user);
             return Ok(new

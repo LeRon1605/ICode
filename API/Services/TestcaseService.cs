@@ -32,7 +32,7 @@ namespace API.Services
 
         public async Task<bool> Remove(string ID)
         {
-            TestCase testcase = _testcaseRepository.FindSingle(x => x.ID == ID);
+            TestCase testcase = _testcaseRepository.FindByID(ID);
             if (testcase == null)
             {
                 return false;
@@ -44,7 +44,7 @@ namespace API.Services
 
         public TestCase FindByID(string ID)
         {
-            return _testcaseRepository.FindSingle(testcase => testcase.ID == ID);
+            return _testcaseRepository.FindByID(ID);
         }
 
         public IEnumerable<TestCase> GetAll()
@@ -54,14 +54,14 @@ namespace API.Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            TestCase testcase = _testcaseRepository.FindSingle(x => x.ID == ID);
+            TestCase testcase = _testcaseRepository.FindByID(ID);
             if (testcase == null)
             {
                 return false;
             }
             TestcaseInput data = entity as TestcaseInput;
-            testcase.Input = data.Input;
-            testcase.Output = data.Output;
+            testcase.Input = (string.IsNullOrWhiteSpace(data.Input)) ? testcase.Input : data.Input;
+            testcase.Output = (string.IsNullOrWhiteSpace(data.Output)) ? testcase.Output : data.Output;
             testcase.MemoryLimit = data.MemoryLimit;
             testcase.TimeLimit = data.TimeLimit;
             testcase.UpdatedAt = DateTime.Now;
