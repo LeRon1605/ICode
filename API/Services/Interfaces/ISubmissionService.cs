@@ -1,6 +1,6 @@
 ﻿using API.Models.DTO;
-using API.Models.Entity;
 using CloudinaryDotNet;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +15,6 @@ namespace API.Services
         IEnumerable<SubmissionDetail> GetDetail(string Id);
         IEnumerable<Submission> GetSubmissionsOfProblem(string problemId);
         IEnumerable<Submission> GetSubmissionOfUsers(string userId, bool? status = null);
-        Task<PagingList<Submission>> GetPageAsync(int page, int pageSize, bool? status, string keyword);
+        Task<PagingList<Submission>> GetPageAsync(int page, int pageSize, bool? status, string user);
     }
 }

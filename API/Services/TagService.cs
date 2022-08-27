@@ -1,7 +1,7 @@
 ﻿using API.Models.DTO;
-using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

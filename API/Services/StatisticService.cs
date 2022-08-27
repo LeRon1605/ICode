@@ -1,7 +1,7 @@
-﻿using API.Models.Entity;
-using API.Repository;
+﻿using API.Repository;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 using Models.Statistic;
@@ -60,7 +60,7 @@ namespace API.Services
 
         public IEnumerable<SubmissionStatistic> GetUserSubmit()
         {
-            return _userRepository.GetTopUserActivity();
+            return _userRepository.GetTopUserActivity().ToList();
         }
 
         public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, bool? state)
@@ -81,7 +81,7 @@ namespace API.Services
 
         public IEnumerable<ProblemStatistic> GetSubmitOfProblem()
         {
-            return _problemRepository.GetHotProblem();
+            return _problemRepository.GetHotProblem().ToList();
         }
 
         public IEnumerable<UserRank> GetUserRank()

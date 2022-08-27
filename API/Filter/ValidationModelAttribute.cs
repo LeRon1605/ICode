@@ -23,10 +23,15 @@ namespace API.Filter
                         list.Add(item.Key, item.Value.Errors.Select(x => x.ErrorMessage).ToArray());
                     }
                 }
-                context.Result = new BadRequestObjectResult(new 
-                { 
-                    error = "Validation error.",
-                    detail = list
+
+                context.Result = new BadRequestObjectResult(new
+                {
+                    Title = "Validation error.",
+                    Instance = context.HttpContext.Request.Path.ToString(),
+                    Status = 400,
+                    Detail = "One or more validation error.",
+                    Type = "https://www.rfc-editor.org/rfc/rfc7231#section-6.5.1",
+                    ModelState = list
                 });
                 return;
             }

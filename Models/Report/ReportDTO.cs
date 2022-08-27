@@ -11,8 +11,8 @@ namespace CodeStudy.Models
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string UserID { get; set; }
-        public string ProblemID { get; set; }
+        public UserDTO User { get; set; }
+        public ProblemDTO Problem { get; set; }
         public ReplyDTO Reply { get; set; }
     }
 }

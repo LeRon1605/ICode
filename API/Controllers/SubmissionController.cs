@@ -2,13 +2,15 @@
 using API.Filter;
 using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -26,32 +28,31 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
-        {
-            IEnumerable<SubmissionDTO> submissions = await cache.GetRecordAsync<IEnumerable<SubmissionDTO>>("submissions");
-            bool isFromCache = true;
-            if (submissions == null)
-            {
-                submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetAll());
-                await cache.SetRecordAsync("submission", submissions);
-                isFromCache = false;
-            }
-            return Ok(new
-            {
-                data = submissions,
-                from = isFromCache ? "cache" : "db"
-            });
-        }
-
         [HttpGet("search")]
-        [QueryConstraint(Key = "page")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Find(int page, int pageSize = 5, bool? status = null, string keyword = "")
+        public async Task<IActionResult> Find([FromServices] IDistributedCache cache, int? page = null, int pageSize = 5, bool? status = null, string user = "")
         {
-            PagingList<Submission> list = await _submissionService.GetPageAsync(page, pageSize, status, keyword);
-            return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
+            if (page == null)
+            {
+                CacheData data = await cache.GetRecordAsync<CacheData>("submissions");
+                if (data == null)
+                {
+                    data = new CacheData
+                    {
+                        RecordID = "submissions",
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddSeconds(60),
+                        Data = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetAll())
+                    };
+                    await cache.SetRecordAsync(data.RecordID, data);
+                }
+                return Ok(data);
+            }
+            else
+            {
+                PagingList<Submission> list = await _submissionService.GetPageAsync(page == null ? 1 : (int)page, pageSize, status, user);
+                return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
+            }
         }
 
         [HttpGet("{ID}")]

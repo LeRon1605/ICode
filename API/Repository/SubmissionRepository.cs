@@ -1,5 +1,5 @@
-﻿using API.Models.Data;
-using API.Models.Entity;
+﻿using Data;
+using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,12 +9,6 @@ using System.Threading.Tasks;
 
 namespace API.Repository
 {
-    public interface ISubmissionRepository: IRepository<Submission>
-    {
-        Submission GetSubmissionDetailSingle(Expression<Func<Submission, bool>> expression);
-        IEnumerable<Submission> GetSubmissionsDetail(Expression<Func<Submission, bool>> expression = null);
-        IEnumerable<Submission> GetSubmissionsOfProblem(string problemID, Expression<Func<Submission, bool>> expression = null);
-    }
     public class SubmissionRepository: BaseRepository<Submission>, ISubmissionRepository
     {
         public SubmissionRepository(ICodeDbContext context): base(context)

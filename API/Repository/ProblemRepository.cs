@@ -1,7 +1,7 @@
-﻿using API.Models.Data;
-using API.Models.Entity;
-using AutoMapper;
+﻿using AutoMapper;
 using CodeStudy.Models;
+using Data;
+using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Models.Statistic;
 using System;
@@ -12,16 +12,6 @@ using System.Threading.Tasks;
 
 namespace API.Repository
 {
-    public interface IProblemRepository: IRepository<Problem>
-    {
-        Problem GetProblemDetail(Expression<Func<Problem, bool>> expression);
-        Problem GetProblemWithTestcase(Expression<Func<Problem, bool>> expression);
-        IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null);
-        IEnumerable<Problem> GetProblemDetailMulti(Expression<Func<Problem, bool>> expression = null);
-        IEnumerable<Problem> GetProblemWithSubmission();
-        IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date);
-        IEnumerable<ProblemStatistic> GetHotProblem();
-    }
     public class ProblemRepository: BaseRepository<Problem>, IProblemRepository
     {
         private readonly IMapper _mapper;

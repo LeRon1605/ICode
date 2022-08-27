@@ -1,7 +1,7 @@
 ﻿using API.Helper;
-using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,6 +82,7 @@ namespace API.Services
                 return null;
             }
             refreshToken.State = true;
+            await _unitOfWork.CommitAsync();
             Token newToken = await GenerateToken(user);
             return new Token
             {

@@ -1,7 +1,7 @@
 ﻿using API.Models.DTO;
-using API.Models.Entity;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +25,7 @@ namespace API.Mapper
             CreateMap<Problem, ProblemDTO>()
                 .ForMember(dest => dest.AuthorId, otp => otp.MapFrom(src => src.ArticleID));
 
+            CreateMap<PagingList<Report>, PagingList<ReportDTO>>();
             CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();
             CreateMap<PagingList<User>, PagingList<UserDTO>>();
             CreateMap<PagingList<Tag>, PagingList<TagDTO>>();

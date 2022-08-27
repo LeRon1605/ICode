@@ -43,7 +43,10 @@ namespace API.Filter
                 Detail = context.Exception.Message,
             };
             res.Extensions.Add("StackTrace", context.Exception.StackTrace);
-            context.Result = new ObjectResult(res);
+            context.Result = new ObjectResult(res)
+            {
+                StatusCode = 500,
+            };
         }
     }
 }

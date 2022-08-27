@@ -1,12 +1,11 @@
 using API.Filter;
 using API.Helper;
 using API.Mapper;
-using API.Models.Data;
 using API.Models.DTO;
 using API.Repository;
 using API.Services;
 using AutoMapper;
-using Microsoft.AspNetCore.Authentication.Google;
+using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -41,6 +41,7 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers(config => {
+                config.Filters.Add<RequestFilterAttribute>();
                 config.Filters.Add<ValidationModelAttribute>();
                 config.Filters.Add<ExceptionHandler>();
             });
@@ -117,6 +118,7 @@ namespace API
                 options.Configuration = "127.0.0.1";
                 options.InstanceName = "ICode";
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

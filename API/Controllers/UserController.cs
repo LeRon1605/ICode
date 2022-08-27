@@ -1,5 +1,4 @@
 ﻿using API.Models.DTO;
-using API.Models.Entity;
 using API.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +14,7 @@ using AutoMapper;
 using API.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using API.Extension;
+using Data.Entity;
 
 namespace API.Controllers
 {

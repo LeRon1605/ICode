@@ -1,6 +1,7 @@
-﻿using API.Models.Entity;
+﻿using API.Models.DTO;
 using API.Repository;
 using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,12 +34,12 @@ namespace API.Services
 
         public Report FindByID(string ID)
         {
-            return _reportRepository.GetReportsDetailSingle(x => x.ID == ID);
+            return _reportRepository.FindByID(ID);
         }
 
-        public IEnumerable<Report> GetReportsOfUser(string userID)
+        public async Task<PagingList<Report>> GetReportsOfUser(int page, int pageSize, string userID, string problem)
         {
-            return _reportRepository.GetReportsDetail(x => x.UserID == userID);
+            return await _reportRepository.GetPageAsync(page, pageSize, x => x.UserID == userID && x.Problem.Name.Contains(problem), x => x.User, x => x.Problem, x => x.Reply);
         }
 
         public async Task<bool> Remove(string ID)
@@ -113,6 +114,64 @@ namespace API.Services
                 await _unitOfWork.CommitAsync();
                 return true;
             }
+        }
+
+        public async Task<PagingList<Report>> GetPageAsync(int page, int pageSize, string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        {
+            return await _reportRepository.GetPageAsync(page, pageSize, x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.Problem);
+        }
+
+        public Report GetDetailById(string Id)
+        {
+            return _reportRepository.GetReportsDetailSingle(x => x.ID == Id);
+        }
+
+        public IEnumerable<Report> GetReportByFilter(string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        {
+            IEnumerable<Report> data = _reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply));
+            if (!string.IsNullOrEmpty(sort))
+            {
+                switch (sort) 
+                {
+                    case "title":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.Title) : data.OrderByDescending(x => x.Title);
+                    case "user":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.User.Username) : data.OrderByDescending(x => x.User.Username);
+                    case "problem":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.Problem.Name) : data.OrderByDescending(x => x.Problem.Name);
+                    case "date":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.CreatedAt) : data.OrderByDescending(x => x.CreatedAt);
+                    case "reply":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.CreatedAt) : data.OrderByDescending(x => x.CreatedAt);
+                    default:
+                        throw new Exception("Invalid Action");
+                }
+            }
+            return data;
+        }
+
+        public IEnumerable<Report> GetReportOfUserByFilter(string title, string userId, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        {
+            IEnumerable<Report> data = _reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.UserID == userId && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply));
+            if (!string.IsNullOrEmpty(sort))
+            {
+                switch (sort)
+                {
+                    case "title":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.Title) : data.OrderByDescending(x => x.Title);
+                    case "user":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.User.Username) : data.OrderByDescending(x => x.User.Username);
+                    case "problem":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.Problem.Name) : data.OrderByDescending(x => x.Problem.Name);
+                    case "date":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.CreatedAt) : data.OrderByDescending(x => x.CreatedAt);
+                    case "reply":
+                        return (orderBy == "asc") ? data.OrderBy(x => x.CreatedAt) : data.OrderByDescending(x => x.CreatedAt);
+                    default:
+                        throw new Exception("Invalid Action");
+                }
+            }
+            return data;
         }
     }
 }

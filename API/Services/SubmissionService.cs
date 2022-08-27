@@ -1,8 +1,8 @@
 ﻿using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
 using API.Repository;
 using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +30,9 @@ namespace API.Services
             return _submissionRepository.GetSubmissionDetailSingle(x => x.ID == Id).SubmissionDetails;
         }
 
-        public async Task<PagingList<Submission>> GetPageAsync(int page, int pageSize, bool? status, string keyword)
+        public async Task<PagingList<Submission>> GetPageAsync(int page, int pageSize, bool? status, string user)
         {
-            return await _submissionRepository.GetPageAsync(page, pageSize, submission => (keyword == "" || submission.User.Username.Contains(keyword)) && (status == null || submission.Status == status), submission => submission.SubmissionDetails);
+            return await _submissionRepository.GetPageAsync(page, pageSize, submission => (submission.User.Username.Contains(user)) && (status == null || submission.Status == status), submission => submission.SubmissionDetails);
         }
 
         public IEnumerable<Submission> GetSubmissionOfUsers(string userId, bool? status)

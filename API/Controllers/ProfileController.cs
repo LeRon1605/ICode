@@ -1,12 +1,12 @@
 ﻿using API.Filter;
 using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -1,5 +1,5 @@
-﻿using API.Models.Data;
-using API.Models.DTO;
+﻿using API.Models.DTO;
+using Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,5 @@
-﻿using API.Models.Entity;
-using CodeStudy.Models;
+﻿using CodeStudy.Models;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

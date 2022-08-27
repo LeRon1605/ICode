@@ -1,8 +1,8 @@
-﻿using API.Models.Data;
-using API.Models.DTO;
-using API.Models.Entity;
+﻿using API.Models.DTO;
 using AutoMapper;
 using CodeStudy.Models;
+using Data;
+using Data.Entity;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Models.Statistic;
@@ -14,16 +14,6 @@ using System.Threading.Tasks;
 
 namespace API.Repository
 {
-    public interface IUserRepository: IRepository<User>
-    {
-        User GetUserWithRole(Expression<Func<User, bool>> expression);
-        User GetUserWithSubmit(Expression<Func<User, bool>> expression);
-        Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression = null);
-        IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser();
-        IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression = null);
-        IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take = 5, Expression <Func<User, bool>> expression = null);
-        IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null);
-    }
     public class UserRepository: BaseRepository<User>, IUserRepository
     {
         private readonly IMapper _mapper;
@@ -55,7 +45,7 @@ namespace API.Repository
 
         public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()
         {
-            return  (from user in _context.Users
+            return (from user in _context.Users
                     join submission in _context.Submissions
                     on user.ID equals submission.UserID
                     join submissionDetail in _context.SubmissionDetails

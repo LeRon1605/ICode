@@ -2,11 +2,11 @@
 using API.Filter;
 using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
 using API.Repository;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,21 +35,28 @@ namespace API.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetReports([FromServices] IDistributedCache cache)
+        [QueryConstraint(Key = "sort", Value = "user, problem, title, date, reply", isRetrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+
+        public async Task<IActionResult> GetReports(int? page = null, int pageSize = 5, string title = "", string user = "", string problem = "", DateTime? date = null, bool? reply = null, string sort = "", string orderBy = "")
         {
             if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                IEnumerable<ReportDTO> reports = await cache.GetRecordAsync<IEnumerable<ReportDTO>>("reports_admin");
-                if (reports == null)
+                // Admin get all reports
+                if (page == null)
                 {
-                    reports = _mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetAll());
-                    await cache.SetRecordAsync("reports_admin", reports);
+                    return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportByFilter(title, user, problem, date, reply, sort, orderBy)));
                 }
-                return Ok(reports);
+                else
+                {
+                    PagingList<Report> report = await _reportService.GetPageAsync((int)page, pageSize, title, user, problem, date, reply, sort, orderBy);
+                    return Ok(_mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(report));
+                }
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportsOfUser(User.FindFirst("ID").Value)));
+                // User get only their reports
+                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportOfUserByFilter(title, User.FindFirst(Constant.ID).Value, problem, date, reply, sort, orderBy)));
             }  
         }
 
@@ -57,7 +64,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Report report = _reportService.FindByID(ID);
+            Report report = _reportService.GetDetailById(ID);
             if (report == null)
             {
                 return NotFound(new ErrorResponse 

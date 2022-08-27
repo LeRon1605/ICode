@@ -1,6 +1,6 @@
 ﻿using API.Helper;
-using API.Models.Entity;
 using API.Repository;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

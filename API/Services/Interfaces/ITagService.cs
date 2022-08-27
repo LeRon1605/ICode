@@ -1,5 +1,5 @@
 ﻿using API.Models.DTO;
-using API.Models.Entity;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

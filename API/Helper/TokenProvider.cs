@@ -1,5 +1,5 @@
-﻿using API.Models.Entity;
-using CodeStudy.Models;
+﻿using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;

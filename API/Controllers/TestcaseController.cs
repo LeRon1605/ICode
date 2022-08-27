@@ -1,10 +1,10 @@
 ﻿using API.Filter;
 using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;

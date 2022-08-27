@@ -1,5 +1,4 @@
-﻿using API.Models.Entity;
-using Models;
+﻿using Models;
 using Models.Statistic;
 using System;
 using System.Collections.Generic;

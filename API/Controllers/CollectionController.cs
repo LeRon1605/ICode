@@ -1,7 +1,5 @@
 ﻿using API.Extension;
 using API.Filter;
-using API.Models.Data;
-using API.Models.Entity;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;

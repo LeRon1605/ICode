@@ -1,6 +1,7 @@
 ﻿using API.Helper;
 using API.Models.DTO;
-using API.Models.Entity;
+using Data.Entity;
+using Data.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
