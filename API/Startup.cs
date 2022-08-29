@@ -1,3 +1,4 @@
+using API.Extension;
 using API.Filter;
 using API.Helper;
 using API.Mapper;
@@ -6,6 +7,7 @@ using API.Repository;
 using API.Services;
 using AutoMapper;
 using Data;
+using Data.Entity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,13 +31,14 @@ namespace API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
-
+            Environment = env;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment {get;}
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -72,7 +75,19 @@ namespace API
 
             services.AddDbContext<ICodeDbContext>(options =>
             {
-                options.UseSqlServer(Configuration.GetConnectionString("ICode"));
+                if (Environment.IsDevelopment())
+                {
+                    
+                    options.UseSqlServer(Configuration.GetConnectionString("ICode"), x => x.MigrationsAssembly("API"));
+                }
+                else
+                {
+                    var server = Configuration["Server"] ?? "db";
+                    var db = Configuration["Database"] ?? "ICode";
+                    var uid = Configuration["UID"] ?? "sa";
+                    var pwd = Configuration["PWD"] ?? "leron@1605";
+                    options.UseSqlServer($"Server={server};Database={db};UID={uid};PWD={pwd}", x => x.MigrationsAssembly("API"));
+                }
             });
 
             services.AddCors(option =>
@@ -115,7 +130,12 @@ namespace API
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = "127.0.0.1";
+                string ConnectionString = "localhost";
+                if (!Environment.IsDevelopment())
+                {
+                    ConnectionString = $"{Configuration["Redis"] ?? "redis"}, abortConnect=false";
+                }
+                options.Configuration = ConnectionString;
                 options.InstanceName = "ICode";
             });
 
@@ -127,6 +147,11 @@ namespace API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+
+            if (!env.IsDevelopment())
+            {
+                app.MigrateDB();
             }
             app.UseCors("Test");
             app.UseSwagger();
