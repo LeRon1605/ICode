@@ -33,4 +33,21 @@ git clone https://github.com/LeRon1605/ICode.git
 docker-compose up
 ```
 - Database sẽ được ánh xạ vào folder `db`.
-- Ánh xạ port 8080 của API trên host với port 80 trên container của docker.
+- API chạy trên host với port 8080 được ánh xạ với port 80 trên container của docker.
+
+## Tech Stack
+1. Platforms/Framework: ASP.NET Core, Entity Framework, Docker.
+2. Database: SQL Server.
+3. Cache Server: Redis.
+4. Tools: Postman, LINQPad.
+
+## Cơ sở dữ liệu (Bị thiếu mà lười sửa quá, mở database diagram trong MSSMS xem nha)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/78067510/187449316-e058ea00-c08e-43f5-838d-2c12abb6ed33.png">
+</p>
+
+## Hệ thống (Vẽ bậy thui hehe)
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/78067510/187453115-f6323385-09cc-46b0-ab60-130d79175688.png">
+</p>
+
