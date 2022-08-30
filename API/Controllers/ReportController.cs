@@ -24,18 +24,16 @@ namespace API.Controllers
     {
         private readonly IProblemService _problemService;
         private readonly IReportService _reportService;
-        private readonly IMapper _mapper;
 
-        public ReportController(IReportService reportService, IProblemService problemService, IMapper mapper)
+        public ReportController(IReportService reportService, IProblemService problemService)
         {
             _reportService = reportService;
             _problemService = problemService;
-            _mapper = mapper;
         }
 
         [HttpGet]
         [Authorize]
-        [QueryConstraint(Key = "sort", Value = "user, problem, title, date, reply", isRetrict = false)]
+        [QueryConstraint(Key = "sort", Value = "user, problem, title, date, reply", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
 
         public async Task<IActionResult> GetReports(int? page = null, int pageSize = 5, string title = "", string user = "", string problem = "", DateTime? date = null, bool? reply = null, string sort = "", string orderBy = "")
@@ -45,18 +43,24 @@ namespace API.Controllers
                 // Admin get all reports
                 if (page == null)
                 {
-                    return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportByFilter(title, user, problem, date, reply, sort, orderBy)));
+                    return Ok(_reportService.GetReportByFilter(title, user, problem, date, reply, sort, orderBy));
                 }
                 else
                 {
-                    PagingList<Report> report = await _reportService.GetPageAsync((int)page, pageSize, title, user, problem, date, reply, sort, orderBy);
-                    return Ok(_mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(report));
+                    return Ok(await _reportService.GetPageAsync((int)page, pageSize, title, user, problem, date, reply, sort, orderBy));
                 }
             }
             else
             {
                 // User get only their reports
-                return Ok(_mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportService.GetReportOfUserByFilter(title, User.FindFirst(Constant.ID).Value, problem, date, reply, sort, orderBy)));
+                if (page == null)
+                {
+                    return Ok(_reportService.GetReportOfUserByFilter(title, User.FindFirst(Constant.ID).Value, problem, date, reply, sort, orderBy));
+                }
+                else
+                {
+                    return Ok(await _reportService.GetPageReportOfUser((int)page, pageSize, title, User.FindFirst(Constant.ID).Value, problem, date, reply, sort, orderBy));
+                }
             }  
         }
 
@@ -64,7 +68,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Report report = _reportService.GetDetailById(ID);
+            ReportDTO report = _reportService.GetDetailById(ID);
             if (report == null)
             {
                 return NotFound(new ErrorResponse 
@@ -73,9 +77,9 @@ namespace API.Controllers
                     detail = "Report does not exist."
                 });
             }    
-            if (report.UserID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ID).Value == Constant.ADMIN)
+            if (report.User.ID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ID).Value == Constant.ADMIN)
             {
-                return Ok(_mapper.Map<Report, ReportDTO>(report));
+                return Ok(report);
             }
             else
             {
@@ -146,7 +150,7 @@ namespace API.Controllers
             }
             if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                if (await _reportService.Reply(report, input))
+                if (await _reportService.Reply(ID, input))
                 {
                     return NoContent();
                 }
@@ -180,7 +184,7 @@ namespace API.Controllers
             }
             if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                if (await _reportService.UpdateReply(report, input))
+                if (await _reportService.UpdateReply(ID, input))
                 {
                     return NoContent();
                 }
@@ -214,7 +218,7 @@ namespace API.Controllers
             }
             if (_problemService.FindByID(report.ProblemID).ArticleID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                if (await _reportService.RemoveReply(report))
+                if (await _reportService.RemoveReply(ID))
                 {
                     return NoContent();
                 }

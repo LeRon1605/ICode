@@ -1,5 +1,6 @@
 ﻿using API.Models.DTO;
 using API.Repository;
+using AutoMapper;
 using CodeStudy.Models;
 using Data.Entity;
 using System;
@@ -14,12 +15,14 @@ namespace API.Services
     {
         private readonly ITagRepository _tagRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public TagService(ITagRepository tagRepository, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public TagService(ITagRepository tagRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _tagRepository = tagRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
-
+        #region CRUD
         public IEnumerable<Tag> GetAll()
         {
             return _tagRepository.FindAll();
@@ -62,6 +65,7 @@ namespace API.Services
             await _unitOfWork.CommitAsync();
             return true;
         }
+        #endregion
 
         public bool Exist(string name)
         {
@@ -69,19 +73,43 @@ namespace API.Services
         }
 
 
-        public async Task<PagingList<Tag>> GetPageAsync(int page, int pageSize, string keyword)
+        public async Task<PagingList<TagDTO>> GetPageByFilter(int page, int pageSize, string name, DateTime? date, string sort, string orderBy)
         {
-            return await _tagRepository.GetPageAsync(page, pageSize, tag => tag.Name.Contains(keyword));
+            PagingList<Tag> list = await _tagRepository.GetPageAsync(page, pageSize, tag => tag.Name.Contains(name) && (date == null || tag.CreatedAt.Date == ((DateTime)date).Date));
+            return _mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list);
         }
 
-        public IEnumerable<Problem> GetProblemOfTag(string Id)
+        public IEnumerable<ProblemDTO> GetProblemOfTag(string Id, string name, DateTime? date, string sort, string orderBy)
         {
-            return _tagRepository.GetTagWithProblem(tag => tag.ID == Id).Problems;
+            IEnumerable<ProblemDTO> problem = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_tagRepository.GetTagWithProblem(tag => tag.ID == Id).Problems.Where(x => x.Name.Contains(name) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort)
+                {
+                    case "name":
+                        return (orderBy == "asc") ? problem.OrderBy(x => x.Name) : problem.OrderByDescending(x => x.Name);
+                    case "date":
+                        return (orderBy == "asc") ? problem.OrderBy(x => x.CreatedAt) : problem.OrderByDescending(x => x.CreatedAt);
+                }
+            }
+            return problem;
         }
-
-        public IEnumerable<Tag> Find(string name)
+        public IEnumerable<TagDTO> GetTagsByFilter(string name, DateTime? date, string sort, string orderBy)
         {
-            return _tagRepository.FindMulti(x => x.Name.Contains(name));
+            IEnumerable<TagDTO> tags = _mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagRepository.FindMulti(x => x.Name.Contains(name) && (date == null || x.CreatedAt.Date == ((DateTime)date).Date)));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "name":
+                        return (orderBy == "asc") ? tags.OrderBy(x => x.Name) : tags.OrderByDescending(x => x.Name);
+                    case "date":
+                        return (orderBy == "asc") ? tags.OrderBy(x => x.CreatedAt) : tags.OrderByDescending(x => x.CreatedAt);
+                    default:
+                        throw new Exception("Invalid Action.");
+                }
+            }
+            return tags;
         }
     }
 }

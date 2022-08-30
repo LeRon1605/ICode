@@ -30,28 +30,17 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache, int? page = null, int pageSize = 5, string name = "")
+        [QueryConstraint(Key = "sort", Value = "name, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             if (page == null)
             {
-                CacheData data = await cache.GetRecordAsync<CacheData>("tags");
-                if (data == null)
-                {
-                    data = new CacheData
-                    {
-                        RecordID = "tags",
-                        Data = _mapper.Map<IEnumerable<Tag>, IEnumerable<TagDTO>>(_tagService.GetAll()),
-                        CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddSeconds(60)
-                    };
-                    await cache.SetRecordAsync("tags", data);
-                }
-                return Ok(data);
+                return Ok(_tagService.GetTagsByFilter(name, date, sort, orderBy));
             }
             else
             {
-                PagingList<Tag> list = await _tagService.GetPageAsync((int)page, pageSize, name);
-                return Ok(_mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list));
+                return Ok(await _tagService.GetPageByFilter((int)page, pageSize, name, date, sort, orderBy));
             }
         }
 
@@ -138,7 +127,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{ID}/problems")]
-        public async Task<IActionResult> GetProblemOfTag(string ID, [FromServices] IDistributedCache cache)
+        public IActionResult GetProblemOfTag(string ID, [FromServices] IDistributedCache cache, string problem = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             Tag tag = _tagService.FindByID(ID);
             if (tag == null)
@@ -149,17 +138,7 @@ namespace API.Controllers
                     detail = "Tag does not exist."
                 });
             }
-            IEnumerable<ProblemDTO> problems = await cache.GetRecordAsync<IEnumerable<ProblemDTO>>($"tag_problems_{ID}");
-            if (problems == null)
-            {
-                problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_tagService.GetProblemOfTag(ID));
-                await cache.SetRecordAsync($"tag_problems_{ID}", problems);
-            }
-            return Ok(new
-            {
-                tag = _mapper.Map<Tag, TagDTO>(tag),
-                problems = problems
-            });
+            return Ok(_tagService.GetProblemOfTag(ID, problem, date, sort, orderBy));
         }
     }
 }

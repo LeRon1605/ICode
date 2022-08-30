@@ -18,15 +18,15 @@ namespace API.Repository
 
         public Submission GetSubmissionDetailSingle(Expression<Func<Submission, bool>> expression)
         {
-            return _context.Submissions.Include(x => x.SubmissionDetails).FirstOrDefault(expression);
+            return _context.Submissions.Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).FirstOrDefault(expression);
         }
 
         public IEnumerable<Submission> GetSubmissionsDetail(Expression<Func<Submission, bool>> expression = null)
         {
             if (expression == null)
-                return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase);
+                return _context.Submissions.Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem);
             else
-                return _context.Submissions.Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).Where(expression);
+                return _context.Submissions.Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).Where(expression);
         }
 
         public IEnumerable<Submission> GetSubmissionsOfProblem(string problemID, Expression<Func<Submission, bool>> expression = null)

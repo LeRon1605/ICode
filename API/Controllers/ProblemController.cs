@@ -31,43 +31,30 @@ namespace API.Controllers
         private readonly ITestcaseService _testcaseService;
         private readonly ISubmissionService _submissionService;
         private readonly IReportService _reportService;
-        private readonly IMapper _mapper;
         private readonly ILogger<ProblemController> _logger;
 
-        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, IMapper mapper, ILogger<ProblemController> logger)
+        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, ILogger<ProblemController> logger)
         {
             _problemService = problemService;
             _tagSerivce = tagService;
             _submissionService = submissionService;
             _testcaseService = testcaseService;
             _reportService = reportService;
-            _mapper = mapper;
             _logger = logger;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache, string name = "", string tag = "", int? page = null, int pageSize = 5)
+        [QueryConstraint(Key = "sort", Value = "name, author, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", string author = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             if (page != null)
             {
-                PagingList<Problem> list = await _problemService.GetPage((int)page, pageSize, tag, name);
-                return Ok(_mapper.Map<PagingList<Problem>, PagingList<ProblemDTO>>(list));
+                return Ok(await _problemService.GetPageByFilter((int)page, pageSize, name, author, tag, date, sort, orderBy));
             }
             else
             {
-                CacheData data = await cache.GetRecordAsync<CacheData>("problems");
-                if (data == null)
-                {
-                    data = new CacheData
-                    {
-                        RecordID = "problems",
-                        Data = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemService.GetAll()),
-                        CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddSeconds(30),
-                    };
-                    await cache.SetRecordAsync("problems", data, TimeSpan.FromSeconds(30));
-                }
-                return Ok(data);
+                return Ok(_problemService.GetProblemsByFilter(name, author, tag, date, sort, orderBy));
             }
         }
 
@@ -114,7 +101,7 @@ namespace API.Controllers
         [HttpGet("{ID}")]
         public IActionResult GetByID(string ID)
         {
-            Problem problem = _problemService.FindByID(ID);
+            ProblemDTO problem = _problemService.GetProblemDetail(ID);
             if (problem == null)
             {
                 return NotFound(new ErrorResponse { 
@@ -122,8 +109,7 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            problem.Tags = _problemService.GetTagsOfProblem(ID);
-            return Ok(_mapper.Map<Problem, ProblemDTO>(problem));
+            return Ok(problem);
         }
 
         [HttpDelete("{ID}")]
@@ -203,7 +189,7 @@ namespace API.Controllers
             if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
             {
 
-                return Ok(_mapper.Map<IEnumerable<TestCase>, IEnumerable<TestcaseDTO>>(_testcaseService.GetTestcaseOfProblem(ID)));
+                return Ok(_testcaseService.GetTestcaseOfProblem(ID));
             }
             else
             {
@@ -257,7 +243,7 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            Submission submission = await _submissionService.Submit(new Submission
+            SubmissionDTO submission = await _submissionService.Submit(new Submission
             {
                 ID = Guid.NewGuid().ToString(),
                 Status = false,
@@ -268,7 +254,7 @@ namespace API.Controllers
                 SubmissionDetails = new List<SubmissionDetail>()
             }, ID);
             
-            return Ok(_mapper.Map<Submission, SubmissionDTO>(submission));
+            return Ok(submission);
         }
 
         [HttpPost("{ID}/submissions")]
@@ -301,7 +287,7 @@ namespace API.Controllers
                         detail = "Invalid file, can't read content from file."
                     });
                 }
-                Submission submission = await _submissionService.Submit(new Submission
+                SubmissionDTO submission = await _submissionService.Submit(new Submission
                 {
                     ID = Guid.NewGuid().ToString(),
                     Status = false,
@@ -311,7 +297,7 @@ namespace API.Controllers
                     CreatedAt = DateTime.Now,
                     SubmissionDetails = new List<SubmissionDetail>()
                 }, ID);
-                return Ok(_mapper.Map<Submission, SubmissionDTO>(submission));
+                return Ok(submission);
             }
             return BadRequest(new ErrorResponse
             {
@@ -333,7 +319,7 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionsOfProblem(ID)));
+            return Ok(_submissionService.GetSubmissionsOfProblem(ID));
         }
 
         [HttpPost("{ID}/reports")]

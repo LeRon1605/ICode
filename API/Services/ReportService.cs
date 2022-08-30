@@ -1,5 +1,6 @@
 ﻿using API.Models.DTO;
 using API.Repository;
+using AutoMapper;
 using CodeStudy.Models;
 using Data.Entity;
 using System;
@@ -14,13 +15,16 @@ namespace API.Services
         private readonly IReportRepository _reportRepository;
         private readonly IReplyRepository _replyRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public ReportService(IReportRepository reportRepository, IReplyRepository replyRepository, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public ReportService(IReportRepository reportRepository, IReplyRepository replyRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _reportRepository = reportRepository;
             _replyRepository = replyRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
+        #region CRUD
         public IEnumerable<Report> GetAll()
         {
             return _reportRepository.GetReportsDetail();
@@ -35,11 +39,6 @@ namespace API.Services
         public Report FindByID(string ID)
         {
             return _reportRepository.FindByID(ID);
-        }
-
-        public async Task<PagingList<Report>> GetReportsOfUser(int page, int pageSize, string userID, string problem)
-        {
-            return await _reportRepository.GetPageAsync(page, pageSize, x => x.UserID == userID && x.Problem.Name.Contains(problem), x => x.User, x => x.Problem, x => x.Reply);
         }
 
         public async Task<bool> Remove(string ID)
@@ -69,9 +68,11 @@ namespace API.Services
             await _unitOfWork.CommitAsync();
             return true;
         }
+        #endregion
 
-        public async Task<bool> Reply(Report report, ReplyInput input)
+        public async Task<bool> Reply(string reportId, ReplyInput input)
         {
+            Report report = _reportRepository.GetReportsDetailSingle(x => x.ID == reportId);
             if (report.Reply == null)
             {
                 report.Reply = new Reply
@@ -86,8 +87,9 @@ namespace API.Services
             return false;
         }
 
-        public async Task<bool> UpdateReply(Report report, ReplyInput input)
+        public async Task<bool> UpdateReply(string reportId, ReplyInput input)
         {
+            Report report = _reportRepository.GetReportsDetailSingle(x => x.ID == reportId);
             if (report.Reply == null)
             {
                 return false;
@@ -102,8 +104,9 @@ namespace API.Services
             }
         }
 
-        public async Task<bool> RemoveReply(Report report)
+        public async Task<bool> RemoveReply(string reportId)
         {
+            Report report = _reportRepository.GetReportsDetailSingle(x => x.ID == reportId);
             if (report.Reply == null)
             {
                 return false;
@@ -116,19 +119,14 @@ namespace API.Services
             }
         }
 
-        public async Task<PagingList<Report>> GetPageAsync(int page, int pageSize, string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        public ReportDTO GetDetailById(string Id)
         {
-            return await _reportRepository.GetPageAsync(page, pageSize, x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.Problem);
+            return _mapper.Map<Report, ReportDTO>(_reportRepository.GetReportsDetailSingle(x => x.ID == Id));
         }
 
-        public Report GetDetailById(string Id)
+        public IEnumerable<ReportDTO> GetReportByFilter(string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
         {
-            return _reportRepository.GetReportsDetailSingle(x => x.ID == Id);
-        }
-
-        public IEnumerable<Report> GetReportByFilter(string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
-        {
-            IEnumerable<Report> data = _reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply));
+            IEnumerable<ReportDTO> data = _mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply)));
             if (!string.IsNullOrEmpty(sort))
             {
                 switch (sort) 
@@ -150,12 +148,12 @@ namespace API.Services
             return data;
         }
 
-        public IEnumerable<Report> GetReportOfUserByFilter(string title, string userId, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        public IEnumerable<ReportDTO> GetReportOfUserByFilter(string title, string userId, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
         {
-            IEnumerable<Report> data = _reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.UserID == userId && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply));
+            IEnumerable<ReportDTO> data = _mapper.Map<IEnumerable<Report>, IEnumerable<ReportDTO>>(_reportRepository.GetReportsDetail(x => x.Title.Contains(title) && x.UserID == userId && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply)));
             if (!string.IsNullOrEmpty(sort))
             {
-                switch (sort)
+                switch (sort.ToLower())
                 {
                     case "title":
                         return (orderBy == "asc") ? data.OrderBy(x => x.Title) : data.OrderByDescending(x => x.Title);
@@ -172,6 +170,18 @@ namespace API.Services
                 }
             }
             return data;
+        }
+
+        public async Task<PagingList<ReportDTO>> GetPageAsync(int page, int pageSize, string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        {
+            PagingList<Report> list = await _reportRepository.GetPageAsync(page, pageSize, x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.User, x => x.Problem, x => x.Reply);
+            return _mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(list);
+        }
+
+        public async Task<PagingList<ReportDTO>> GetPageReportOfUser(int page, int pageSize, string title, string userId, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
+        {
+            PagingList<Report> list = await _reportRepository.GetPageAsync(page, pageSize, x => x.UserID == userId && x.Title.Contains(title) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.User, x => x.Problem, x => x.Reply);
+            return _mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(list);
         }
     }
 }

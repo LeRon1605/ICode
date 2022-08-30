@@ -10,6 +10,7 @@ namespace API.Repository
     {
         T FindByID(string Id);
         IEnumerable<T> FindMulti(Expression<Func<T, bool>> expression);
+        IEnumerable<T> FindMulti(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes);
         T FindSingle(Expression<Func<T, bool>> expression);
         IEnumerable<T> FindAll();
         void Update(T entity);

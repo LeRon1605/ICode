@@ -11,7 +11,7 @@ namespace API.Filter
         public string Key { get; set; }
         public string Depend { get; set; } = null;
         public string Value { get; set; } = null;
-        public bool isRetrict { get; set; } = true;
+        public bool Retrict { get; set; } = true;
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
@@ -39,7 +39,7 @@ namespace API.Filter
             }
             else
             {
-                if (isRetrict)
+                if (Retrict)
                 {
                     context.Result = new BadRequestObjectResult(new ErrorResponse
                     {

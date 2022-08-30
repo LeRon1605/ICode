@@ -10,6 +10,7 @@ namespace CodeStudy.Models
         public string Language { get; set; }
         public bool Status { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string UserID { get; set; }
+        public UserDTO User { get; set; }
+        public ProblemBase Problem { get; set; }
     }
 }

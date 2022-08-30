@@ -1,5 +1,6 @@
 ﻿using API.Models.DTO;
 using CloudinaryDotNet;
+using CodeStudy.Models;
 using Data.Entity;
 using System;
 using System.Collections.Generic;
@@ -11,10 +12,12 @@ namespace API.Services
 {
     public interface ISubmissionService: IService<Submission>
     {
-        Task<Submission> Submit(Submission submission, string problemID);
-        IEnumerable<SubmissionDetail> GetDetail(string Id);
-        IEnumerable<Submission> GetSubmissionsOfProblem(string problemId);
-        IEnumerable<Submission> GetSubmissionOfUsers(string userId, bool? status = null);
-        Task<PagingList<Submission>> GetPageAsync(int page, int pageSize, bool? status, string user);
+        Task<SubmissionDTO> Submit(Submission submission, string problemID);
+        SubmissionDTO GetDetail(string Id);
+        IEnumerable<SubmissionDetailDTO> GetSubmitDetail(string Id);
+        IEnumerable<SubmissionDTO> GetSubmissionByFilter(string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy);
+        IEnumerable<SubmissionDTO> GetSubmissionsOfProblem(string problemId);
+        IEnumerable<SubmissionDTO> GetSubmissionOfUsers(string userId, bool? status = null);
+        Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy);
     }
 }

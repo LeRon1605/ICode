@@ -9,6 +9,6 @@ namespace API.Services
 {
     public interface ITestcaseService: IService<TestCase>
     {
-        IEnumerable<TestCase> GetTestcaseOfProblem(string problemId);
+        IEnumerable<TestcaseDTO> GetTestcaseOfProblem(string problemId);
     }
 }

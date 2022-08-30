@@ -20,10 +20,12 @@ namespace API.Mapper
             CreateMap<Report, ReportDTO>();
             CreateMap<Reply, ReplyDTO>();
             CreateMap<TestCase, TestcaseDTO>();
-            CreateMap<Submission, SubmissionDTO>();
+            CreateMap<Submission, SubmissionDTO>()
+                .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.SubmissionDetails.First().TestCase.Problem));
             CreateMap<SubmissionDetail, SubmissionDetailDTO>();
+            CreateMap<Problem, ProblemBase>();
             CreateMap<Problem, ProblemDTO>()
-                .ForMember(dest => dest.AuthorId, otp => otp.MapFrom(src => src.ArticleID));
+                .ForMember(dest => dest.Author, otp => otp.MapFrom(src => src.Article));
 
             CreateMap<PagingList<Report>, PagingList<ReportDTO>>();
             CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();

@@ -1,5 +1,6 @@
 ﻿using API.Migrations;
 using API.Repository;
+using AutoMapper;
 using CodeStudy.Models;
 using Data.Entity;
 using System;
@@ -13,21 +14,19 @@ namespace API.Services
     {
         private readonly ITestcaseRepository _testcaseRepository;
         private readonly IUnitOfWork _unitOfWork;
-        public TestcaseService(ITestcaseRepository testcaseRepository, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public TestcaseService(ITestcaseRepository testcaseRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _testcaseRepository = testcaseRepository;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
+        #region CRUD
         public async Task Add(TestCase testcase)
         {
             await _testcaseRepository.AddAsync(testcase);
             await _unitOfWork.CommitAsync();
-        }
-
-        public IEnumerable<TestCase> GetTestcaseOfProblem(string problemId)
-        {
-            return _testcaseRepository.FindMulti(x => x.ProblemID == problemId);
         }
 
         public async Task<bool> Remove(string ID)
@@ -68,6 +67,12 @@ namespace API.Services
             _testcaseRepository.Update(testcase);
             await _unitOfWork.CommitAsync();
             return true;
+        }
+        #endregion
+
+        public IEnumerable<TestcaseDTO> GetTestcaseOfProblem(string problemId)
+        {
+            return _mapper.Map<IEnumerable<TestCase>, IEnumerable<TestcaseDTO>>(_testcaseRepository.FindMulti(x => x.ProblemID == problemId));
         }
     }
 }

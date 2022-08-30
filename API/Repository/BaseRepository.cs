@@ -85,5 +85,15 @@ namespace API.Repository
         {
             return await _context.Set<T>().FindAsync(Id);
         }
+
+        public IEnumerable<T> FindMulti(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> data = _context.Set<T>();
+            foreach (var prop in includes)
+            {
+                data = data.Include(prop);
+            }
+            return data.Where(expression);
+        }
     }
 }

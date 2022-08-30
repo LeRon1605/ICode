@@ -33,34 +33,18 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-
-        [HttpGet("search")]
-        [QueryConstraint(Key = "page")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Find(int page, int pageSize , string keyword = "")
+        [QueryConstraint(Key = "sort", Value = "name, gender, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Depend = "sort", Value = "asc, desc")]
+        public async Task<IActionResult> Find(int? page = null, int pageSize = 5, string name = "", bool? gender = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
-            PagingList<User> list = await _userService.GetPageAsync(page, pageSize, keyword);
-            return Ok(_mapper.Map<PagingList<User>, PagingList<UserDTO>>(list)); 
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll([FromServices] IDistributedCache cache)
-        {
-            IEnumerable<UserDTO> users = await cache.GetRecordAsync<IEnumerable<UserDTO>>("users");
-            bool isFromCache = true;
-            if (users == null)
+            if (page == null)
             {
-                users = _mapper.Map<IEnumerable<User>, IEnumerable<UserDTO>>(_userService.GetAll());
-                await cache.SetRecordAsync("users", users);
-                isFromCache = false;
+                return Ok(_userService.GetUsersByFilter(name, gender, date, sort, orderBy));
             }
-            return Ok(new
-            {
-                data = users,
-                from = isFromCache ? "cache" : "db"
-            });
+            return Ok(await _userService.GetPageByFilter((int)page, pageSize, name, gender, date, sort, orderBy)); 
         }
+
         [HttpGet("{ID}")]
         [Authorize]
         public IActionResult GetByID(string ID)
@@ -189,7 +173,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_userService.GetSubmitOfUser(ID)));
+                return Ok(_userService.GetSubmitOfUser(ID));
             }
         }
     }

@@ -107,9 +107,9 @@ namespace API.Controllers
                 switch (status)
                 {
                     case "author":
-                        return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value, name, tag)));
+                        return Ok(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value, name, tag));
                     case "solved":
-                        return Ok(_mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(await _userService.GetProblemSolvedByUser(User.FindFirst("ID").Value, name, tag)));
+                        return Ok(await _userService.GetProblemSolvedByUser(User.FindFirst("ID").Value, name, tag));
                     default:
                         return BadRequest(new ErrorResponse
                         {
@@ -134,7 +134,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value, status)));
+                return Ok(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value, status));
             }
         }
     }

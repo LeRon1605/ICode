@@ -1,4 +1,5 @@
 ﻿using API.Models.DTO;
+using CodeStudy.Models;
 using Data.Entity;
 using System;
 using System.Collections.Generic;
@@ -10,8 +11,8 @@ namespace API.Services
     public interface ITagService: IService<Tag>
     {
         bool Exist(string name);
-        IEnumerable<Tag> Find(string name);
-        Task<PagingList<Tag>> GetPageAsync(int page, int pageSize, string keyword);
-        IEnumerable<Problem> GetProblemOfTag(string Id);
+        IEnumerable<TagDTO> GetTagsByFilter(string name, DateTime? date, string sort, string orderBy);
+        Task<PagingList<TagDTO>> GetPageByFilter(int page, int pageSize, string name, DateTime? date, string sort, string orderBy);
+        IEnumerable<ProblemDTO> GetProblemOfTag(string Id, string name, DateTime? date, string sort, string orderBy);
     }
 }

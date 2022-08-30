@@ -13,11 +13,12 @@ namespace API.Services
         bool Exist(string username, string email);
         User FindByName(string name);
         User Login(string name, string password, IAuth auth);
-        Task<bool> ChangePassword(User user, string token, string password);
-        Task<PagingList<User>> GetPageAsync(int page, int pageSize, string keyword);
         Task<bool> UpdateRole(User user, string role);
-        IEnumerable<Submission> GetSubmitOfUser(string Id);
-        IEnumerable<Problem> GetProblemCreatedByUser(string Id, string problemName, string tag);
-        Task<IEnumerable<Problem>> GetProblemSolvedByUser(string Id, string problemName, string tag);
+        Task<bool> ChangePassword(User user, string token, string password);
+        IEnumerable<UserDTO> GetUsersByFilter(string name, bool? gender, DateTime? date, string sort, string orderBy);
+        Task<PagingList<UserDTO>> GetPageByFilter(int page, int pageSize, string name, bool? gender, DateTime? date, string sort, string orderBy);
+        IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id);
+        IEnumerable<ProblemDTO> GetProblemCreatedByUser(string Id, string problemName, string tag);
+        Task<IEnumerable<ProblemDTO>> GetProblemSolvedByUser(string Id, string problemName, string tag);
     }
 }

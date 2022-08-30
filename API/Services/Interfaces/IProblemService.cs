@@ -10,7 +10,8 @@ namespace API.Services
 {
     public interface IProblemService: IService<Problem>
     {
-        ICollection<Tag> GetTagsOfProblem(string ID);
-        Task<PagingList<Problem>> GetPage(int page, int pageSize, string tag, string keyword);
+        ProblemDTO GetProblemDetail(string ID);
+        IEnumerable<ProblemDTO> GetProblemsByFilter(string name, string author, string tag, DateTime? date, string sort, string orderBy);
+        Task<PagingList<ProblemDTO>> GetPageByFilter(int page, int pageSize, string name, string author, string tag, DateTime? date, string sort, string orderBy);
     }
 }

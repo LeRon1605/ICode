@@ -21,37 +21,23 @@ namespace API.Controllers
     public class SubmissionController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;
-        private readonly IMapper _mapper;
         public SubmissionController(ISubmissionService submissionService, IMapper mapper)
         {
             _submissionService = submissionService;
-            _mapper = mapper;
         }
 
-        [HttpGet("search")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Find([FromServices] IDistributedCache cache, int? page = null, int pageSize = 5, bool? status = null, string user = "")
+        [QueryConstraint(Key = "sort", Value = "user, problem, language, status, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> Find(int? page = null, int pageSize = 5, string user = "", string problem = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
             if (page == null)
             {
-                CacheData data = await cache.GetRecordAsync<CacheData>("submissions");
-                if (data == null)
-                {
-                    data = new CacheData
-                    {
-                        RecordID = "submissions",
-                        CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddSeconds(60),
-                        Data = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionService.GetAll())
-                    };
-                    await cache.SetRecordAsync(data.RecordID, data);
-                }
-                return Ok(data);
+                return Ok(_submissionService.GetSubmissionByFilter(user, problem, language, status, date, sort, orderBy));
             }
             else
             {
-                PagingList<Submission> list = await _submissionService.GetPageAsync(page == null ? 1 : (int)page, pageSize, status, user);
-                return Ok(_mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list));
+                return Ok(await _submissionService.GetPageByFilter((int)page, pageSize, user, problem, language, status, date, sort, orderBy));
             }
         }
 
@@ -59,7 +45,7 @@ namespace API.Controllers
         [Authorize]
         public IActionResult GetByID(string ID)
         {
-            Submission submission = _submissionService.FindByID(ID);
+            SubmissionDTO submission = _submissionService.GetDetail(ID);
             if (submission == null)
             {
                 return NotFound(new ErrorResponse
@@ -70,12 +56,12 @@ namespace API.Controllers
             }
             else
             {
-                if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN || submission.UserID == User.FindFirst(Constant.ID).Value)
+                if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN || submission.User.ID == User.FindFirst(Constant.ID).Value)
                 {
                     return Ok(new
                     {
-                        submission = _mapper.Map<Submission, SubmissionDTO>(submission),
-                        detail = _mapper.Map<IEnumerable<SubmissionDetail>, IEnumerable<SubmissionDetailDTO>>(_submissionService.GetDetail(ID))
+                        submission = submission,
+                        detail = _submissionService.GetSubmitDetail(ID)
                     });
                 }
                 else
