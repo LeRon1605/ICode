@@ -243,7 +243,7 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            SubmissionDTO submission = await _submissionService.Submit(new Submission
+            SubmissionResult submission = await _submissionService.Submit(new Submission
             {
                 ID = Guid.NewGuid().ToString(),
                 Status = false,
@@ -287,7 +287,7 @@ namespace API.Controllers
                         detail = "Invalid file, can't read content from file."
                     });
                 }
-                SubmissionDTO submission = await _submissionService.Submit(new Submission
+                SubmissionResult submission = await _submissionService.Submit(new Submission
                 {
                     ID = Guid.NewGuid().ToString(),
                     Status = false,

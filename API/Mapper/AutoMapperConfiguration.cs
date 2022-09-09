@@ -22,6 +22,7 @@ namespace API.Mapper
             CreateMap<TestCase, TestcaseDTO>();
             CreateMap<Submission, SubmissionDTO>()
                 .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.SubmissionDetails.First().TestCase.Problem));
+            CreateMap<Submission, SubmissionResult>();
             CreateMap<SubmissionDetail, SubmissionDetailDTO>();
             CreateMap<Problem, ProblemBase>();
             CreateMap<Problem, ProblemDTO>()

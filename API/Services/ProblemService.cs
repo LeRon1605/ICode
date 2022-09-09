@@ -14,14 +14,16 @@ namespace API.Services
     public class ProblemService : IProblemService
     {
         private readonly IProblemRepository _problemRepository;
+        private readonly ISubmissionRepository _submissionRepository;
         private readonly ITagRepository _tagRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository, ISubmissionRepository submissionRepository, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _problemRepository = problemRepository;
             _tagRepository = tagRepository;
             _unitOfWork = unitOfWork;
+            _submissionRepository = submissionRepository;
             _mapper = mapper;
         }
 
@@ -37,6 +39,10 @@ namespace API.Services
             if (problem == null)
             {
                 return false;
+            }
+            foreach (Submission submission in _submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.First().TestCase.ProblemID == ID))
+            {
+                _submissionRepository.Remove(submission);
             }
             _problemRepository.Remove(problem);
             await _unitOfWork.CommitAsync();

@@ -121,25 +121,5 @@ namespace API.Controllers
                 }
             }
         }
-
-        [HttpGet("submissions")]
-        [QueryConstraint(Key = "sort", Value = "status, problem, language, date", Retrict = false)]
-        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
-        public IActionResult GetSubmitOfUser(bool? status = null, string problem = "", string language = "", DateTime? date = null, string sort = "", string orderBy = "")
-        {
-            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
-            if (user == null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    error = "Resource not found.",
-                    detail = "User does not exist."
-                });
-            }
-            else
-            {
-                return Ok(_userService.GetSubmitOfUser(User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
-            }
-        }
     }
 }

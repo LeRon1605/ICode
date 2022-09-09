@@ -63,7 +63,8 @@ namespace API.Services
         #endregion
         public SubmissionDTO GetDetail(string Id)
         {
-            return _mapper.Map<Submission, SubmissionDTO>(_submissionRepository.GetSubmissionDetailSingle(x => x.ID == Id));
+            Submission submission = _submissionRepository.GetSubmissionDetailSingle(x => x.ID == Id);
+            return _mapper.Map<Submission, SubmissionDTO>(submission);
         }
 
         public IEnumerable<SubmissionDetailDTO> GetSubmitDetail(string Id)
@@ -73,10 +74,10 @@ namespace API.Services
 
         public IEnumerable<SubmissionDTO> GetSubmissionsOfProblem(string problemId)
         {
-            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == problemId).Select(detail => detail.SubmitID).Contains(x.ID)));
+            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.First().TestCase.ProblemID == problemId));
         }
 
-        public async Task<SubmissionDTO> Submit(Submission submission, string problemID)
+        public async Task<SubmissionResult> Submit(Submission submission, string problemID)
         {
             foreach (TestcaseDTO testcase in _testcaseService.GetTestcaseOfProblem(problemID))
             {
@@ -90,9 +91,14 @@ namespace API.Services
                 };
                 if (result.memory == null && result.cpuTime == null)
                 {
+                    submission.Description = "Compiler Error";
                     submitDetail.Description = result.output;
                     submitDetail.Status = false;
                     submission.Status = false;
+                    submission.SubmissionDetails.Add(submitDetail);
+                    await _submissionRepository.AddAsync(submission);
+                    await _unitOfWork.CommitAsync();
+                    return _mapper.Map<Submission, SubmissionResult>(submission);
                 }
                 else
                 {
@@ -123,10 +129,10 @@ namespace API.Services
                 }
                 submission.SubmissionDetails.Add(submitDetail);
             }
-            submission.Description = submission.SubmissionDetails.Select(x => x.Description).FirstOrDefault(x => x == "Success") ?? submission.SubmissionDetails.Select(x => x.Description).FirstOrDefault(x => x != "Success"); 
+            submission.Description = submission.Status ? "Success" : submission.SubmissionDetails.FirstOrDefault(x => x.Status == false).Description;
             await _submissionRepository.AddAsync(submission);
             await _unitOfWork.CommitAsync();
-            return _mapper.Map<Submission, SubmissionDTO>(submission);
+            return _mapper.Map<Submission, SubmissionResult>(submission);
         }
 
         public async Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
