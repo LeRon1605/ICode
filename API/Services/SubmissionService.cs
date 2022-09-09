@@ -71,17 +71,6 @@ namespace API.Services
             return _mapper.Map<IEnumerable<SubmissionDetail>, IEnumerable<SubmissionDetailDTO>>(_submissionRepository.GetSubmissionDetailSingle(x => x.ID == Id).SubmissionDetails);
         }
 
-        public async Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
-        {
-            PagingList<Submission> list = await _submissionRepository.GetPageAsync(page, pageSize, x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User);
-            return _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(list);
-        }
-
-        public IEnumerable<SubmissionDTO> GetSubmissionOfUsers(string userId, bool? status)
-        {
-            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.FindMulti(x => x.UserID == userId && (status == null || x.Status == (bool)status)));
-        }
-
         public IEnumerable<SubmissionDTO> GetSubmissionsOfProblem(string problemId)
         {
             return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.Where(detail => detail.TestCase.ProblemID == problemId).Select(detail => detail.SubmitID).Contains(x.ID)));
@@ -101,7 +90,7 @@ namespace API.Services
                 };
                 if (result.memory == null && result.cpuTime == null)
                 {
-                    submitDetail.Description = "Compiler Error";
+                    submitDetail.Description = result.output;
                     submitDetail.Status = false;
                     submission.Status = false;
                 }
@@ -134,9 +123,39 @@ namespace API.Services
                 }
                 submission.SubmissionDetails.Add(submitDetail);
             }
+            submission.Description = submission.SubmissionDetails.Select(x => x.Description).FirstOrDefault(x => x == "Success") ?? submission.SubmissionDetails.Select(x => x.Description).FirstOrDefault(x => x != "Success"); 
             await _submissionRepository.AddAsync(submission);
             await _unitOfWork.CommitAsync();
             return _mapper.Map<Submission, SubmissionDTO>(submission);
+        }
+
+        public async Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
+        {
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "user":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username) : list.Data.OrderByDescending(x => x.User.Username);
+                        break;
+                    case "problem":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Problem.Name) : list.Data.OrderByDescending(x => x.Problem.Name);
+                        break;
+                    case "language":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Language) : list.Data.OrderByDescending(x => x.Language);
+                        break;
+                    case "status":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Status) : list.Data.OrderByDescending(x => x.Status);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action.");
+                }
+            }
+            return list;
         }
 
         public IEnumerable<SubmissionDTO> GetSubmissionByFilter(string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)

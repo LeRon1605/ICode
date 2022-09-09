@@ -86,7 +86,7 @@ namespace API.Controllers
                 });
             }
             await _userService.Update(ID, input);
-            return Ok(_mapper.Map<User, UserDTO>(user));
+            return NoContent();
         }
 
         [HttpDelete("{ID}")]
@@ -124,7 +124,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<Role, RoleDTO>(_roleService.FindById(user.RoleID)));
+                return Ok(_roleService.FindById(user.RoleID));
             }
         }
 
@@ -160,7 +160,7 @@ namespace API.Controllers
 
         [HttpGet("{ID}/submissions")]
         [Authorize]
-        public IActionResult GetSubmitOfUser(string ID)
+        public IActionResult GetSubmitOfUser(string ID, bool? status = null, string problem = "", string language = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             User user = _userService.FindByID(ID);
             if (user == null)
@@ -173,7 +173,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_userService.GetSubmitOfUser(ID));
+                return Ok(_userService.GetSubmitOfUser(ID, problem, language, status, date, sort, orderBy));
             }
         }
     }

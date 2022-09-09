@@ -21,23 +21,39 @@ namespace API.Controllers
     public class SubmissionController : ControllerBase
     {
         private readonly ISubmissionService _submissionService;
-        public SubmissionController(ISubmissionService submissionService, IMapper mapper)
+        private readonly IUserService _userService;
+        public SubmissionController(ISubmissionService submissionService, IUserService userService)
         {
             _submissionService = submissionService;
+            _userService = userService;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [QueryConstraint(Key = "sort", Value = "user, problem, language, status, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
         public async Task<IActionResult> Find(int? page = null, int pageSize = 5, string user = "", string problem = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
-            if (page == null)
+            if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
-                return Ok(_submissionService.GetSubmissionByFilter(user, problem, language, status, date, sort, orderBy));
+                if (page == null)
+                {
+                    return Ok(_submissionService.GetSubmissionByFilter(user, problem, language, status, date, sort, orderBy));
+                }
+                else
+                {
+                    return Ok(await _submissionService.GetPageByFilter((int)page, pageSize, user, problem, language, status, date, sort, orderBy));
+                }
             }
             else
             {
-                return Ok(await _submissionService.GetPageByFilter((int)page, pageSize, user, problem, language, status, date, sort, orderBy));
+                if (page == null)
+                {
+                    return Ok(_userService.GetSubmitOfUser(User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
+                }
+                else
+                {
+                    return Ok(await _userService.GetPageSubmitOfUser((int)page, pageSize, User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
+                }
             }
         }
 

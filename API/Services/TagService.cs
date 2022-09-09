@@ -76,6 +76,18 @@ namespace API.Services
         public async Task<PagingList<TagDTO>> GetPageByFilter(int page, int pageSize, string name, DateTime? date, string sort, string orderBy)
         {
             PagingList<Tag> list = await _tagRepository.GetPageAsync(page, pageSize, tag => tag.Name.Contains(name) && (date == null || tag.CreatedAt.Date == ((DateTime)date).Date));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort)
+                {
+                    case "name":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Name) : list.Data.OrderByDescending(x => x.Name);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                }
+            }
             return _mapper.Map<PagingList<Tag>, PagingList<TagDTO>>(list);
         }
 

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using System.Xml.Linq;
 
 namespace API.Services
 {
@@ -109,14 +110,27 @@ namespace API.Services
             return _userRepository.FindSingle(user => (user.Username == name || user.Email == name) && user.Type == AccountType.Local);
         }
 
-        public IEnumerable<ProblemDTO> GetProblemCreatedByUser(string Id, string problemName, string tag)
+        public IEnumerable<ProblemDTO> GetProblemCreatedByUser(string Id, string problemName, string tag, DateTime? date, string sort, string orderBy)
         {
-            return _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemRepository.GetProblemDetailMulti(problem => problem.ArticleID == Id && (string.IsNullOrWhiteSpace(problemName) || problem.Name.Contains(problemName)) && (string.IsNullOrEmpty(tag) || problem.Tags.Any(x => x.ID == tag))));
+            IEnumerable<ProblemDTO> problems = _mapper.Map<IEnumerable<Problem>, IEnumerable<ProblemDTO>>(_problemRepository.GetProblemDetailMulti(problem => problem.ArticleID == Id && problem.Name.Contains(problemName) && (tag == "" || problem.Tags.Any(x => x.Name.Contains(tag))) && (date == null || ((DateTime)date).Date == problem.CreatedAt.Date)));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort)
+                {
+                    case "problem":
+                        return (orderBy == "asc") ? problems.OrderBy(x => x.Name) : problems.OrderByDescending(x => x.Name);
+                    case "date":
+                        return (orderBy == "asc") ? problems.OrderBy(x => x.CreatedAt) : problems.OrderByDescending(x => x.CreatedAt);
+                    default:
+                        throw new Exception("Invalid action.");
+                }
+            }
+            return problems;
         }
 
-        public IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id)
+        public IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.UserID == Id));
+            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
         }
 
         public User Login(string name, string password, IAuth auth)
@@ -168,8 +182,53 @@ namespace API.Services
         public async Task<PagingList<UserDTO>> GetPageByFilter(int page, int pageSize, string name, bool? gender, DateTime? date, string sort, string orderBy)
         {
             PagingList<User> list = await _userRepository.GetPageAsync(page, pageSize, x => (x.Username.Contains(name) || x.Email.Contains(name)) && (gender == null || (bool)gender == x.Gender) && (date == null || x.CreatedAt.Date == ((DateTime)date).Date));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "name":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Username) : list.Data.OrderByDescending(x => x.Username);
+                        break;
+                    case "gender":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Gender) : list.Data.OrderByDescending(x => x.Gender);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action.");
+                }
+            }
             return _mapper.Map<PagingList<User>, PagingList<UserDTO>>(list);
         }
 
+        public async Task<PagingList<SubmissionDTO>> GetPageSubmitOfUser(int page, int pageSize, string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
+        {
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "user":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username) : list.Data.OrderByDescending(x => x.User.Username);
+                        break;
+                    case "problem":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Problem.Name) : list.Data.OrderByDescending(x => x.Problem.Name);
+                        break;
+                    case "language":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Language) : list.Data.OrderByDescending(x => x.Language);
+                        break;
+                    case "status":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Status) : list.Data.OrderByDescending(x => x.Status);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action.");
+                }
+            }
+            return list;
+        }
     }
 }

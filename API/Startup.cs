@@ -92,7 +92,10 @@ namespace API
 
             services.AddCors(option =>
             {
-                option.AddPolicy("Test", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+                option.AddPolicy("ICode", builder => builder.AllowAnyOrigin()
+                                                            .AllowAnyHeader()
+                                                            .WithMethods("PUT", "DELETE", "GET", "POST")
+                                );
             });
 
             services.AddAutoMapper(typeof(Startup));
@@ -153,7 +156,7 @@ namespace API
             {
                 app.MigrateDB();
             }
-            app.UseCors("Test");
+            app.UseCors("ICode");
             app.UseSwagger();
 
             // This middleware serves the Swagger documentation UI

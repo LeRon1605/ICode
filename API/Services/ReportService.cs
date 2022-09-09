@@ -175,12 +175,58 @@ namespace API.Services
         public async Task<PagingList<ReportDTO>> GetPageAsync(int page, int pageSize, string title, string user, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
         {
             PagingList<Report> list = await _reportRepository.GetPageAsync(page, pageSize, x => x.Title.Contains(title) && x.User.Username.Contains(user) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.User, x => x.Problem, x => x.Reply);
+            if (!string.IsNullOrEmpty(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "title":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Title) : list.Data.OrderByDescending(x => x.Title);
+                        break;
+                    case "user":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username) : list.Data.OrderByDescending(x => x.User.Username);
+                        break;
+                    case "problem":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Problem.Name) : list.Data.OrderByDescending(x => x.Problem.Name);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    case "reply":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action");
+                }
+            }
             return _mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(list);
         }
 
         public async Task<PagingList<ReportDTO>> GetPageReportOfUser(int page, int pageSize, string title, string userId, string problem, DateTime? createdAt, bool? reply, string sort, string orderBy)
         {
             PagingList<Report> list = await _reportRepository.GetPageAsync(page, pageSize, x => x.UserID == userId && x.Title.Contains(title) && x.Problem.Name.Contains(problem) && (createdAt == null || x.CreatedAt.Date == ((DateTime)createdAt).Date) && (reply == null || (x.Reply != null) == reply), x => x.User, x => x.Problem, x => x.Reply);
+            if (!string.IsNullOrEmpty(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "title":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Title) : list.Data.OrderByDescending(x => x.Title);
+                        break;
+                    case "user":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username) : list.Data.OrderByDescending(x => x.User.Username);
+                        break;
+                    case "problem":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Problem.Name) : list.Data.OrderByDescending(x => x.Problem.Name);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    case "reply":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action");
+                }
+            }
             return _mapper.Map<PagingList<Report>, PagingList<ReportDTO>>(list);
         }
     }

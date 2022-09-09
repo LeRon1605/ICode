@@ -1,5 +1,7 @@
 ﻿using API.Helper;
 using API.Repository;
+using AutoMapper;
+using CodeStudy.Models;
 using Data.Entity;
 using System;
 using System.Collections.Generic;
@@ -10,24 +12,26 @@ namespace API.Services
 {
     public interface IRoleService
     {
-        Role FindById(string ID);
-        Role FindByName(string Name);
+        RoleDTO FindById(string ID);
+        RoleDTO FindByName(string Name);
     }
     public class RoleService : IRoleService
     {
         private readonly IRoleRepository _roleRepository;
-        public RoleService(IRoleRepository roleRepository)
+        private readonly IMapper _mapper;
+        public RoleService(IRoleRepository roleRepository, IMapper mapper)
         {
             _roleRepository = roleRepository;
+            _mapper = mapper;
         }
-        public Role FindById(string ID)
+        public RoleDTO FindById(string ID)
         {
-            return _roleRepository.FindByID(ID);
+            return _mapper.Map<Role, RoleDTO>(_roleRepository.FindByID(ID));
         }
 
-        public Role FindByName(string Name)
+        public RoleDTO FindByName(string Name)
         {
-            return _roleRepository.FindSingle(x => x.Name == Name);
+            return _mapper.Map<Role, RoleDTO>(_roleRepository.FindSingle(x => x.Name == Name));
         }
     }
 }

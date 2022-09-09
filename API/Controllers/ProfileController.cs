@@ -46,7 +46,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<User, UserDTO>(user));
         }
 
-        [HttpPost]
+        [HttpPut]
         public async Task<IActionResult> Update([FromForm] UserUpdate input, [FromForm] IFormFile avatar, [FromServices] IUploadService uploadService)
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
@@ -87,11 +87,13 @@ namespace API.Controllers
                 }
             }
             await _userService.Update(User.FindFirst(Constant.ID).Value, input);
-            return Ok(_mapper.Map<User, UserDTO>(user));
+            return NoContent();
         }
 
         [HttpGet("problems")]
-        public async Task<IActionResult> GetProblemOfUser(string name, string tag, string status = "author")
+        [QueryConstraint(Key = "sort", Value = "name, tag, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> GetProblemOfUser(string status = "author", string name = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
@@ -107,9 +109,9 @@ namespace API.Controllers
                 switch (status)
                 {
                     case "author":
-                        return Ok(_userService.GetProblemCreatedByUser(User.FindFirst("ID").Value, name, tag));
+                        return Ok(_userService.GetProblemCreatedByUser(User.FindFirst(Constant.ID).Value, name, tag, date, sort, orderBy));
                     case "solved":
-                        return Ok(await _userService.GetProblemSolvedByUser(User.FindFirst("ID").Value, name, tag));
+                        return Ok(await _userService.GetProblemSolvedByUser(User.FindFirst(Constant.ID).Value, name, tag));
                     default:
                         return BadRequest(new ErrorResponse
                         {
@@ -121,7 +123,9 @@ namespace API.Controllers
         }
 
         [HttpGet("submissions")]
-        public IActionResult GetSubmitOfUser(bool? status = null)
+        [QueryConstraint(Key = "sort", Value = "status, problem, language, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public IActionResult GetSubmitOfUser(bool? status = null, string problem = "", string language = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
             User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
             if (user == null)
@@ -134,7 +138,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_submissionService.GetSubmissionOfUsers(User.FindFirst("ID").Value, status));
+                return Ok(_userService.GetSubmitOfUser(User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
             }
         }
     }

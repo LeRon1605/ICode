@@ -17,8 +17,9 @@ namespace API.Services
         Task<bool> ChangePassword(User user, string token, string password);
         IEnumerable<UserDTO> GetUsersByFilter(string name, bool? gender, DateTime? date, string sort, string orderBy);
         Task<PagingList<UserDTO>> GetPageByFilter(int page, int pageSize, string name, bool? gender, DateTime? date, string sort, string orderBy);
-        IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id);
-        IEnumerable<ProblemDTO> GetProblemCreatedByUser(string Id, string problemName, string tag);
+        Task<PagingList<SubmissionDTO>> GetPageSubmitOfUser(int page, int pageSize, string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy);
+        IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy);
+        IEnumerable<ProblemDTO> GetProblemCreatedByUser(string Id, string problemName, string tag, DateTime? date, string sort, string orderBy);
         Task<IEnumerable<ProblemDTO>> GetProblemSolvedByUser(string Id, string problemName, string tag);
     }
 }

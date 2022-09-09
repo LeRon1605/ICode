@@ -184,6 +184,8 @@ namespace Data
                       .HasDefaultValue(false);
                 entity.Property(submit => submit.UserID)
                       .IsRequired();
+                entity.Property(submit => submit.Description)
+                      .IsRequired();
                 entity.HasOne(submit => submit.User)
                       .WithMany(user => user.Submissions)
                       .HasForeignKey(submit => submit.UserID)

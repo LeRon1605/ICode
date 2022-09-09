@@ -54,7 +54,7 @@ namespace API.Controllers
                     Gender = input.Gender,
                     CreatedAt = DateTime.Now,
                     Type = AccountType.Local,
-                    Role = _roleService.FindByName(Constant.USER)
+                    RoleID = _roleService.FindByName(Constant.USER).ID
                 });
                 return Ok();
             }
@@ -175,7 +175,7 @@ namespace API.Controllers
                     Username = payload.Name,
                     CreatedAt = DateTime.Now,
                     Type = AccountType.Google,
-                    Role = _roleService.FindByName(Constant.USER)
+                    RoleID = _roleService.FindByName(Constant.USER).ID
                 };
                 await _userSerivce.Add(user);
             }
