@@ -22,6 +22,7 @@ namespace Services
         }
         public AccessToken GenerateToken(User user)
         {
+            if (user == null) return null;
             var key = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
             var token = new JwtSecurityToken(
                 issuer: null,
