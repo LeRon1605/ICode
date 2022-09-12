@@ -1,7 +1,7 @@
-﻿using API.Models.DTO;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Models.DTO;
 using System.Linq;
 
 namespace API.Filter

@@ -1,19 +1,15 @@
-﻿using API.Extension;
-using API.Filter;
-using API.Models.DTO;
-using API.Services;
+﻿using API.Filter;
 using AutoMapper;
 using CodeStudy.Models;
 using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
-using Models;
+using Models.DTO;
+using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
-using static StackExchange.Redis.Role;
 
 namespace API.Controllers
 {

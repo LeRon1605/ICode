@@ -1,16 +1,16 @@
 ﻿using API.Filter;
 using API.Helper;
-using API.Models.DTO;
-using API.Services;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
-using Data.Enum;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
+using Services;
+using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace API.Controllers
 {

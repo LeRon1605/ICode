@@ -1,6 +1,7 @@
 using System;
 using API.Helper;
 using Data;
+using Data.Common;
 using Data.Entity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;

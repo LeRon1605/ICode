@@ -1,11 +1,9 @@
-﻿using API.Models.DTO;
-using AutoMapper;
+﻿using AutoMapper;
 using CodeStudy.Models;
 using Data.Entity;
+using Models.DTO;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace API.Mapper
 {
