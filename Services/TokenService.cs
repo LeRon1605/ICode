@@ -48,6 +48,7 @@ namespace API.Services
 
         public async Task<Token> GenerateToken(User user)
         {
+            if (user == null) return null;
             AccessToken token = _tokenProvider.GenerateToken(user);
             RefreshToken refreshToken = new RefreshToken
             {
@@ -71,7 +72,7 @@ namespace API.Services
         public async Task<Token> RefreshToken(string jwtID, string refresh_token)
         {
             RefreshToken refreshToken = _tokenRepository.FindSingle(x => x.Token == refresh_token);
-            if (refreshToken == null || refreshToken.State || refreshToken.JwtID != jwtID)
+            if (refreshToken == null || refreshToken.State || refreshToken.JwtID != jwtID || refreshToken.ExpiredAt < DateTime.Now)
             {
                 return null;
             }

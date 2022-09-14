@@ -1,4 +1,5 @@
 ﻿using Castle.Core.Configuration;
+using CodeStudy.Models;
 using Data.Common;
 using Data.Entity;
 using Microsoft.Extensions.Configuration;
@@ -8,6 +9,7 @@ using Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnitTest.Common;
 using Xunit;
 
 namespace UnitTest.ServiceTest
@@ -30,8 +32,8 @@ namespace UnitTest.ServiceTest
         {
             User user = new User
             {
-                ID = Guid.NewGuid().ToString(),
-                Username = "Random Name",
+                ID = UserConstant.ID,
+                Username = UserConstant.USERNAME,
                 Role = new Role
                 {
                     ID = Guid.NewGuid().ToString(),
@@ -39,7 +41,7 @@ namespace UnitTest.ServiceTest
                 }
             };
 
-            var result = tokenProvider.GenerateToken(user);
+            AccessToken result = tokenProvider.GenerateToken(user);
 
             Assert.NotNull(result);
             Assert.NotEmpty(result.ID);
@@ -61,8 +63,8 @@ namespace UnitTest.ServiceTest
         {
             User user = new User
             {
-                ID = Guid.NewGuid().ToString(),
-                Username = "Random Name",
+                ID = UserConstant.ID,
+                Username = UserConstant.USERNAME,
                 Role = new Role
                 {
                     ID = Guid.NewGuid().ToString(),
