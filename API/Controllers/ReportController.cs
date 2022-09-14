@@ -1,19 +1,12 @@
-﻿using API.Extension;
-using API.Filter;
-using API.Helper;
-using API.Models.DTO;
-using API.Repository;
-using API.Services;
-using AutoMapper;
+﻿using API.Filter;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
+using Models.DTO;
+using Services.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers

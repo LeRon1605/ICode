@@ -1,12 +1,11 @@
-﻿using API.Filter;
-using API.Helper;
-using API.Models.DTO;
-using API.Services;
-using AutoMapper;
+﻿using AutoMapper;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
+using Services.Interfaces;
 using System.Threading.Tasks;
 
 namespace API.Controllers

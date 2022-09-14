@@ -1,20 +1,13 @@
-﻿using API.Models.DTO;
-using API.Repository;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using API.Filter;
 using CodeStudy.Models;
 using AutoMapper;
-using API.Services;
-using Microsoft.Extensions.Caching.Distributed;
-using API.Extension;
 using Data.Entity;
+using Services.Interfaces;
+using Models.DTO;
 
 namespace API.Controllers
 {

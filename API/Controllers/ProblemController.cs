@@ -1,24 +1,18 @@
-﻿using API.Extension;
-using API.Filter;
-using API.Helper;
-using API.Migrations;
-using API.Models.DTO;
-using API.Services;
-using AutoMapper;
+﻿using API.Filter;
 using CodeStudy.Models;
 using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
+using Models.DTO;
+using Services.Interfaces;
+using Data.Common;
 
 namespace API.Controllers
 {

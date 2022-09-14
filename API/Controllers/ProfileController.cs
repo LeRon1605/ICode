@@ -1,17 +1,16 @@
 ﻿using API.Filter;
-using API.Helper;
-using API.Models.DTO;
-using API.Services;
 using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
+using Services.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace API.Controllers
