@@ -22,7 +22,7 @@ namespace API.Controllers
         private readonly IRoleService _roleService;
         private readonly ITokenService _tokenService;
         private readonly IMail _mail;
-
+        
         public AuthController(IUserService userService, IRoleService roleService, ITokenService tokenSerivce, IMail mail)
         {
             _userSerivce = userService;
