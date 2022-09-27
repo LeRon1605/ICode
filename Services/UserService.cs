@@ -71,6 +71,7 @@ namespace Services
             user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
             user.Avatar = (string.IsNullOrWhiteSpace(data.UploadImage)) ? user.Avatar : data.UploadImage;
             user.UpdatedAt = DateTime.Now;
+            _userRepository.Update(user);
             await _unitOfWork.CommitAsync();
             return true;
         }

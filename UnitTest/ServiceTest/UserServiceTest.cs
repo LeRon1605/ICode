@@ -7,9 +7,11 @@ using Services;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnitTest.Common;
+using UnitTest.Data;
 using Xunit;
 
 namespace UnitTest.ServiceTest
@@ -29,7 +31,7 @@ namespace UnitTest.ServiceTest
 
         public UserServiceTest()
         {
-            users = UserConstant.GetUsers();
+            users = UserData.GetUsers();
 
             userRepositoryMock = new Mock<IUserRepository>();
             problemRepositoryMock = new Mock<IProblemRepository>();
@@ -40,12 +42,23 @@ namespace UnitTest.ServiceTest
 
             #region Setup Mock
             // Setup mock for user Repository
+            userRepositoryMock.Setup(x => x.FindAll()).Returns(UserData.GetUsers());
             userRepositoryMock.Setup(x => x.Update(It.IsAny<User>()));
 
             // Setup mock for unitOfWork
             unitOfWorkMock.Setup(x => x.CommitAsync());
             #endregion
             userService = new UserService(userRepositoryMock.Object, problemRepositoryMock.Object, roleRepositoryMock.Object, submissionRepositoryMock.Object, unitOfWorkMock.Object, mapperMock.Object);
+        }
+
+        [Fact]
+        public void WhenGetAll_ThenShouldReturnList()
+        {
+            IEnumerable<User> users = userService.GetAll();
+
+            Assert.NotNull(users);
+            Assert.Equal(UserData.GetUsers().Count, users.Count());
+            userRepositoryMock.Verify(x => x.FindAll(), Times.Once);
         }
 
         [Fact]
