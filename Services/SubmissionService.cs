@@ -80,7 +80,15 @@ namespace API.Services
 
         public async Task<SubmissionResult> Submit(Submission submission, string problemID)
         {
-            foreach (TestcaseDTO testcase in _testcaseService.GetTestcaseOfProblem(problemID))
+            IEnumerable<TestcaseDTO> testcases = _testcaseService.GetTestcaseOfProblem(problemID);
+            if (testcases.Count() <= 0)
+            {
+                submission.Description = "Problem Not Found";
+                await _submissionRepository.AddAsync(submission);
+                await _unitOfWork.CommitAsync();
+                return _mapper.Map<Submission, SubmissionResult>(submission);
+            }
+            foreach (TestcaseDTO testcase in testcases)
             {
                 ExecutorResult result = await _codeExecutor.ExecuteCode(submission.Code, submission.Language, testcase.Input);
                 SubmissionDetail submitDetail = new SubmissionDetail

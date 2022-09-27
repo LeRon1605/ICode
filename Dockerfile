@@ -5,6 +5,8 @@ COPY *.sln ./
 COPY API/*.csproj ./API/
 COPY Data/*.csproj ./Data/
 COPY Models/*.csproj ./Models/
+COPY Services/*.csproj ./Services/
+COPY UnitTest/*.csproj ./UnitTest/
 
 RUN dotnet restore
 
@@ -14,8 +16,12 @@ WORKDIR /src/Data
 RUN dotnet build -c Release -o /app
 WORKDIR /src/Models
 RUN dotnet build -c Release -o /app
+WORKDIR /src/Services
+RUN dotnet build -c Release -o /app
+WORKDIR /src/UnitTest
+RUN dotnet publish -c Release -o /app
 WORKDIR /src/API
-RUN dotnet publish  -c Release -o /app
+RUN dotnet publish -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:3.1
 WORKDIR /app
