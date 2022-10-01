@@ -50,9 +50,14 @@ namespace Data
                       .IsRequired();
                 entity.Property(user => user.Gender)
                       .IsRequired();
+                entity.Property(user => user.AllowNotification)
+                      .IsRequired();
                 entity.Property(user => user.CreatedAt)
                       .IsRequired();
                 entity.Property(user => user.UpdatedAt)
+                      .IsRequired(false)
+                      .HasDefaultValue(null);
+                entity.Property(user => user.RemindAt)
                       .IsRequired(false)
                       .HasDefaultValue(null);
                 entity.Property(user => user.RoleID)
@@ -189,7 +194,7 @@ namespace Data
                 entity.HasOne(submit => submit.User)
                       .WithMany(user => user.Submissions)
                       .HasForeignKey(submit => submit.UserID)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<SubmissionDetail>(entity =>

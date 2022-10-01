@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(ICodeDbContext))]
-    [Migration("20220909164112_deleteBehavior")]
-    partial class deleteBehavior
+    [Migration("20220930145900_UserLogInAt")]
+    partial class UserLogInAt
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -320,6 +320,9 @@ namespace API.Migrations
                     b.Property<bool>("Gender")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastLogInAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -418,7 +421,7 @@ namespace API.Migrations
                     b.HasOne("Data.Entity.User", "User")
                         .WithMany("Submissions")
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");

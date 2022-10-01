@@ -1,5 +1,4 @@
 ﻿using API.Controllers;
-using API.Helper;
 using CodeStudy.Models;
 using Data.Entity;
 using Microsoft.AspNetCore.Http;
@@ -24,13 +23,13 @@ namespace UnitTest.ControllerTest
         private readonly Mock<IUserService> userSerivceMock;
         private readonly Mock<IRoleService> roleServiceMock;
         private readonly Mock<ITokenService> tokenServiceMock;
-        private readonly Mock<IMail> mailMock;
+        private readonly Mock<IMailService> mailMock;
         public AuthControllerTest()
         {
             userSerivceMock = new Mock<IUserService>();
             roleServiceMock = new Mock<IRoleService>();
             tokenServiceMock = new Mock<ITokenService>();
-            mailMock = new Mock<IMail>();
+            mailMock = new Mock<IMailService>();
 
             authController = new AuthController(userSerivceMock.Object, roleServiceMock.Object, tokenServiceMock.Object, mailMock.Object);
         }
@@ -89,10 +88,10 @@ namespace UnitTest.ControllerTest
         [Fact]
         public async Task GivenValidUser_WhenLogin_ThenShouldReturnToken()
         {
-            userSerivceMock.Setup(x => x.Login(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ILocalAuth>())).Returns(new User
+            userSerivceMock.Setup(x => x.Login(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ILocalAuth>())).Returns(Task.FromResult(new User
             {
                 ID = Guid.NewGuid().ToString()
-            });
+            }));
             tokenServiceMock.Setup(x => x.GenerateToken(It.IsAny<User>())).Returns(Task.FromResult(new Token
             {
                 AccessToken = "access_token",

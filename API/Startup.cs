@@ -1,10 +1,11 @@
 using API.Extension;
 using API.Filter;
-using API.Helper;
 using API.Services;
 using Data;
 using Data.Repository;
 using Data.Repository.Interfaces;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -66,74 +67,53 @@ namespace API
                         };
                     });
 
+            string DbConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("ICode") : Configuration["DbConnectionString"];
+            string RedisConnecionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("Redis") : Configuration["Redis"];
+            string HangFireConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("HangFire") : Configuration["HangFireDb"];
+
             services.AddDbContext<ICodeDbContext>(options =>
             {
-                if (Environment.IsDevelopment())
-                {
-                    
-                    options.UseSqlServer(Configuration.GetConnectionString("ICode"), x => x.MigrationsAssembly("API"));
-                }
-                else
-                {
-                    var server = Configuration["Server"] ?? "db";
-                    var db = Configuration["Database"] ?? "ICode";
-                    var uid = Configuration["UID"] ?? "sa";
-                    var pwd = Configuration["PWD"] ?? "leron@1605";
-                    options.UseSqlServer($"Server={server};Database={db};UID={uid};PWD={pwd}", x => x.MigrationsAssembly("API"));
-                }
+                options.UseSqlServer(DbConnectionString, x => x.MigrationsAssembly("API"));
             });
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = RedisConnecionString;
+                options.InstanceName = "ICode";
+            });
+
+            services.AddHangfire(config =>
+            {
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                      .UseSimpleAssemblyNameTypeSerializer()
+                      .UseRecommendedSerializerSettings()
+                      .UseSqlServerStorage(HangFireConnectionString, new SqlServerStorageOptions
+                      {
+                         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                         QueuePollInterval = TimeSpan.Zero,
+                         UseRecommendedIsolationLevel = true,
+                         DisableGlobalLocks = true
+                      });
+            });
+            services.AddHangfireServer();
 
             services.AddCors(option =>
             {
-                option.AddPolicy("ICode", builder => builder.AllowAnyOrigin()
+                option.AddPolicy("ICode", builder => builder.WithOrigins(Configuration["AllowedHosts"])
                                                             .AllowAnyHeader()
                                                             .WithMethods("PUT", "DELETE", "GET", "POST")
                                 );
             });
 
+            services.InjectService();
+            services.InjectRepository();
+
             services.AddAutoMapper(typeof(Startup));
-
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<ITagService, TagService>();
-            services.AddScoped<ITestcaseService, TestcaseService>();
-            services.AddScoped<ISubmissionService, SubmissionService>();
-            services.AddScoped<IProblemService, ProblemService>();
-            services.AddScoped<IReportService, ReportService>();
-            services.AddScoped<IStatisticService, StatisticService>();
-            services.AddSingleton<IUploadService, CloudinaryUploadService>();
-            services.AddSingleton<ILocalAuth, LocalAuth>();
-            services.AddSingleton<IGoogleAuth, GoogleAuth>();
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<ITokenRepository, TokenRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<ITagRepository, TagRepository>();
-            services.AddScoped<IProblemRepository, ProblemRepository>();
-            services.AddScoped<ITestcaseRepository, TestcaseRepository>();
-            services.AddScoped<ISubmissionRepository, SubmissionRepository>();
-            services.AddScoped<IReportRepository, ReportRepository>();
-            services.AddScoped<IReplyRepository, ReplyRepository>();
-            services.AddSingleton<ICodeExecutor, CodeExecutor>();
             services.AddSingleton<ExceptionHandler>();
-            services.AddSingleton<TokenProvider, JWTTokenProvider>();
-            services.AddSingleton<IMail, Mail>();
-
             services.AddHttpClient();
             services.AddSwaggerGen();
 
-            services.AddStackExchangeRedisCache(options =>
-            {
-                string ConnectionString = "localhost";
-                if (!Environment.IsDevelopment())
-                {
-                    ConnectionString = $"{Configuration["Redis"] ?? "redis"}, abortConnect=false";
-                }
-                options.Configuration = ConnectionString;
-                options.InstanceName = "ICode";
-            });
 
         }
 
@@ -165,9 +145,13 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Remind Absent User at 8:000 AM every day
+            RecurringJob.AddOrUpdate<IUserService>("RemindAbsentUser", x => x.RemindAbsent(), "0 8 * * *");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHangfireDashboard();
             });
         }
     }

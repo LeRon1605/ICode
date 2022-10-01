@@ -11,7 +11,8 @@ namespace Services.Interfaces
     {
         bool Exist(string username, string email);
         User FindByName(string name);
-        User Login(string name, string password, IAuth auth);
+        Task RemindAbsent();
+        Task<User> Login(string name, string password, IAuth auth);
         Task<bool> UpdateRole(User user, string role);
         Task<bool> ChangePassword(User user, string token, string password);
         IEnumerable<UserDTO> GetUsersByFilter(string name, bool? gender, DateTime? date, string sort, string orderBy);
