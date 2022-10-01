@@ -53,7 +53,8 @@ namespace API.Controllers
                     Gender = input.Gender,
                     CreatedAt = DateTime.Now,
                     Type = AccountType.Local,
-                    RoleID = _roleService.FindByName(Constant.USER).ID
+                    RoleID = _roleService.FindByName(Constant.USER).ID,
+                    AllowNotification = input.AllowNotification ?? false
                 });
                 return Ok();
             }

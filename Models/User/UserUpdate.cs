@@ -11,5 +11,6 @@ namespace CodeStudy.Models
         [Required(ErrorMessage = "Username không được để trống")]
         public string Username { get; set; }
         public string UploadImage { get; set; }
+        public bool? AllowNotification { get; set; }
     }
 }

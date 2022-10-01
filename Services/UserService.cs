@@ -72,6 +72,7 @@ namespace Services
             UserUpdate data = entity as UserUpdate;
             user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
             user.Avatar = (string.IsNullOrWhiteSpace(data.UploadImage)) ? user.Avatar : data.UploadImage;
+            user.AllowNotification = data.AllowNotification ?? user.AllowNotification;
             user.UpdatedAt = DateTime.Now;
             _userRepository.Update(user);
             await _unitOfWork.CommitAsync();
@@ -243,12 +244,16 @@ namespace Services
 
         public async Task RemindAbsent()
         {
-            IEnumerable<User> absentUsers = _userRepository.FindMulti(x => x.LastLogInAt != null && ((DateTime)x.LastLogInAt).AddDays(5) < DateTime.Now);
+            // Remind after 10 days
+            IEnumerable<User> absentUsers = _userRepository.FindMulti(x => x.AllowNotification && x.LastLogInAt != null && ((DateTime)x.LastLogInAt).AddDays(5) < DateTime.Now && (x.RemindAt == null || ((DateTime)x.RemindAt).AddDays(10) < DateTime.Now));
             foreach (User user in absentUsers)
             {
                 int absentDate = DateTime.Now.Subtract(((DateTime)user.LastLogInAt)).Days;
+                user.RemindAt = DateTime.Now;
+                _userRepository.Update(user);
                 await _mailService.SendMailAsync(user.Email, $"Thông báo vắng mặt trên ICode", $"Xin chào {user.Username}, bạn đã vắng mặt trên ICode trong {absentDate} ngày rồi đấy!!");
             }
+            await _unitOfWork.CommitAsync();
         }
     }
 }

@@ -50,9 +50,14 @@ namespace Data
                       .IsRequired();
                 entity.Property(user => user.Gender)
                       .IsRequired();
+                entity.Property(user => user.AllowNotification)
+                      .IsRequired();
                 entity.Property(user => user.CreatedAt)
                       .IsRequired();
                 entity.Property(user => user.UpdatedAt)
+                      .IsRequired(false)
+                      .HasDefaultValue(null);
+                entity.Property(user => user.RemindAt)
                       .IsRequired(false)
                       .HasDefaultValue(null);
                 entity.Property(user => user.RoleID)

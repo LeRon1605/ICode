@@ -67,21 +67,36 @@ namespace API
                         };
                     });
 
+            string DbConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("ICode") : Configuration["DbConnectionString"];
+            string RedisConnecionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("Redis") : Configuration["Redis"];
+            string HangFireConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("HangFire") : Configuration["HangFireDb"];
+
             services.AddDbContext<ICodeDbContext>(options =>
             {
-                if (Environment.IsDevelopment())
-                {
-                    options.UseSqlServer(Configuration.GetConnectionString("ICode"), x => x.MigrationsAssembly("API"));
-                }
-                else
-                {
-                    var server = Configuration["Server"] ?? "db";
-                    var db = Configuration["Database"] ?? "ICode";
-                    var uid = Configuration["UID"] ?? "sa";
-                    var pwd = Configuration["PWD"] ?? "leron@1605";
-                    options.UseSqlServer($"Server={server};Database={db};UID={uid};PWD={pwd}", x => x.MigrationsAssembly("API"));
-                }
+                options.UseSqlServer(DbConnectionString, x => x.MigrationsAssembly("API"));
             });
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = RedisConnecionString;
+                options.InstanceName = "ICode";
+            });
+
+            services.AddHangfire(config =>
+            {
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                      .UseSimpleAssemblyNameTypeSerializer()
+                      .UseRecommendedSerializerSettings()
+                      .UseSqlServerStorage(HangFireConnectionString, new SqlServerStorageOptions
+                      {
+                         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                         QueuePollInterval = TimeSpan.Zero,
+                         UseRecommendedIsolationLevel = true,
+                         DisableGlobalLocks = true
+                      });
+            });
+            services.AddHangfireServer();
 
             services.AddCors(option =>
             {
@@ -93,38 +108,12 @@ namespace API
 
             services.InjectService();
             services.InjectRepository();
+
             services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<ExceptionHandler>();
             services.AddHttpClient();
             services.AddSwaggerGen();
 
-            services.AddStackExchangeRedisCache(options =>
-            {
-                string ConnectionString = "localhost";
-                if (!Environment.IsDevelopment())
-                {
-                    ConnectionString = $"{Configuration["Redis"] ?? "redis"}, abortConnect=false";
-                }
-                options.Configuration = ConnectionString;
-                options.InstanceName = "ICode";
-            });
-
-            services.AddHangfire(config =>
-            {
-                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                      .UseSimpleAssemblyNameTypeSerializer()
-                      .UseRecommendedSerializerSettings()
-                      .UseSqlServerStorage(Configuration.GetConnectionString("HangFire"), new SqlServerStorageOptions
-                      {
-                         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                         QueuePollInterval = TimeSpan.Zero,
-                         UseRecommendedIsolationLevel = true,
-                         DisableGlobalLocks = true
-                      });
-            });
-
-            services.AddHangfireServer();
 
         }
 
