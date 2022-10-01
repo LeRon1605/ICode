@@ -5,17 +5,17 @@ services:
     ports: 
       - "8080:80"
     environment:
-      - Server=db
-      - Database=ICode
-      - UID=sa
-      - PWD=leron@1605
-      - Redis=redis
+      - DbConnectionString=Server=db;Database=ICode;UID=sa;PWD=leron@1605
+      - HangFireDb=Server=db;Database=HangFire;UID=sa;PWD=leron@1605
+      - Redis="redis,abortConnect=false"
     restart: always
     depends_on:
       - db
       - redis
   db:
-    image: mcr.microsoft.com/mssql/server
+    build: 
+      context: ./db
+      dockerfile: Dockerfile
     ports: 
       - "11433:1433"
     environment:
@@ -25,6 +25,6 @@ services:
       - ./db:/var/opt/mssql/data
     restart: always
   redis:
-    image: redis:latest
+    image: redis:7.0.5-alpine
     ports:
       - "6379:6379"
