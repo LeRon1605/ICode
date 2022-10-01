@@ -21,5 +21,6 @@ namespace CodeStudy.Models
         public string ConfirmPassword { get; set; }
         [Required(ErrorMessage = "Giới tính không được để trống")]
         public bool Gender { get; set; }
+        public bool? AllowNotification { get; set; }
     }
 }

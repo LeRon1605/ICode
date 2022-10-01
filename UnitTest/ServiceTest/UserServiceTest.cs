@@ -26,6 +26,7 @@ namespace UnitTest.ServiceTest
         private readonly Mock<IUnitOfWork> unitOfWorkMock;
         private readonly Mock<IRoleRepository> roleRepositoryMock;
         private readonly Mock<IMapper> mapperMock;
+        private readonly Mock<IMailService> mailServiceMock;
 
         private readonly List<User> users;
 
@@ -39,6 +40,7 @@ namespace UnitTest.ServiceTest
             unitOfWorkMock = new Mock<IUnitOfWork>();
             roleRepositoryMock = new Mock<IRoleRepository>();   
             mapperMock = new Mock<IMapper>();
+            mailServiceMock = new Mock<IMailService>();
 
             #region Setup Mock
             // Setup mock for user Repository
@@ -48,7 +50,7 @@ namespace UnitTest.ServiceTest
             // Setup mock for unitOfWork
             unitOfWorkMock.Setup(x => x.CommitAsync());
             #endregion
-            userService = new UserService(userRepositoryMock.Object, problemRepositoryMock.Object, roleRepositoryMock.Object, submissionRepositoryMock.Object, unitOfWorkMock.Object, mapperMock.Object);
+            userService = new UserService(userRepositoryMock.Object, problemRepositoryMock.Object, roleRepositoryMock.Object, submissionRepositoryMock.Object, unitOfWorkMock.Object, mailServiceMock.Object , mapperMock.Object);
         }
 
         [Fact]
