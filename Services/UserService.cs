@@ -133,7 +133,7 @@ namespace Services
 
         public IEnumerable<SubmissionDTO> GetSubmitOfUser(string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
+            return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
         }
 
         public async Task<User> Login(string name, string password, IAuth auth)
@@ -215,7 +215,7 @@ namespace Services
 
         public async Task<PagingList<SubmissionDTO>> GetPageSubmitOfUser(int page, int pageSize, string Id, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort.ToLower())

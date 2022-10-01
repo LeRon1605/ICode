@@ -23,6 +23,7 @@ namespace API.Controllers
         }
 
         [Authorize]
+        [HttpGet]
         [QueryConstraint(Key = "sort", Value = "user, problem, language, status, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
         public async Task<IActionResult> Find(int? page = null, int pageSize = 5, string user = "", string problem = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")

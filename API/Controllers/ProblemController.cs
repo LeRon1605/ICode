@@ -240,7 +240,7 @@ namespace API.Controllers
             SubmissionResult submission = await _submissionService.Submit(new Submission
             {
                 ID = Guid.NewGuid().ToString(),
-                Status = false,
+                State = SubmitState.Pending,
                 UserID = User.FindFirst(Constant.ID).Value,
                 Code = input.Code,
                 Language = input.Language,
@@ -284,7 +284,7 @@ namespace API.Controllers
                 SubmissionResult submission = await _submissionService.Submit(new Submission
                 {
                     ID = Guid.NewGuid().ToString(),
-                    Status = false,
+                    State = SubmitState.Pending,
                     UserID = User.FindFirst(Constant.ID).Value,
                     Code = code,
                     Language = "cpp",
