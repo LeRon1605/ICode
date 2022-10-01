@@ -20,14 +20,16 @@ namespace Services
         private readonly ISubmissionRepository _submissionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRoleRepository _roleRepository;
+        private readonly IMailService _mailService;
         private readonly IMapper _mapper;
-        public UserService(IUserRepository userRepository, IProblemRepository problemRepository,IRoleRepository roleRepository, ISubmissionRepository submissionRepository, IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IUserRepository userRepository, IProblemRepository problemRepository,IRoleRepository roleRepository, ISubmissionRepository submissionRepository, IUnitOfWork unitOfWork, IMailService mailService, IMapper mapper)
         {
             _userRepository = userRepository;
             _problemRepository = problemRepository;
             _roleRepository = roleRepository;
             _submissionRepository = submissionRepository;
             _unitOfWork = unitOfWork;
+            _mailService = mailService;
             _mapper = mapper;
         }
 
@@ -133,9 +135,17 @@ namespace Services
             return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.UserID == Id && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
         }
 
-        public User Login(string name, string password, IAuth auth)
+        public async Task<User> Login(string name, string password, IAuth auth)
         {
-            return _userRepository.GetUserWithRole(auth.Login(name, password));
+            User user = _userRepository.GetUserWithRole(auth.Login(name, password));
+            if (user == null)
+            {
+                return null;
+            }
+            user.LastLogInAt = DateTime.Now;
+            _userRepository.Update(user);
+            await _unitOfWork.CommitAsync();
+            return user;
         }
 
         public async Task<bool> UpdateRole(User user, string role)
@@ -229,6 +239,16 @@ namespace Services
                 }
             }
             return list;
+        }
+
+        public async Task RemindAbsent()
+        {
+            IEnumerable<User> absentUsers = _userRepository.FindMulti(x => x.LastLogInAt != null && ((DateTime)x.LastLogInAt).AddDays(5) < DateTime.Now);
+            foreach (User user in absentUsers)
+            {
+                int absentDate = DateTime.Now.Subtract(((DateTime)user.LastLogInAt)).Days;
+                await _mailService.SendMailAsync(user.Email, $"Thông báo vắng mặt trên ICode", $"Xin chào {user.Username}, bạn đã vắng mặt trên ICode trong {absentDate} ngày rồi đấy!!");
+            }
         }
     }
 }

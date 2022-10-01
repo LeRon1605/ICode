@@ -1,10 +1,11 @@
 using API.Extension;
 using API.Filter;
-using API.Helper;
 using API.Services;
 using Data;
 using Data.Repository;
 using Data.Repository.Interfaces;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -70,7 +71,6 @@ namespace API
             {
                 if (Environment.IsDevelopment())
                 {
-                    
                     options.UseSqlServer(Configuration.GetConnectionString("ICode"), x => x.MigrationsAssembly("API"));
                 }
                 else
@@ -85,42 +85,16 @@ namespace API
 
             services.AddCors(option =>
             {
-                option.AddPolicy("ICode", builder => builder.AllowAnyOrigin()
+                option.AddPolicy("ICode", builder => builder.WithOrigins(Configuration["AllowedHosts"])
                                                             .AllowAnyHeader()
                                                             .WithMethods("PUT", "DELETE", "GET", "POST")
                                 );
             });
 
+            services.InjectService();
+            services.InjectRepository();
             services.AddAutoMapper(typeof(Startup));
-
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<ITagService, TagService>();
-            services.AddScoped<ITestcaseService, TestcaseService>();
-            services.AddScoped<ISubmissionService, SubmissionService>();
-            services.AddScoped<IProblemService, ProblemService>();
-            services.AddScoped<IReportService, ReportService>();
-            services.AddScoped<IStatisticService, StatisticService>();
-            services.AddSingleton<IUploadService, CloudinaryUploadService>();
-            services.AddSingleton<ILocalAuth, LocalAuth>();
-            services.AddSingleton<IGoogleAuth, GoogleAuth>();
-
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<ITokenRepository, TokenRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<ITagRepository, TagRepository>();
-            services.AddScoped<IProblemRepository, ProblemRepository>();
-            services.AddScoped<ITestcaseRepository, TestcaseRepository>();
-            services.AddScoped<ISubmissionRepository, SubmissionRepository>();
-            services.AddScoped<IReportRepository, ReportRepository>();
-            services.AddScoped<IReplyRepository, ReplyRepository>();
-            services.AddSingleton<ICodeExecutor, CodeExecutor>();
             services.AddSingleton<ExceptionHandler>();
-            services.AddSingleton<TokenProvider, JWTTokenProvider>();
-            services.AddSingleton<IMail, Mail>();
-
             services.AddHttpClient();
             services.AddSwaggerGen();
 
@@ -134,6 +108,23 @@ namespace API
                 options.Configuration = ConnectionString;
                 options.InstanceName = "ICode";
             });
+
+            services.AddHangfire(config =>
+            {
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                      .UseSimpleAssemblyNameTypeSerializer()
+                      .UseRecommendedSerializerSettings()
+                      .UseSqlServerStorage(Configuration.GetConnectionString("HangFire"), new SqlServerStorageOptions
+                      {
+                         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                         SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                         QueuePollInterval = TimeSpan.Zero,
+                         UseRecommendedIsolationLevel = true,
+                         DisableGlobalLocks = true
+                      });
+            });
+
+            services.AddHangfireServer();
 
         }
 
@@ -165,9 +156,13 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // Remind Absent User at 8:000 AM every day
+            RecurringJob.AddOrUpdate<IUserService>("RemindAbsentUser", x => x.RemindAbsent(), "0 8 * * *");
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHangfireDashboard();
             });
         }
     }

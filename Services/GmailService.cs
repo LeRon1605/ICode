@@ -1,23 +1,22 @@
 ﻿using Microsoft.Extensions.Options;
 using Models.DTO;
+using Services.Interfaces;
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Mail;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace API.Helper
+namespace Services
 {
-    public interface IMail
-    {
-        Task SendMailAsync(string ToAddress, string subject, string body);
-    }
-    public class Mail : IMail
+    public class GmailService: IMailService
     {
         private readonly MailSetting mailSetting;
-        public Mail(IOptions<MailSetting> option)
+        public GmailService(IOptions<MailSetting> option)
         {
             mailSetting = option.Value;
-        }    
+        }
         public async Task SendMailAsync(string ToAddress, string subject, string body)
         {
             try
@@ -36,9 +35,10 @@ namespace API.Helper
                 {
                     Port = 587,
                     EnableSsl = true,
-                    Credentials = new NetworkCredential(mailSetting.FromEmailAddress, mailSetting.FromEmailPassword),
                     Host = mailSetting.SMTPHost,
                 };
+                client.UseDefaultCredentials = false;
+                client.Credentials = new NetworkCredential(mailSetting.FromEmailAddress, mailSetting.FromEmailPassword);
                 await client.SendMailAsync(message);
             }
             catch (Exception e)

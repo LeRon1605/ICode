@@ -189,7 +189,7 @@ namespace Data
                 entity.HasOne(submit => submit.User)
                       .WithMany(user => user.Submissions)
                       .HasForeignKey(submit => submit.UserID)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<SubmissionDetail>(entity =>

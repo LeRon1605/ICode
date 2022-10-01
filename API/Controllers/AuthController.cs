@@ -1,5 +1,4 @@
 ﻿using API.Filter;
-using API.Helper;
 using CodeStudy.Models;
 using Data.Common;
 using Data.Entity;
@@ -21,9 +20,9 @@ namespace API.Controllers
         private readonly IUserService _userSerivce;
         private readonly IRoleService _roleService;
         private readonly ITokenService _tokenService;
-        private readonly IMail _mail;
+        private readonly IMailService _mail;
         
-        public AuthController(IUserService userService, IRoleService roleService, ITokenService tokenSerivce, IMail mail)
+        public AuthController(IUserService userService, IRoleService roleService, ITokenService tokenSerivce, IMailService mail)
         {
             _userSerivce = userService;
             _roleService = roleService;
@@ -63,7 +62,7 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginUser input, [FromServices] ILocalAuth authHandler)
         {
-            User user = _userSerivce.Login(input.Name, input.Password, authHandler);
+            User user = await _userSerivce.Login(input.Name, input.Password, authHandler);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -72,7 +71,7 @@ namespace API.Controllers
                     detail = "User doest not exist."
                 });
             }
-            Token token = await _tokenService.GenerateToken(user); 
+            Token token = await _tokenService.GenerateToken(user);
             return Ok(new 
             {
                 access_token = token.AccessToken,
@@ -164,7 +163,7 @@ namespace API.Controllers
             };
 
             GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(tokenID, settings);
-            User user = _userSerivce.Login(payload.Email, Constant.PASSWORD_DEFAULT, authHandler);
+            User user = await _userSerivce.Login(payload.Email, Constant.PASSWORD_DEFAULT, authHandler);
             if (user == null)
             {
                 user = new User
