@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CodeStudy.Models;
 using Data;
+using Data.Common;
 using Data.Entity;
 using Data.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ namespace Data.Repository
                                     {
                                         problem = _mapper.Map<Problem, ProblemDTO>(problem),
                                         SubmitCount = problem.TestCases.First().SubmissionDetails.Count(),
-                                        SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.Status).Count()
+                                        SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.State == SubmitState.Success).Count()
                                     })
                                     .OrderByDescending(x => x.SubmitCount);
         }
@@ -44,7 +45,7 @@ namespace Data.Repository
                                     {
                                         problem = _mapper.Map<Problem, ProblemDTO>(problem),
                                         SubmitCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count(),
-                                        SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date && x.Submission.Status).Count()
+                                        SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date && x.Submission.State == SubmitState.Success).Count()
                                     })
                                     .OrderByDescending(x => x.SubmitCount);
         }

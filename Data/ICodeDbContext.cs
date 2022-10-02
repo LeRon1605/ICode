@@ -1,4 +1,5 @@
-﻿using Data.Entity;
+using Data.Common;
+using Data.Entity;
 using Data.Entity.Config;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -185,12 +186,9 @@ namespace Data
                       .IsRequired();
                 entity.Property(submit => submit.CreatedAt)
                       .IsRequired();
-                entity.Property(submit => submit.Status)
-                      .IsRequired()
-                      .HasDefaultValue(false);
-                entity.Property(submit => submit.UserID)
+                entity.Property(submit => submit.State)
                       .IsRequired();
-                entity.Property(submit => submit.Description)
+                entity.Property(submit => submit.UserID)
                       .IsRequired();
                 entity.HasOne(submit => submit.User)
                       .WithMany(user => user.Submissions)
@@ -201,7 +199,7 @@ namespace Data
             modelBuilder.Entity<SubmissionDetail>(entity =>
             {
                 entity.HasKey(detail => new { detail.SubmitID, detail.TestCaseID });
-                entity.Property(detail => detail.Status)
+                entity.Property(detail => detail.State)
                       .IsRequired();
                 entity.Property(detail => detail.Memory)
                       .IsRequired();

@@ -26,6 +26,7 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
+        [HttpGet]
         [Authorize(Roles = "Admin")]
         [QueryConstraint(Key = "sort", Value = "name, gender, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Depend = "sort", Value = "asc, desc")]

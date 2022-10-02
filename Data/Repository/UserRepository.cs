@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
 using Data.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +38,9 @@ namespace Data.Repository
                 return null;
             }
             if (expression == null)
-                return Task.FromResult(user.Submissions.Where(x => x.Status).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()));
+                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()));
             else
-                return Task.FromResult(user.Submissions.Where(x => x.Status).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Where(expression));
+                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Where(expression));
         }
 
         public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()
@@ -55,7 +56,7 @@ namespace Data.Repository
                     on submissionDetail.TestCaseID equals testcase.ID
                     join problem in _context.Problems
                     on testCase.ProblemID equals problem.ID
-                    where submission.Status == true
+                    where submission.State == SubmitState.Success
                     select new
                     {
                         UserID = user.ID,
@@ -83,7 +84,7 @@ namespace Data.Repository
                                  {
                                      User = _mapper.Map<User, UserDTO>(user),
                                      SubmitCount = user.Submissions.Count(),
-                                     SuccessSubmitCount = user.Submissions.Where(submission => submission.Status).Count(),
+                                     SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
                                  })
                                  .OrderByDescending(x => x.SuccessSubmitCount)
                                  .Take(take);
@@ -98,7 +99,7 @@ namespace Data.Repository
                                      {
                                          User = _mapper.Map<User, UserDTO>(user),
                                          SubmitCount = user.Submissions.Where(submission => submission.CreatedAt.Date == Date.Date).Count(),
-                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.Status && submission.CreatedAt.Date == Date.Date).Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success && submission.CreatedAt.Date == Date.Date).Count(),
                                      })
                                      .OrderByDescending(x => x.SubmitCount)
                                      .Take(take);
@@ -111,7 +112,7 @@ namespace Data.Repository
                                      {
                                          User = _mapper.Map<User, UserDTO>(user),
                                          SubmitCount = user.Submissions.Where(submission => submission.CreatedAt.Date == Date.Date).Count(),
-                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.Status && submission.CreatedAt.Date == Date.Date).Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success && submission.CreatedAt.Date == Date.Date).Count(),
                                      })
                                      .OrderByDescending(x => x.SubmitCount)
                                      .Take(take);
