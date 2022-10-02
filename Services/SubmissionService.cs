@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CodeStudy.Models;
+using Data.Common;
 using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
@@ -83,10 +84,7 @@ namespace API.Services
             IEnumerable<TestcaseDTO> testcases = _testcaseService.GetTestcaseOfProblem(problemID);
             if (testcases.Count() <= 0)
             {
-                submission.Description = "Problem Not Found";
-                await _submissionRepository.AddAsync(submission);
-                await _unitOfWork.CommitAsync();
-                return _mapper.Map<Submission, SubmissionResult>(submission);
+                return null;
             }
             foreach (TestcaseDTO testcase in testcases)
             {
@@ -95,19 +93,13 @@ namespace API.Services
                 {
                     Memory = Convert.ToSingle(result.memory),
                     Time = Convert.ToSingle(result.cpuTime),
-                    Status = false,
+                    State = SubmitState.Pending,
                     TestCaseID = testcase.ID,
                 };
                 if (result.memory == null && result.cpuTime == null)
                 {
-                    submission.Description = "Compiler Error";
-                    submitDetail.Description = result.output;
-                    submitDetail.Status = false;
-                    submission.Status = false;
+                    submitDetail.State = SubmitState.CompilerError;
                     submission.SubmissionDetails.Add(submitDetail);
-                    await _submissionRepository.AddAsync(submission);
-                    await _unitOfWork.CommitAsync();
-                    return _mapper.Map<Submission, SubmissionResult>(submission);
                 }
                 else
                 {
@@ -117,28 +109,26 @@ namespace API.Services
                         {
                             if (Convert.ToSingle(result.memory) <= testcase.MemoryLimit)
                             {
-                                submitDetail.Description = "Success";
-                                submitDetail.Status = true;
-                                submission.Status = true;
+                                submitDetail.State = SubmitState.Success;
                             }
                             else
                             {
-                                submitDetail.Description = "Memory Limit";
+                                submitDetail.State = SubmitState.MemoryLimit;
                             }
                         }
                         else
                         {
-                            submitDetail.Description = "Time Limit";
+                            submitDetail.State = SubmitState.TimeLimit;
                         }
                     }
                     else
                     {
-                        submitDetail.Description = "Wrong Answer";
+                        submitDetail.State = SubmitState.WrongAnswer;
                     }
                 }
                 submission.SubmissionDetails.Add(submitDetail);
             }
-            submission.Description = submission.Status ? "Success" : submission.SubmissionDetails.FirstOrDefault(x => x.Status == false).Description;
+            submission.State = submission.SubmissionDetails.FirstOrDefault(x => x.State != SubmitState.Success)?.State ?? SubmitState.Success;
             await _submissionRepository.AddAsync(submission);
             await _unitOfWork.CommitAsync();
             return _mapper.Map<Submission, SubmissionResult>(submission);
@@ -146,7 +136,7 @@ namespace API.Services
 
         public async Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort.ToLower())
@@ -175,7 +165,7 @@ namespace API.Services
 
         public IEnumerable<SubmissionDTO> GetSubmissionByFilter(string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            IEnumerable<SubmissionDTO> submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == x.Status) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
+            IEnumerable<SubmissionDTO> submissions = _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date)));
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort.ToLower())

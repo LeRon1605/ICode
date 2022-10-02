@@ -11,12 +11,11 @@ The project is configured to run by Docker Compose. The services are listed in t
 ```
 docker-compose up
 ```
-Then visit http://localhost:5001/swagger/index.html for Swagger document for the web API project.
-
-**NOTE**: You can configure your database connection string by enviroment variables at docker-compose.yml file.
+Then visit http://localhost:8080/swagger/index.html for Swagger document for the web API project.
 
 ## Tech Stack
 1. Platforms/Framework: ASP.NET Core, Entity Framework, Docker.
 2. Database: SQL Server.
 3. Cache Server: Redis.
-4. Tools: Postman, LINQPad, Swagger.
+4. Background Service: Hangfire.
+5. Tools: Postman, LINQPad, Swagger.
