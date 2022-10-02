@@ -59,11 +59,11 @@ namespace API.Services
             {
                 return false;
             }
-            TestcaseInput data = entity as TestcaseInput;
+            TestcaseUpdate data = entity as TestcaseUpdate;
             testcase.Input = (string.IsNullOrWhiteSpace(data.Input)) ? testcase.Input : data.Input;
             testcase.Output = (string.IsNullOrWhiteSpace(data.Output)) ? testcase.Output : data.Output;
-            testcase.MemoryLimit = data.MemoryLimit;
-            testcase.TimeLimit = data.TimeLimit;
+            testcase.MemoryLimit = data.MemoryLimit ?? testcase.MemoryLimit;
+            testcase.TimeLimit = data.TimeLimit ?? testcase.TimeLimit;
             testcase.UpdatedAt = DateTime.Now;
             _testcaseRepository.Update(testcase);
             await _unitOfWork.CommitAsync();

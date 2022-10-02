@@ -63,16 +63,19 @@ namespace Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            Problem problem = _problemRepository.FindByID(ID);
+            Problem problem = _problemRepository.GetProblemDetail(x => x.ID == ID);
             if (problem == null)
             {
                 return false;
             }
             ProblemInputUpdate data = entity as ProblemInputUpdate;
-            problem.Name = data.Name;
-            problem.Description = data.Description;
-            problem.Status = data.Status;
-            problem.Tags = data.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();
+            problem.Name = string.IsNullOrWhiteSpace(data.Name) ? problem.Name : data.Name;
+            problem.Description = string.IsNullOrWhiteSpace(data.Description) ? problem.Description : data.Description;
+            problem.Status = data.Status ?? problem.Status;
+            if (data.Tags != null && data.Tags.Length > 0)
+            {
+                problem.Tags = data.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();
+            }
             problem.UpdatedAt = DateTime.Now;
             _problemRepository.Update(problem);
             await _unitOfWork.CommitAsync();

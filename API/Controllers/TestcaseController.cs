@@ -62,7 +62,7 @@ namespace API.Controllers
 
         [HttpPut("{ID}")]
         [Authorize]
-        public async Task<IActionResult> UpdateTestcase(string ID, TestcaseInput input)
+        public async Task<IActionResult> UpdateTestcase(string ID, TestcaseUpdate input)
         {
             TestCase testcase = _testcaseService.FindByID(ID);
             if (testcase == null)
