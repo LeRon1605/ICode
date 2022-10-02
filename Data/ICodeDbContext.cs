@@ -1,4 +1,5 @@
 ﻿using Data.Entity;
+using Data.Entity.Config;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -235,6 +236,9 @@ namespace Data
                       .HasForeignKey(token => token.UserID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            new ContestEntityConfig().Configure(modelBuilder.Entity<Contest>());
+            new ContestDetailConfig().Configure(modelBuilder.Entity<ContestDetail>());
         }
 
         public virtual DbSet<User> Users { get; set; }
@@ -247,5 +251,7 @@ namespace Data
         public virtual DbSet<SubmissionDetail> SubmissionDetails { get; set; }
         public virtual DbSet<TestCase> TestCases { get; set; }
         public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+        public virtual DbSet<Contest> Contests { get; set; }
+        public virtual DbSet<ContestDetail> ContestDetails { get; set; }
     }
 }
