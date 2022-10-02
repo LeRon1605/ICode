@@ -18,5 +18,6 @@ namespace Data.Entity
         public virtual ICollection<Report> Reports { get; set; }
         public virtual ICollection<TestCase> TestCases { get; set; }
         public virtual ICollection<Tag> Tags { get; set; }
+        public virtual ICollection<ProblemContestDetail> ProblemContestDetails { get; set; }
     }
 }
