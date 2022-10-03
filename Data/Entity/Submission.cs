@@ -15,6 +15,7 @@ namespace Data.Entity
         public DateTime CreatedAt { get; set; }
         public string UserID { get; set; }
         public virtual User User { get; set; }
+        public virtual ContestSubmission ContestSubmission { get; set; }
         public virtual ICollection<SubmissionDetail> SubmissionDetails { get; set; }
     }
 }

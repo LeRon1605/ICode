@@ -235,8 +235,10 @@ namespace Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            new ContestEntityConfig().Configure(modelBuilder.Entity<Contest>());
+            new ContestConfig().Configure(modelBuilder.Entity<Contest>());
             new ContestDetailConfig().Configure(modelBuilder.Entity<ContestDetail>());
+            new ProblemContestDetailConfig().Configure(modelBuilder.Entity<ProblemContestDetail>());
+            new ContestSubmissionConfig().Configure(modelBuilder.Entity<ContestSubmission>());
         }
 
         public virtual DbSet<User> Users { get; set; }
@@ -251,5 +253,7 @@ namespace Data
         public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
         public virtual DbSet<Contest> Contests { get; set; }
         public virtual DbSet<ContestDetail> ContestDetails { get; set; }
+        public virtual DbSet<ProblemContestDetail> ProblemContestDetails { get; set; }
+        public virtual DbSet<ContestSubmission> ContestSubmissions { get; set; }
     }
 }

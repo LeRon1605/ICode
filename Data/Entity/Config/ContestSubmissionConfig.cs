@@ -10,22 +10,17 @@ namespace Data.Entity.Config
     {
         public void Configure(EntityTypeBuilder<ContestSubmission> builder)
         {
-            builder.HasKey(x => x.ID);
-            builder.Property(x => x.Code)
-                   .IsRequired();
-            builder.Property(x => x.Language)
-                   .IsRequired();
-            builder.Property(x => x.CreatedAt)
-                   .IsRequired();
-            
-            builder.HasOne(submission => submission.User)
-                   .WithMany(user => user.ContestSubmissions)
-                   .HasForeignKey(submission => submission.UserID)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasKey(x => x.SubmitID);
 
             builder.HasOne(submission => submission.Contest)
                    .WithMany(contest => contest.Submissions)
-                   .HasForeignKey(submission => submission.Contest);
+                   .HasForeignKey(submission => submission.ContestID)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(contestSubmit => contestSubmit.Submission)
+                   .WithOne(submission => submission.ContestSubmission)
+                   .HasForeignKey<ContestSubmission>(contestSubmission => contestSubmission.SubmitID)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
