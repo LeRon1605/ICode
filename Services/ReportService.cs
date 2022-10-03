@@ -64,7 +64,7 @@ namespace Services
             }
             ReportInput data = entity as ReportInput;
             report.Title = (string.IsNullOrWhiteSpace(data.Title)) ? report.Title : data.Title;
-            report.Content = (string.IsNullOrWhiteSpace(report.Content)) ? report.Content : data.Content;
+            report.Content = (string.IsNullOrWhiteSpace(data.Content)) ? report.Content : data.Content;
             report.UpdatedAt = DateTime.Now;
             _reportRepository.Update(report);
             await _unitOfWork.CommitAsync();

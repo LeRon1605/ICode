@@ -143,18 +143,21 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            string[] tags = input.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
-            if (tags.Count() > 0)
+            if (input.Tags != null && input.Tags.Length > 0)
             {
-                return NotFound(new ErrorResponse
+                string[] tags = input.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
+                if (tags.Count() > 0)
                 {
-                    error = "Create problem failed.",
-                    detail = new
+                    return NotFound(new ErrorResponse
                     {
-                        message = "Tags does not exist.",
-                        value = tags
-                    }
-                });
+                        error = "Create problem failed.",
+                        detail = new
+                        {
+                            message = "Tags does not exist.",
+                            value = tags
+                        }
+                    });
+                }
             }
             if (problem.ArticleID == User.FindFirst(Constant.ID)?.Value || User.FindFirst(Constant.ROLE)?.Value == Constant.ADMIN)
             {
