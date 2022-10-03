@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Data.Entity.Config
 {
-    public class ContestSubmissionConfig : IEntityTypeConfiguration<ContestSubmission>
+    public class ContestSubmissionEntityConfig : IEntityTypeConfiguration<ContestSubmission>
     {
         public void Configure(EntityTypeBuilder<ContestSubmission> builder)
         {
