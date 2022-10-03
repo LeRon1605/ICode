@@ -28,6 +28,5 @@ namespace Data.Entity
         public virtual ICollection<Report> Reports { get; set; }
         public virtual ICollection<RefreshToken> Tokens { get; set; }
         public virtual ICollection<ContestDetail> ContestDetails { get; set; }
-        public virtual ICollection<ContestSubmission> ContestSubmissions { get; set; }
     }
 }

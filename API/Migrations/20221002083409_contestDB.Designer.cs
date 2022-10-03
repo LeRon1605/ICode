@@ -4,14 +4,16 @@ using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace API.Migrations
 {
     [DbContext(typeof(ICodeDbContext))]
-    partial class ICodeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221002083409_contestDB")]
+    partial class contestDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,21 +76,6 @@ namespace API.Migrations
                     b.HasIndex("ContestID");
 
                     b.ToTable("ContestDetails");
-                });
-
-            modelBuilder.Entity("Data.Entity.ContestSubmission", b =>
-                {
-                    b.Property<string>("SubmitID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ContestID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("SubmitID");
-
-                    b.HasIndex("ContestID");
-
-                    b.ToTable("ContestSubmissions");
                 });
 
             modelBuilder.Entity("Data.Entity.Problem", b =>
@@ -275,6 +262,10 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -291,6 +282,8 @@ namespace API.Migrations
                     b.HasIndex("UserID");
 
                     b.ToTable("Submissions");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Submission");
                 });
 
             modelBuilder.Entity("Data.Entity.SubmissionDetail", b =>
@@ -452,6 +445,23 @@ namespace API.Migrations
                     b.ToTable("ProblemTag");
                 });
 
+            modelBuilder.Entity("Data.Entity.ContestSubmission", b =>
+                {
+                    b.HasBaseType("Data.Entity.Submission");
+
+                    b.Property<string>("ContestID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserID1")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasIndex("ContestID");
+
+                    b.HasIndex("UserID1");
+
+                    b.HasDiscriminator().HasValue("ContestSubmission");
+                });
+
             modelBuilder.Entity("Data.Entity.ContestDetail", b =>
                 {
                     b.HasOne("Data.Entity.Contest", "Contest")
@@ -469,24 +479,6 @@ namespace API.Migrations
                     b.Navigation("Contest");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Data.Entity.ContestSubmission", b =>
-                {
-                    b.HasOne("Data.Entity.Contest", "Contest")
-                        .WithMany("Submissions")
-                        .HasForeignKey("ContestID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Data.Entity.Submission", "Submission")
-                        .WithOne("ContestSubmission")
-                        .HasForeignKey("Data.Entity.ContestSubmission", "SubmitID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Contest");
-
-                    b.Navigation("Submission");
                 });
 
             modelBuilder.Entity("Data.Entity.Problem", b =>
@@ -627,6 +619,20 @@ namespace API.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Data.Entity.ContestSubmission", b =>
+                {
+                    b.HasOne("Data.Entity.Contest", "Contest")
+                        .WithMany("Submissions")
+                        .HasForeignKey("ContestID")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Data.Entity.User", null)
+                        .WithMany("ContestSubmissions")
+                        .HasForeignKey("UserID1");
+
+                    b.Navigation("Contest");
+                });
+
             modelBuilder.Entity("Data.Entity.Contest", b =>
                 {
                     b.Navigation("ContestDetails");
@@ -657,8 +663,6 @@ namespace API.Migrations
 
             modelBuilder.Entity("Data.Entity.Submission", b =>
                 {
-                    b.Navigation("ContestSubmission");
-
                     b.Navigation("SubmissionDetails");
                 });
 
@@ -670,6 +674,8 @@ namespace API.Migrations
             modelBuilder.Entity("Data.Entity.User", b =>
                 {
                     b.Navigation("ContestDetails");
+
+                    b.Navigation("ContestSubmissions");
 
                     b.Navigation("Problems");
 
