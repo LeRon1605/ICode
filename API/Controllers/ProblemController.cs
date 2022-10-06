@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Models.DTO;
 using Services.Interfaces;
 using Data.Common;
+using Newtonsoft.Json.Linq;
+using Models.Problem;
 
 namespace API.Controllers
 {
@@ -342,6 +344,88 @@ namespace API.Controllers
                 CreatedAt = DateTime.Now,
             });
             return Ok();
+        }
+
+        [HttpGet("{ID}/tags")]
+        public IActionResult GetTagOfProblem(string ID)
+        {
+            ProblemDTO problem = _problemService.GetProblemDetail(ID);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            return Ok(problem.Tags);
+        }
+
+        [HttpPost("{ID}/tags")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddNewTagForProblem(string ID, ProblemTagInput data)
+        {
+            ProblemDTO problem = _problemService.GetProblemDetail(ID);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            string[] notExistTag = data.Tags.Where(x => _tagSerivce.FindByID(x) == null).ToArray();
+            if (notExistTag.Length > 0)
+            {
+                return NotFound(new
+                {
+                    error = "Resource not found.",
+                    detail = "Tag does not exist.",
+                    value = notExistTag
+                });
+            }
+            string[] duplicateTag = problem.Tags.Select(x => x.ID).Where(tag => data.Tags.Any(x => x == tag)).ToArray();
+            if (duplicateTag.Length <= 0)
+            {
+                await _problemService.AddTag(ID, data.Tags);
+                return Ok();
+            }
+            else
+            {
+                return Conflict(new
+                {
+                    error = "Conflict tag in problem.",
+                    detail = "Tag already been added to problem.",
+                    value = duplicateTag
+                });
+            }
+        }
+
+        [HttpDelete("{ID}/tags/{tagId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTagInProblem(string ID, string tagId)
+        {
+            ProblemDTO problem = _problemService.GetProblemDetail(ID);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            if (await _problemService.DeleteTag(ID, tagId))
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid tag.",
+                    detail = "Tag doesn't exist in problem."
+                });
+            }
         }
     }
 }
