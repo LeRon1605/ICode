@@ -1,4 +1,5 @@
-﻿using Data.Entity;
+﻿using Data.Common;
+using Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,7 +18,7 @@ namespace UnitTest.Data
                 Language = "Language",
                 UserID = UserConstant.ID,
                 CreatedAt = DateTime.Now,
-                Status = false,
+                State = SubmitState.Pending,
                 SubmissionDetails = new List<SubmissionDetail>()
             };
         }

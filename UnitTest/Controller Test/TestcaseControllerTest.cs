@@ -234,7 +234,7 @@ namespace UnitTest.ControllerTest
                 {
                     User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
                     {
-                        new Claim(Constant.ID, isAuthor ? "user_id" : "not_author"),
+                        new Claim(Constant.ID, isAuthor ? "author_id" : "not_author_id"),
                         new Claim(Constant.ROLE, isAdmin ? "Admin" : "User")
                     }))
                 }
@@ -255,7 +255,7 @@ namespace UnitTest.ControllerTest
             problemServiceMock.Setup(x => x.FindByID(It.IsAny<string>())).Returns(isReturnNull ? null : new Problem
             {
                 ID = "problem_id",
-                ArticleID = isAuthor ? "user_id" : "another_user" // compare when read from claim
+                ArticleID = isAuthor ? "author_id" : "not_another_id" // compare when read from claim
             });
         }
     }

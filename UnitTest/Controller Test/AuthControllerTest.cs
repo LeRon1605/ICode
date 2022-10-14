@@ -74,7 +74,8 @@ namespace UnitTest.ControllerTest
         [Fact]
         public async Task GivenInvalidUser_WhenLogin_ThenShouldReturnNotFound()
         {
-            userSerivceMock.Setup(x => x.Login(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ILocalAuth>())).Returns(value: null);
+            User user = null;
+            userSerivceMock.Setup(x => x.Login(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ILocalAuth>())).Returns(Task.FromResult(user));
             IActionResult result = await authController.Login(new LoginUser
             {
                 Name = "Name",

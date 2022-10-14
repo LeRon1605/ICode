@@ -70,7 +70,7 @@ namespace API.Controllers
                     detail = "Report does not exist."
                 });
             }    
-            if (report.User.ID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ID).Value == Constant.ADMIN)
+            if (report.User.ID == User.FindFirst(Constant.ID).Value || User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
             {
                 return Ok(report);
             }

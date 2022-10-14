@@ -14,6 +14,7 @@ using Data.Entity;
 using Models.DTO;
 using UnitTest.Common;
 using UnitTest.Data;
+using Data.Common;
 
 namespace UnitTest.ServiceTest
 {
@@ -37,10 +38,10 @@ namespace UnitTest.ServiceTest
 
             unitOfWorkMock.Setup(x => x.CommitAsync());
             submissionRepositoryMock.Setup(x => x.AddAsync(It.IsAny<Submission>()));
-            mapperMock.Setup(x => x.Map<Submission, SubmissionResult>(It.IsAny<Submission>())).Callback<Submission>(x => new SubmissionResult
-            {
-                Status = x.Status
-            });
+            //mapperMock.Setup(x => x.Map<Submission, SubmissionResult>(It.IsAny<Submission>())).Callback<Submission>(x => new SubmissionResult
+            //{
+            //    Status = x.
+            //});
 
             submissionService = new SubmissionService(submissionRepositoryMock.Object, unitOfWorkMock.Object, testCaseServiceMock.Object, codeExecutorMock.Object, mapperMock.Object);
         }
@@ -61,8 +62,7 @@ namespace UnitTest.ServiceTest
 
             SubmissionResult result = await submissionService.Submit(submission, "Problem");
 
-            Assert.True(submission.Status);
-            Assert.Equal("Success", submission.Description);
+            Assert.True(submission.State == SubmitState.Success);
 
             testCaseServiceMock.Verify(x => x.GetTestcaseOfProblem(It.IsAny<string>()), Times.AtLeastOnce);
             submissionRepositoryMock.Verify(x => x.AddAsync(submission), Times.Once);
@@ -87,8 +87,7 @@ namespace UnitTest.ServiceTest
 
             SubmissionResult result = await submissionService.Submit(submission, "Problem");
 
-            Assert.False(submission.Status);
-            Assert.Equal("Wrong Answer", submission.Description);
+            Assert.True(submission.State == SubmitState.WrongAnswer);
 
             testCaseServiceMock.Verify(x => x.GetTestcaseOfProblem(It.IsAny<string>()), Times.AtLeastOnce);
             submissionRepositoryMock.Verify(x => x.AddAsync(submission), Times.Once);
@@ -113,8 +112,7 @@ namespace UnitTest.ServiceTest
 
             SubmissionResult result = await submissionService.Submit(submission, "Problem");
 
-            Assert.False(submission.Status);
-            Assert.Equal("Memory Limit", submission.Description);
+            Assert.True(submission.State == SubmitState.MemoryLimit);
 
             testCaseServiceMock.Verify(x => x.GetTestcaseOfProblem(It.IsAny<string>()), Times.AtLeastOnce);
             submissionRepositoryMock.Verify(x => x.AddAsync(submission), Times.Once);
@@ -130,12 +128,11 @@ namespace UnitTest.ServiceTest
 
             SubmissionResult result = await submissionService.Submit(submission, "Invalid_Problem");
 
-            Assert.False(submission.Status);
-            Assert.Equal("Problem Not Found", submission.Description);
+            Assert.Null(result);
 
             testCaseServiceMock.Verify(x => x.GetTestcaseOfProblem(It.IsAny<string>()), Times.AtLeastOnce);
-            submissionRepositoryMock.Verify(x => x.AddAsync(submission), Times.Once);
-            unitOfWorkMock.Verify(x => x.CommitAsync(), Times.Once);
+            submissionRepositoryMock.Verify(x => x.AddAsync(submission), Times.Never);
+            unitOfWorkMock.Verify(x => x.CommitAsync(), Times.Never);
         }
     }
 }
