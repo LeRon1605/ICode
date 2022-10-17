@@ -7,7 +7,7 @@ namespace Services.Interfaces
 {
     public interface IStatisticService
     {
-        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate);
+        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag);
         public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate);
         public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate);
 

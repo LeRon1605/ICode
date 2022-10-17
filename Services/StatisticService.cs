@@ -131,12 +131,12 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag)
         {
             List<Statistic> statistics = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<Problem> problems = _problemRepository.GetNewProblem(i);
+                IEnumerable<Problem> problems = _problemRepository.GetNewProblem(i, x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || x.Tags.Any(x => x.Name.Contains(tag))));
                 statistics.Add(new Statistic
                 {
                     Total = problems.Count(),

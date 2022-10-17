@@ -117,27 +117,23 @@ namespace API.Controllers
         }
 
         [HttpGet("new-problems")]
-        public async Task<IActionResult> GetNewProblem(DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> GetNewProblem(DateTime? startDate, DateTime? endDate, string name = "", string author = "", string tag = "")
         {
             DateTime start = startDate == null ? DateTime.Now.Date : (DateTime)startDate;
             DateTime end = endDate == null ? DateTime.Now.Date : (DateTime)endDate;
-            if (start == DateTime.Now.Date && end == DateTime.Now.Date)
+            CacheData data = await _cache.GetRecordAsync<CacheData>($"new-problems-{startDate}-{endDate}-{name}-{author}-{tag}");
+            if (data == null)
             {
-                CacheData data = await _cache.GetRecordAsync<CacheData>("new-problems");
-                if (data == null)
+                data = new CacheData
                 {
-                    data = new CacheData
-                    {
-                        RecordID = "new-problems",
-                        Data = _statisticService.GetNewProblemInRange(start, end),
-                        CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddMinutes(10)
-                    };
-                    await _cache.SetRecordAsync("new-problems", data, TimeSpan.FromMinutes(10));
-                }
-                return Ok(data);
+                    RecordID = $"new-problems-{startDate}-{endDate}-{name}-{author}-{tag}",
+                    Data = _statisticService.GetNewProblemInRange(start, end, name, author, tag),
+                    CacheAt = DateTime.Now,
+                    ExpireAt = DateTime.Now.AddMinutes(1)
+                };
+                await _cache.SetRecordAsync(data.RecordID, data, TimeSpan.FromMinutes(1));
             }
-            return Ok(_statisticService.GetNewProblemInRange(start, end));
+            return Ok(data);
         }
     }
 }

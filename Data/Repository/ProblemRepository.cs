@@ -53,9 +53,9 @@ namespace Data.Repository
         public IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null)
         {
             if (expression == null)
-                return _context.Problems.Include(x => x.Tags).Where(x => x.CreatedAt.Date == date);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(x => x.CreatedAt.Date == date);
             else
-                return _context.Problems.Include(x => x.Tags).Where(x => x.CreatedAt.Date == date).Where(expression);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(x => x.CreatedAt.Date == date).Where(expression);
         }
 
         public Problem GetProblemDetail(Expression<Func<Problem, bool>> expression)
