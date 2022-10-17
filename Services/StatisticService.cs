@@ -63,12 +63,12 @@ namespace Services
             return _userRepository.GetTopUserActivity().ToList();
         }
 
-        public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, bool? state)
+        public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<ProblemStatistic> problemStatistic = _problemRepository.GetHotProblemInDay(i).ToList();
+                IEnumerable<ProblemStatistic> problemStatistic = _problemRepository.GetHotProblemInDay(i, problem => problem.Name.Contains(name) && problem.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || problem.Tags.Any(x => x.Name.Contains(tag)))).ToList();
                 statisticList.Add(new Statistic
                 {
                     Total = problemStatistic.Count(),
@@ -79,7 +79,7 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<ProblemStatistic> GetSubmitOfProblem()
+        public IEnumerable<ProblemStatistic> GetSubmitOfProblem(string name, string author, string tag)
         {
             return _problemRepository.GetHotProblem().ToList();
         }
