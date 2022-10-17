@@ -26,7 +26,7 @@ namespace Services
             _mapper = mapper;
         }
 
-        public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date;i = i.AddDays(1))
@@ -81,7 +81,7 @@ namespace Services
 
         public IEnumerable<ProblemStatistic> GetSubmitOfProblem(string name, string author, string tag)
         {
-            return _problemRepository.GetHotProblem().ToList();
+            return _problemRepository.GetHotProblem(x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || x.Tags.Any(x => x.Name.Contains(tag)))).ToList();
         }
 
         public IEnumerable<UserRank> GetUserRank()
