@@ -30,28 +30,42 @@ namespace API.Controllers
             _cache = cache;
         }
 
-        [HttpGet("ardent-users")]
-        public async Task<IActionResult> GetTopArdentUser(DateTime? startDate, DateTime? endDate)
+        [HttpGet("top-activity")]
+        public async Task<IActionResult> GetTopActivityUser(DateTime? startDate, DateTime? endDate, bool? gender, string name = "")
         {
             if (startDate == null || endDate == null)
             {
-                CacheData cache_data = await _cache.GetRecordAsync<CacheData>("ardent-users");
+                // Get top activity user all the time
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>($"top-activity-{gender}-{name}");
                 if (cache_data == null)
                 {
                     cache_data = new CacheData
                     {
-                        RecordID = "ardent-users",
-                        Data = _statisticService.GetUserSubmit(),
+                        RecordID = $"top-activity-{gender}-{name}",
+                        Data = _statisticService.GetUserSubmit(gender, name),
                         CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddMinutes(5)
+                        ExpireAt = DateTime.Now.AddMinutes(15)
                     };
-                    await _cache.SetRecordAsync("ardent-users", cache_data, TimeSpan.FromMinutes(5));
+                    await _cache.SetRecordAsync(cache_data.RecordID, cache_data, TimeSpan.FromMinutes(15));
                 }
                 return Ok(cache_data);
             }
             else
             {
-                return Ok(_statisticService.GetUserSubmitInRage((DateTime)startDate, (DateTime)endDate));
+                // Get top activity user in range
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>($"top-activity-{startDate.Value.Date}-{endDate.Value.Date}-{gender}-{name}");
+                if (cache_data == null)
+                {
+                    cache_data = new CacheData
+                    {
+                        RecordID = $"top-activity-{startDate.Value.Date}-{endDate.Value.Date}-{gender}-{name}",
+                        Data = _statisticService.GetUserSubmitInRage((DateTime)startDate, (DateTime)endDate, name, gender),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(5)
+                    };
+                    await _cache.SetRecordAsync(cache_data.RecordID, cache_data, TimeSpan.FromMinutes(5));
+                }
+                return Ok(cache_data);
             }
         }
 
@@ -89,7 +103,7 @@ namespace API.Controllers
                         RecordID = $"hot-problems-{name}-{author}-{tag}",
                         Data = _statisticService.GetSubmitOfProblem(name, author, tag),
                         CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddMinutes(15)
+                        ExpireAt = DateTime.Now.AddMinutes(5)
                     };
                     await _cache.SetRecordAsync(cache_data.RecordID, cache_data, TimeSpan.FromMinutes(5));
                 }

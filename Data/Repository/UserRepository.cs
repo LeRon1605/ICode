@@ -79,15 +79,31 @@ namespace Data.Repository
 
         public IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null)
         {
-            return _context.Users.Include(user => user.Submissions)
-                                 .Select(user => new SubmissionStatistic
-                                 {
-                                     User = _mapper.Map<User, UserDTO>(user),
-                                     SubmitCount = user.Submissions.Count(),
-                                     SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
-                                 })
-                                 .OrderByDescending(x => x.SuccessSubmitCount)
-                                 .Take(take);
+            if (expression == null)
+            {
+                return _context.Users.Include(user => user.Submissions)
+                                     .Select(user => new SubmissionStatistic
+                                     {
+                                         User = _mapper.Map<User, UserDTO>(user),
+                                         SubmitCount = user.Submissions.Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
+                                     })
+                                     .OrderByDescending(x => x.SuccessSubmitCount)
+                                     .Take(take);
+            }
+            else
+            {
+                return _context.Users.Include(user => user.Submissions)
+                                     .Where(expression)
+                                     .Select(user => new SubmissionStatistic
+                                     {
+                                         User = _mapper.Map<User, UserDTO>(user),
+                                         SubmitCount = user.Submissions.Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
+                                     })
+                                     .OrderByDescending(x => x.SuccessSubmitCount)
+                                     .Take(take);
+            }
         }
 
         public IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take, Expression<Func<User, bool>> expression)
@@ -95,6 +111,7 @@ namespace Data.Repository
             if (expression == null)
             {
                 return _context.Users.Include(user => user.Submissions)
+                                     .Where(user => user.CreatedAt.Date < Date.Date)
                                      .Select(user => new SubmissionStatistic
                                      {
                                          User = _mapper.Map<User, UserDTO>(user),
@@ -107,6 +124,7 @@ namespace Data.Repository
             else
             {
                 return _context.Users.Include(user => user.Submissions)
+                                     .Where(user => user.CreatedAt.Date < Date.Date)
                                      .Where(expression)
                                      .Select(user => new SubmissionStatistic
                                      {

@@ -42,12 +42,12 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserActivityInDay(i).ToList();
+                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserActivityInDay(i, 10, x => x.Username.Contains(name) && (gender == null || (bool)gender == x.Gender)).ToList();
                 statisticList.Add(new Statistic
                 {
                     Total = submission.Count(),
@@ -58,9 +58,9 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<SubmissionStatistic> GetUserSubmit()
+        public IEnumerable<SubmissionStatistic> GetUserSubmit(bool? gender, string name)
         {
-            return _userRepository.GetTopUserActivity().ToList();
+            return _userRepository.GetTopUserActivity(10, x => x.Username.Contains(name) && (gender == null || (bool)gender == x.Gender)).ToList();
         }
 
         public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag)
