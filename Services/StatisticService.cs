@@ -31,7 +31,7 @@ namespace Services
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date;i = i.AddDays(1))
             {
-                IEnumerable<User> newUser = _userRepository.GetNewUser(i);
+                IEnumerable<User> newUser = _userRepository.GetNewUserInDay(i, user => user.Username.Contains(name) && (gender == null || user.Gender == (bool)gender));
                 statisticList.Add(new Statistic
                 {
                     Total = newUser.Count(),

@@ -56,12 +56,23 @@ namespace API.Controllers
         }
 
         [HttpGet("new-users")]
-        public IActionResult GetNewUser(DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> GetNewUser(DateTime? startDate, DateTime? endDate, bool? gender, string name = "")
         {
             DateTime start = startDate == null ? DateTime.Now : (DateTime)startDate;
             DateTime end = endDate == null ? DateTime.Now : (DateTime)endDate;
-            IEnumerable<Statistic> data = _statisticService.GetNewUserInRange(start, end);
-            return Ok(data);
+            CacheData cacheData = await _cache.GetRecordAsync<CacheData>($"new-users-{start.Date}-{end.Date}-{name}-{gender}");
+            if (cacheData == null)
+            {
+                cacheData = new CacheData
+                {
+                    RecordID = $"new-users-{start.Date}-{end.Date}-{name}-{gender}",
+                    Data = _statisticService.GetNewUserInRange(start, end, name, gender),
+                    CacheAt = DateTime.Now,
+                    ExpireAt = DateTime.Now.AddMinutes(5)
+                };
+                await _cache.SetRecordAsync(cacheData.RecordID, cacheData, TimeSpan.FromMinutes(5));
+            }
+            return Ok(cacheData);
         }
 
         [HttpGet("hot-problems")]
@@ -92,7 +103,7 @@ namespace API.Controllers
                 {
                     cache_data = new CacheData
                     {
-                        RecordID = $"hot-problems-{startDate.Value}-{endDate.Value}-{name}-{author}-{tag}",
+                        RecordID = $"hot-problems-{startDate.Value.Date}-{endDate.Value.Date}-{name}-{author}-{tag}",
                         Data = _statisticService.GetSubmitOfProblemInRange((DateTime)startDate, (DateTime)endDate, name, author, tag),
                         CacheAt = DateTime.Now,
                         ExpireAt = DateTime.Now.AddMinutes(15)

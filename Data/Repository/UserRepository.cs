@@ -22,7 +22,7 @@ namespace Data.Repository
             _mapper = mapper;
         }
 
-        public IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression)
+        public IEnumerable<User> GetNewUserInDay(DateTime Date, Expression<Func<User, bool>> expression)
         {
             if (expression == null)
                 return _context.Users.Where(user => user.CreatedAt.Date == Date.Date);
