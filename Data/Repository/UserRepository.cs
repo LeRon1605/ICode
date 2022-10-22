@@ -61,8 +61,8 @@ namespace Data.Repository
                     {
                         UserID = user.ID,
                         User = _mapper.Map<User, UserDTO>(user),
-                        Problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                        Submit = _mapper.Map<Submission, SubmissionDTO>(submission)
+                        Problem = _mapper.Map<Problem, ProblemBase>(problem),
+                        Submit = _mapper.Map<Submission, SubmissionBase>(submission)
                     })
                     .AsEnumerable()
                     .GroupBy(x => x.UserID)

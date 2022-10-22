@@ -84,7 +84,7 @@ namespace Services
             return _problemRepository.GetHotProblem(x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || x.Tags.Any(x => x.Name.Contains(tag)))).ToList();
         }
 
-        public IEnumerable<UserRank> GetUserRank()
+        public IEnumerable<UserRank> GetUserRank(string name, bool? gender)
         {
             List<UserRank> result = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new UserRank
             {
@@ -97,10 +97,10 @@ namespace Services
             {
                 result[i].Rank = i + 1;
             }
-            return result;
+            return result.Where(x => x.User.Username.Contains(name) && (gender == null || (x.User.Gender == "Male") == (bool)gender));
         }
 
-        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<ProblemSolvedStatistic> data = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new ProblemSolvedStatistic
             {
@@ -115,8 +115,7 @@ namespace Services
                     User = x.User,
                     ProblemSovled = x.Details.Where(x => x.Submit.CreatedAt.Date == i).Count(),
                     Detail = x.Details.Where(x => x.Submit.CreatedAt.Date == i).ToList()
-                }).ToList();
-                userRank = userRank.OrderByDescending(x => x.ProblemSovled).ToList();
+                }).Where(x => x.ProblemSovled > 0 && x.User.Username.Contains(name) && (gender == null || x.User.Gender == "Male" == (bool)gender)).OrderByDescending(x => x.ProblemSovled).ToList();
                 for (int j = 0; j < userRank.Count(); j++)
                 {
                     userRank[j].Rank = j + 1;

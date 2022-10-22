@@ -7,8 +7,8 @@ namespace Models
 {
     public class ProblemSolvedStatisticDetail
     {
-        public SubmissionDTO Submit { get; set; }
-        public ProblemDTO Problem { get; set; }
+        public SubmissionBase Submit { get; set; }
+        public ProblemBase Problem { get; set; }
     }
     public class ProblemSolvedStatistic
     {

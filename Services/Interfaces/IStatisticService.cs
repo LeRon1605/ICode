@@ -12,8 +12,8 @@ namespace Services.Interfaces
         public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate, string name, bool? gender);
 
         public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag);
-        public IEnumerable<UserRank> GetUserRank();
-        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate);
+        public IEnumerable<UserRank> GetUserRank(string name, bool? gender);
+        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate, string name, bool? gender);
         public IEnumerable<SubmissionStatistic> GetUserSubmit(bool? gender, string name);
         public IEnumerable<ProblemStatistic> GetSubmitOfProblem(string name, string author, string tag);
 

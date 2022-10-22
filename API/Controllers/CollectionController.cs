@@ -3,6 +3,7 @@ using API.Filter;
 using API.Services;
 using AutoMapper;
 using CodeStudy.Models;
+using Data.Entity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -129,27 +130,41 @@ namespace API.Controllers
         }
 
         [HttpGet("rank")]
-        public async Task<IActionResult> GetUserRank(DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> GetUserRank(DateTime? startDate, DateTime? endDate, bool? gender, string name = "")
         {
             if (startDate == null || endDate == null)
             {
-                CacheData cache_data = await _cache.GetRecordAsync<CacheData>("rank");
+                // Get user rank for all the time
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>($"rank-{name}-{gender}");
                 if (cache_data == null)
                 {
                     cache_data = new CacheData
                     {
-                        RecordID = "rank",
-                        Data = _statisticService.GetUserRank(),
+                        RecordID = $"rank-{name}-{gender}",
+                        Data = _statisticService.GetUserRank(name, gender),
                         CacheAt = DateTime.Now,
-                        ExpireAt = DateTime.Now.AddMinutes(15)
+                        ExpireAt = DateTime.Now.AddMinutes(5)
                     };
-                    await _cache.SetRecordAsync("rank", cache_data);
+                    await _cache.SetRecordAsync(cache_data.RecordID, cache_data, TimeSpan.FromMinutes(5));
                 }
                 return Ok(cache_data);
             }
             else
             {
-                return Ok(_statisticService.GetUserRankInRange((DateTime)startDate, (DateTime)endDate));
+                // Get user rank in range
+                CacheData cache_data = await _cache.GetRecordAsync<CacheData>($"rank-{startDate.Value}-{endDate.Value}-{name}-{gender}");
+                if (cache_data == null)
+                {
+                    cache_data = new CacheData
+                    {
+                        RecordID = $"rank-{startDate.Value}-{endDate.Value}-{name}-{gender}",
+                        Data = _statisticService.GetUserRankInRange((DateTime)startDate, (DateTime)endDate, name, gender),
+                        CacheAt = DateTime.Now,
+                        ExpireAt = DateTime.Now.AddMinutes(15)
+                    };
+                    await _cache.SetRecordAsync(cache_data.RecordID, cache_data, TimeSpan.FromMinutes(1));
+                }
+                return Ok(cache_data);
             }
         }
 
