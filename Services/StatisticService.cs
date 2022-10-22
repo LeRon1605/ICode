@@ -26,12 +26,12 @@ namespace Services
             _mapper = mapper;
         }
 
-        public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetNewUserInRange(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date;i = i.AddDays(1))
             {
-                IEnumerable<User> newUser = _userRepository.GetNewUser(i);
+                IEnumerable<User> newUser = _userRepository.GetNewUserInDay(i, user => user.Username.Contains(name) && (gender == null || user.Gender == (bool)gender));
                 statisticList.Add(new Statistic
                 {
                     Total = newUser.Count(),
@@ -42,12 +42,12 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetUserSubmitInRage(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserActivityInDay(i).ToList();
+                IEnumerable<SubmissionStatistic> submission = _userRepository.GetTopUserActivityInDay(i, 10, x => x.Username.Contains(name) && (gender == null || (bool)gender == x.Gender)).ToList();
                 statisticList.Add(new Statistic
                 {
                     Total = submission.Count(),
@@ -58,17 +58,17 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<SubmissionStatistic> GetUserSubmit()
+        public IEnumerable<SubmissionStatistic> GetUserSubmit(bool? gender, string name)
         {
-            return _userRepository.GetTopUserActivity().ToList();
+            return _userRepository.GetTopUserActivity(10, x => x.Username.Contains(name) && (gender == null || (bool)gender == x.Gender)).ToList();
         }
 
-        public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, bool? state)
+        public IEnumerable<Statistic> GetSubmitOfProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag)
         {
             List<Statistic> statisticList = new List<Statistic>();
             for (DateTime i = startDate.Date; i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<ProblemStatistic> problemStatistic = _problemRepository.GetHotProblemInDay(i).ToList();
+                IEnumerable<ProblemStatistic> problemStatistic = _problemRepository.GetHotProblemInDay(i, problem => problem.Name.Contains(name) && problem.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || problem.Tags.Any(x => x.Name.Contains(tag)))).ToList();
                 statisticList.Add(new Statistic
                 {
                     Total = problemStatistic.Count(),
@@ -79,12 +79,12 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<ProblemStatistic> GetSubmitOfProblem()
+        public IEnumerable<ProblemStatistic> GetSubmitOfProblem(string name, string author, string tag)
         {
-            return _problemRepository.GetHotProblem().ToList();
+            return _problemRepository.GetHotProblem(x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || x.Tags.Any(x => x.Name.Contains(tag)))).ToList();
         }
 
-        public IEnumerable<UserRank> GetUserRank()
+        public IEnumerable<UserRank> GetUserRank(string name, bool? gender)
         {
             List<UserRank> result = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new UserRank
             {
@@ -97,10 +97,10 @@ namespace Services
             {
                 result[i].Rank = i + 1;
             }
-            return result;
+            return result.Where(x => x.User.Username.Contains(name) && (gender == null || (x.User.Gender == "Male") == (bool)gender));
         }
 
-        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetUserRankInRange(DateTime startDate, DateTime endDate, string name, bool? gender)
         {
             List<ProblemSolvedStatistic> data = _userRepository.GetProblemSolveStatisticOfUser().Select(x => new ProblemSolvedStatistic
             {
@@ -115,8 +115,7 @@ namespace Services
                     User = x.User,
                     ProblemSovled = x.Details.Where(x => x.Submit.CreatedAt.Date == i).Count(),
                     Detail = x.Details.Where(x => x.Submit.CreatedAt.Date == i).ToList()
-                }).ToList();
-                userRank = userRank.OrderByDescending(x => x.ProblemSovled).ToList();
+                }).Where(x => x.ProblemSovled > 0 && x.User.Username.Contains(name) && (gender == null || x.User.Gender == "Male" == (bool)gender)).OrderByDescending(x => x.ProblemSovled).ToList();
                 for (int j = 0; j < userRank.Count(); j++)
                 {
                     userRank[j].Rank = j + 1;
@@ -131,12 +130,12 @@ namespace Services
             return statisticList;
         }
 
-        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate)
+        public IEnumerable<Statistic> GetNewProblemInRange(DateTime startDate, DateTime endDate, string name, string author, string tag)
         {
             List<Statistic> statistics = new List<Statistic>();
             for (DateTime i = startDate.Date;i <= endDate.Date; i = i.AddDays(1))
             {
-                IEnumerable<Problem> problems = _problemRepository.GetNewProblem(i);
+                IEnumerable<Problem> problems = _problemRepository.GetNewProblem(i, x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (string.IsNullOrEmpty(tag) || x.Tags.Any(x => x.Name.Contains(tag))));
                 statistics.Add(new Statistic
                 {
                     Total = problems.Count(),

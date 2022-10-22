@@ -14,7 +14,7 @@ namespace Data.Repository.Interfaces
         User GetUserWithSubmit(Expression<Func<User, bool>> expression);
         Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression = null);
         IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser();
-        IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression = null);
+        IEnumerable<User> GetNewUserInDay(DateTime Date, Expression<Func<User, bool>> expression = null);
         IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take = 5, Expression<Func<User, bool>> expression = null);
         IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null);
     }

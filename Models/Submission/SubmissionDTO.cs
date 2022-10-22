@@ -4,13 +4,8 @@ using System.Text;
 
 namespace CodeStudy.Models
 {
-    public class SubmissionDTO
+    public class SubmissionDTO: SubmissionBase
     {
-        public string ID { get; set; }
-        public string Language { get; set; }
-        public bool Status { get; set; }
-        public string Description { get; set; }
-        public DateTime CreatedAt { get; set; }
         public UserDTO User { get; set; }
         public ProblemBase Problem { get; set; }
     }

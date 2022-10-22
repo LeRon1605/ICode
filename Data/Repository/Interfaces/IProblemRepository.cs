@@ -13,7 +13,7 @@ namespace Data.Repository.Interfaces
         IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null);
         IEnumerable<Problem> GetProblemDetailMulti(Expression<Func<Problem, bool>> expression = null);
         IEnumerable<Problem> GetProblemWithSubmission();
-        IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date);
-        IEnumerable<ProblemStatistic> GetHotProblem();
+        IEnumerable<ProblemStatistic> GetHotProblemInDay(DateTime date, Expression<Func<Problem, bool>> expression = null);
+        IEnumerable<ProblemStatistic> GetHotProblem(Expression<Func<Problem, bool>> expression = null);
     }
 }

@@ -22,7 +22,7 @@ namespace Data.Repository
             _mapper = mapper;
         }
 
-        public IEnumerable<User> GetNewUser(DateTime Date, Expression<Func<User, bool>> expression)
+        public IEnumerable<User> GetNewUserInDay(DateTime Date, Expression<Func<User, bool>> expression)
         {
             if (expression == null)
                 return _context.Users.Where(user => user.CreatedAt.Date == Date.Date);
@@ -61,8 +61,8 @@ namespace Data.Repository
                     {
                         UserID = user.ID,
                         User = _mapper.Map<User, UserDTO>(user),
-                        Problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                        Submit = _mapper.Map<Submission, SubmissionDTO>(submission)
+                        Problem = _mapper.Map<Problem, ProblemBase>(problem),
+                        Submit = _mapper.Map<Submission, SubmissionBase>(submission)
                     })
                     .AsEnumerable()
                     .GroupBy(x => x.UserID)
@@ -79,15 +79,31 @@ namespace Data.Repository
 
         public IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null)
         {
-            return _context.Users.Include(user => user.Submissions)
-                                 .Select(user => new SubmissionStatistic
-                                 {
-                                     User = _mapper.Map<User, UserDTO>(user),
-                                     SubmitCount = user.Submissions.Count(),
-                                     SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
-                                 })
-                                 .OrderByDescending(x => x.SuccessSubmitCount)
-                                 .Take(take);
+            if (expression == null)
+            {
+                return _context.Users.Include(user => user.Submissions)
+                                     .Select(user => new SubmissionStatistic
+                                     {
+                                         User = _mapper.Map<User, UserDTO>(user),
+                                         SubmitCount = user.Submissions.Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
+                                     })
+                                     .OrderByDescending(x => x.SuccessSubmitCount)
+                                     .Take(take);
+            }
+            else
+            {
+                return _context.Users.Include(user => user.Submissions)
+                                     .Where(expression)
+                                     .Select(user => new SubmissionStatistic
+                                     {
+                                         User = _mapper.Map<User, UserDTO>(user),
+                                         SubmitCount = user.Submissions.Count(),
+                                         SuccessSubmitCount = user.Submissions.Where(submission => submission.State == SubmitState.Success).Count(),
+                                     })
+                                     .OrderByDescending(x => x.SuccessSubmitCount)
+                                     .Take(take);
+            }
         }
 
         public IEnumerable<SubmissionStatistic> GetTopUserActivityInDay(DateTime Date, int take, Expression<Func<User, bool>> expression)
@@ -95,6 +111,7 @@ namespace Data.Repository
             if (expression == null)
             {
                 return _context.Users.Include(user => user.Submissions)
+                                     .Where(user => user.CreatedAt.Date < Date.Date)
                                      .Select(user => new SubmissionStatistic
                                      {
                                          User = _mapper.Map<User, UserDTO>(user),
@@ -107,6 +124,7 @@ namespace Data.Repository
             else
             {
                 return _context.Users.Include(user => user.Submissions)
+                                     .Where(user => user.CreatedAt.Date < Date.Date)
                                      .Where(expression)
                                      .Select(user => new SubmissionStatistic
                                      {
