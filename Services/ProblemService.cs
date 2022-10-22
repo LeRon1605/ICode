@@ -3,6 +3,7 @@ using CodeStudy.Models;
 using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
 using Services.Interfaces;
 using System;
@@ -129,6 +130,61 @@ namespace Services
                 }
             }
             return problems;
+        }
+
+        public async Task<bool> AddTag(string Id, string[] tagId)
+        {
+            Problem problem = _problemRepository.GetProblemDetail(x => x.ID == Id);
+            if (problem == null)
+            {
+                return false;
+            }
+            Tag[] tags = tagId.Select(x => _tagRepository.FindByID(x)).ToArray();
+            if (tags.Any(x => x == null))
+            {
+                return false;
+            }
+            if (problem.Tags.Any(x => tags.Any(tag => tag.ID == x.ID)))
+            {
+                return false;
+            }
+            foreach (Tag tag in tags)
+            {
+                problem.Tags.Add(tag);
+            }
+            _problemRepository.Update(problem);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteTag(string Id, string tagId)
+        {
+            Problem problem = _problemRepository.GetProblemDetail(x => x.ID == Id);
+            if (problem == null)
+            {
+                return false;
+            }
+            bool isDeleted = false;
+            foreach (Tag tag in problem.Tags)
+            {
+                if (tag.ID == tagId)
+                {
+                    isDeleted = true;
+                    problem.Tags.Remove(tag);
+                    break;
+                }
+            }
+            if (isDeleted)
+            {
+                problem.UpdatedAt = DateTime.Now;
+                _problemRepository.Update(problem);
+                await _unitOfWork.CommitAsync();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }
