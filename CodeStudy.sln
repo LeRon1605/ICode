@@ -3,15 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{6ECBD1D6-2F6A-4180-A7DD-C52E08DB5AD9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.API", "ICode.API\ICode.API.csproj", "{6ECBD1D6-2F6A-4180-A7DD-C52E08DB5AD9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{74CE842A-8233-4E6B-9E4C-A93954B683D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.Models", "ICode.Models\ICode.Models.csproj", "{74CE842A-8233-4E6B-9E4C-A93954B683D1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Data\Data.csproj", "{DE781535-4E97-4DE7-A32C-A16627D3F430}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.Data", "ICode.Data\ICode.Data.csproj", "{DE781535-4E97-4DE7-A32C-A16627D3F430}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{5ACF0C60-D338-4D69-A861-DCC1CC15363F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.Services", "ICode.Services\ICode.Services.csproj", "{5ACF0C60-D338-4D69-A861-DCC1CC15363F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{8816935A-8236-419F-948A-5912C0A3EDF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.UnitTest", "ICode.UnitTest\ICode.UnitTest.csproj", "{8816935A-8236-419F-948A-5912C0A3EDF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICode.Common", "ICode.Common\ICode.Common.csproj", "{A8F0948D-514E-43F7-99BD-7D989DA74077}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{8816935A-8236-419F-948A-5912C0A3EDF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8816935A-8236-419F-948A-5912C0A3EDF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8816935A-8236-419F-948A-5912C0A3EDF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F0948D-514E-43F7-99BD-7D989DA74077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F0948D-514E-43F7-99BD-7D989DA74077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F0948D-514E-43F7-99BD-7D989DA74077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F0948D-514E-43F7-99BD-7D989DA74077}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
