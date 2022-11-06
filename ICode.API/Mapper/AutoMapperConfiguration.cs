@@ -3,7 +3,6 @@ using CodeStudy.Models;
 using Data.Entity;
 using Models.DTO;
 using System;
-using System.Linq;
 
 namespace API.Mapper
 {
@@ -18,13 +17,9 @@ namespace API.Mapper
             CreateMap<Report, ReportDTO>();
             CreateMap<Reply, ReplyDTO>();
             CreateMap<TestCase, TestcaseDTO>();
-           
-            CreateMap<Problem, ProblemBase>();
-            CreateMap<Problem, ProblemDTO>()
-                .ForMember(dest => dest.Author, otp => otp.MapFrom(src => src.Article));
+          
 
             CreateMap<PagingList<Report>, PagingList<ReportDTO>>();
-            CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();
             CreateMap<PagingList<User>, PagingList<UserDTO>>();
             CreateMap<PagingList<Tag>, PagingList<TagDTO>>();
            

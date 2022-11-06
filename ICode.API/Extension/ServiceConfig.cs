@@ -4,6 +4,10 @@ using Services.Interfaces;
 using Services;
 using Data.Repository.Interfaces;
 using Data.Repository;
+using ICode.Services.Interfaces;
+using ICode.Services;
+using ICode.Data.Repository.Interfaces;
+using ICode.Data.Repository;
 
 namespace API.Extension
 {
@@ -20,6 +24,7 @@ namespace API.Extension
             services.AddScoped<IProblemService, ProblemService>();
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IStatisticService, StatisticService>();
+            services.AddScoped<IContestService, ContestService>();
             services.AddSingleton<IUploadService, CloudinaryUploadService>();
             services.AddSingleton<IMailService, GmailService>();
             services.AddSingleton<ILocalAuth, LocalAuth>();
@@ -40,6 +45,7 @@ namespace API.Extension
             services.AddScoped<ISubmissionRepository, SubmissionRepository>();
             services.AddScoped<IReportRepository, ReportRepository>();
             services.AddScoped<IReplyRepository, ReplyRepository>();
+            services.AddScoped<IContestRepository, ContestRepository>();
         }
     }
 }

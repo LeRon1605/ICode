@@ -246,13 +246,15 @@ namespace Services
         {
             // Remind after 10 days
             IEnumerable<User> absentUsers = _userRepository.FindMulti(x => x.AllowNotification && x.LastLogInAt != null && ((DateTime)x.LastLogInAt).AddDays(5) < DateTime.Now && (x.RemindAt == null || ((DateTime)x.RemindAt).AddDays(10) < DateTime.Now));
+            List<Task> tasks = new List<Task>();
             foreach (User user in absentUsers)
             {
                 int absentDate = DateTime.Now.Subtract(((DateTime)user.LastLogInAt)).Days;
                 user.RemindAt = DateTime.Now;
                 _userRepository.Update(user);
-                await _mailService.SendMailAsync(user.Email, $"Thông báo vắng mặt trên ICode", $"Xin chào {user.Username}, bạn đã vắng mặt trên ICode trong {absentDate} ngày rồi đấy!!");
+                tasks.Add(_mailService.SendMailAsync(user.Email, $"Thông báo vắng mặt trên ICode", $"Xin chào {user.Username}, bạn đã vắng mặt trên ICode trong {absentDate} ngày rồi đấy!!"));
             }
+            await Task.WhenAll(tasks);
             await _unitOfWork.CommitAsync();
         }
     }
