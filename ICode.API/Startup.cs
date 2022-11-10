@@ -109,8 +109,8 @@ namespace API
 
             services.InjectService();
             services.InjectRepository();
+            services.InjectMapper();
 
-            services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<ExceptionHandler>();
             services.AddHttpClient();
             services.AddSwaggerGen();

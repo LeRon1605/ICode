@@ -4,9 +4,9 @@ using Data.Entity;
 using Models.DTO;
 using System;
 
-namespace API.Mapper
+namespace ICode.Mapper
 {
-    public class AutoMapperConfiguration: Profile
+    public class AutoMapperConfiguration : Profile
     {
         public AutoMapperConfiguration()
         {
@@ -17,12 +17,12 @@ namespace API.Mapper
             CreateMap<Report, ReportDTO>();
             CreateMap<Reply, ReplyDTO>();
             CreateMap<TestCase, TestcaseDTO>();
-          
+
 
             CreateMap<PagingList<Report>, PagingList<ReportDTO>>();
             CreateMap<PagingList<User>, PagingList<UserDTO>>();
             CreateMap<PagingList<Tag>, PagingList<TagDTO>>();
-           
+
             CreateMap<RegisterUser, User>()
                 .ForMember(dest => dest.ID, otp => otp.MapFrom(src => Guid.NewGuid().ToString()))
                 .ForMember(dest => dest.CreatedAt, otp => otp.MapFrom(src => DateTime.Now));

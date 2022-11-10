@@ -3,9 +3,9 @@ using Data.Entity;
 using Models;
 using System;
 
-namespace API.Mapper
+namespace ICode.Mapper.ContestMapper
 {
-    public class ContestMapperConfig: Profile
+    public class ContestMapperConfig : Profile
     {
         public ContestMapperConfig()
         {

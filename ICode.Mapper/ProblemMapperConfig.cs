@@ -4,14 +4,14 @@ using Data.Entity;
 using Models;
 using Models.DTO;
 
-namespace API.Mapper
+namespace ICode.Mapper
 {
-    public class ProblemMapperConfig: Profile
+    public class ProblemMapperConfig : Profile
     {
         public ProblemMapperConfig()
         {
             CreateMap<Problem, ProblemBase>();
-            
+
             CreateMap<Problem, ProblemDTO>()
                 .IncludeBase<Problem, ProblemBase>()
                 .ForMember(dest => dest.Author, otp => otp.MapFrom(src => src.Article));

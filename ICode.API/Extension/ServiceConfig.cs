@@ -8,6 +8,8 @@ using ICode.Services.Interfaces;
 using ICode.Services;
 using ICode.Data.Repository.Interfaces;
 using ICode.Data.Repository;
+using ICode.Mapper;
+using ICode.Mapper.ContestMapper;
 
 namespace API.Extension
 {
@@ -46,6 +48,14 @@ namespace API.Extension
             services.AddScoped<IReportRepository, ReportRepository>();
             services.AddScoped<IReplyRepository, ReplyRepository>();
             services.AddScoped<IContestRepository, ContestRepository>();
+        }
+
+        public static void InjectMapper(this IServiceCollection services)
+        {
+            services.AddAutoMapper(typeof(AutoMapperConfiguration));
+            services.AddAutoMapper(typeof(ProblemMapperConfig));
+            services.AddAutoMapper(typeof(SubmissionMapperConfig));
+            services.AddAutoMapper(typeof(ContestMapperConfig));
         }
     }
 }

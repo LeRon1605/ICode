@@ -5,9 +5,9 @@ using ICode.Common;
 using Models.DTO;
 using System.Linq;
 
-namespace API.Mapper
+namespace ICode.Mapper
 {
-    public class SubmissionMapperConfig: Profile
+    public class SubmissionMapperConfig : Profile
     {
         public SubmissionMapperConfig()
         {
