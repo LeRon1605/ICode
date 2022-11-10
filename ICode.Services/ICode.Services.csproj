@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ICode.Data\ICode.Data.csproj" />
+    <ProjectReference Include="..\ICode.Mapper\ICode.Mapper.csproj" />
     <ProjectReference Include="..\ICode.Models\ICode.Models.csproj" />
   </ItemGroup>
 

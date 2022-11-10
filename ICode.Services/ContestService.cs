@@ -2,10 +2,12 @@
 using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
+using ICode.API.Mapper.ContestMapper;
 using ICode.Common;
 using ICode.Data.Repository.Interfaces;
 using ICode.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Models;
 using Models.DTO;
 using Services;
@@ -24,15 +26,13 @@ namespace ICode.Services
         private readonly IContestRepository _contestRepository;
         private readonly IProblemRepository _problemRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly IMailService _mail;
-        public ContestService(IContestRepository contestRepository, IUserRepository userRepository, IProblemRepository problemRepository, IUnitOfWork unitOfWork, IMapper mapper, IMailService mail)
+        public ContestService(IContestRepository contestRepository, IUserRepository userRepository, IProblemRepository problemRepository, IUnitOfWork unitOfWork, IMailService mail)
         {
             _contestRepository = contestRepository;
             _userRepository = userRepository;
             _problemRepository = problemRepository;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _mail = mail;
         }
         public async Task Add(Contest entity)
@@ -51,19 +51,9 @@ namespace ICode.Services
             return _contestRepository.FindAll();
         }
 
-        public List<ContestBase> GetContestByFilter(string name, DateTime? date, bool? state, string sort, string orderBy)
+        public List<ContestBase> GetContestByFilter(string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper)
         {
-            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x =>
-            {
-                if (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt)
-                {
-                    return _mapper.Map<Contest, ContestDTO>(x);
-                }
-                else
-                {
-                    return _mapper.Map<Contest, ContestBase>(x);
-                }
-            }).ToList();
+            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
             if (string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort)
@@ -79,36 +69,19 @@ namespace ICode.Services
             return contests;
         }
 
-        public ContestBase GetDetailById(string id)
+        public ContestBase GetDetailById(string id, IContestMapper contestMapper)
         {
             Contest contest = _contestRepository.GetDetailSingle(x => x.ID == id);
             if (contest == null)
             {
                 return null;
             }
-            if (contest.StartAt <= DateTime.Now && DateTime.Now <= contest.EndAt)
-            {
-                return _mapper.Map<Contest, ContestDTO>(contest);
-            }
-            else
-            {
-                return _mapper.Map<Contest, ContestBase>(contest);
-            }
+            return contestMapper.Map(contest);
         }
 
-        public PagingList<ContestBase> GetPageContestByFilter(int page, int pageSize, string name, DateTime? date, bool? state, string sort, string orderBy)
+        public PagingList<ContestBase> GetPageContestByFilter(int page, int pageSize, string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper)
         {
-            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x =>
-            {
-                if (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt)
-                {
-                    return _mapper.Map<Contest, ContestDTO>(x);
-                }
-                else
-                {
-                    return _mapper.Map<Contest, ContestBase>(x);
-                }
-            }).ToList();
+            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
             PagingList<ContestBase> list = new PagingList<ContestBase>()
             {
                 TotalPage = (int)Math.Ceiling((float)contests.Count / pageSize),

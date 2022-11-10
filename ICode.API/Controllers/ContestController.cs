@@ -1,10 +1,15 @@
-﻿using API.Filter;
+﻿using API.Extension;
+using API.Filter;
+using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Data.Entity;
 using Hangfire;
+using ICode.API.Mapper.ContestMapper;
 using ICode.Common;
 using ICode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Models;
 using Models.DTO;
 using Services.Interfaces;
@@ -21,24 +26,31 @@ namespace ICode.API.Controllers
     {
         private readonly IContestService _contestService;
         private readonly IProblemService _problemService;
-        public ContestController(IContestService contestService, IProblemService problemService)
+        private readonly IDistributedCache _cache;
+        public ContestController(IContestService contestService, IProblemService problemService, IDistributedCache cache)
         {
             _contestService = contestService;
             _problemService = problemService;
+            _cache = cache;
         }
 
         [HttpGet]
         [QueryConstraint(Key = "sort", Value = "name, state, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
-        public IActionResult GetAll(int? page = null, int pageSize = 5, string name = "", bool? state = null, DateTime? date = null, string sort = "", string orderBy = "")
+        public IActionResult GetAll([FromServices] IMapper mapper,int? page = null, int pageSize = 5, string name = "", bool? state = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
+            IContestMapper contestMapper = new LimitContestMapper(mapper);
+            if (User.Identity.IsAuthenticated && User.FindFirst(Constant.ROLE).Value == "Admin")
+            {
+                contestMapper = new RunningContestMapper(mapper);
+            }
             if (page == null)
             {
-                return Ok(_contestService.GetContestByFilter(name, date, state, sort, orderBy));
+                return Ok(_contestService.GetContestByFilter(name, date, state, sort, orderBy, contestMapper));
             }
             else
             {
-                return Ok(_contestService.GetPageContestByFilter(page.Value, pageSize, name, date, state, sort, orderBy));
+                return Ok(_contestService.GetPageContestByFilter(page.Value, pageSize, name, date, state, sort, orderBy, contestMapper));
             }
         }
 
@@ -73,21 +85,27 @@ namespace ICode.API.Controllers
                 UpdatedAt = null
             };
             await _contestService.Add(contest);
-            if ((DateTime.Now - contest.StartAt).TotalDays < 3)
+            if ((contest.StartAt - DateTime.Now).TotalDays < 3)
             {
                 BackgroundJob.Enqueue<IContestService>(x => x.NotifyUser(contest.ID));
             }
             else
             {
-                BackgroundJob.Schedule<IContestService>(x => x.NotifyUser(contest.ID), contest.StartAt.AddDays(-3));
+                string jobID = BackgroundJob.Schedule<IContestService>(x => x.NotifyUser(contest.ID), contest.StartAt.AddDays(-3));
+                await _cache.SetRecordAsync($"contest_notify_{contest.ID}", jobID, TimeSpan.FromDays((contest.StartAt.AddDays(-3) - DateTime.Now).TotalDays));
             }
             return Ok();
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(string id)
+        public IActionResult GetById([FromServices] IMapper mapper, string id)
         {
-            ContestBase contest = _contestService.GetDetailById(id);
+            IContestMapper contestMapper = new LimitContestMapper(mapper);
+            if (User.Identity.IsAuthenticated && User.FindFirst(Constant.ROLE).Value == "Admin")
+            {
+                contestMapper = new RunningContestMapper(mapper);
+            }
+            ContestBase contest = _contestService.GetDetailById(id, contestMapper);
             if (contest == null)
             {
                 return NotFound(new ErrorResponse
@@ -146,6 +164,23 @@ namespace ICode.API.Controllers
                     }
                 }
                 await _contestService.Update(id, input);
+                if (input.StartAt != null)
+                {
+                    string jobID = await _cache.GetRecordAsync<string>($"contest_notify_{id}");
+                    if (jobID != null)
+                    {
+                        BackgroundJob.Delete(jobID);
+                    }
+                    if ((input.StartAt.Value - DateTime.Now).TotalDays < 3)
+                    {
+                        BackgroundJob.Enqueue<IContestService>(x => x.NotifyUser(id));
+                    }
+                    else
+                    {
+                        jobID = BackgroundJob.Schedule<IContestService>(x => x.NotifyUser(id), input.StartAt.Value.AddDays(-3));
+                        await _cache.SetRecordAsync($"contest_notify_{id}", jobID, TimeSpan.FromDays((contest.StartAt.AddDays(-3) - DateTime.Now).TotalDays));
+                    }
+                }
                 return NoContent();
             }
         }
@@ -168,6 +203,11 @@ namespace ICode.API.Controllers
                 if (contest.StartAt >= DateTime.Now || contest.EndAt <= DateTime.Now)
                 {
                     await _contestService.Remove(id);
+                    string jobID = await _cache.GetRecordAsync<string>($"contest_notify_{id}");
+                    if (jobID != null)
+                    {
+                        BackgroundJob.Delete(jobID);
+                    }
                     return NoContent();
                 }
                 else
@@ -179,6 +219,27 @@ namespace ICode.API.Controllers
                     });
                 }
             }
+        }
+
+        [HttpGet("{id}/players")]
+        public IActionResult GetAllPlayers(string id)
+        {
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            return null;
+        }
+
+        [HttpPost("{id}/players")]
+        public IActionResult RegisterContest(string id)
+        {
+            return null;
         }
     }
 }
