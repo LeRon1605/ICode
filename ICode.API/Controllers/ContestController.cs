@@ -6,12 +6,14 @@ using Data.Entity;
 using Hangfire;
 using ICode.API.Mapper.ContestMapper;
 using ICode.Common;
+using ICode.Models;
 using ICode.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Models;
 using Models.DTO;
+using Services;
 using Services.Interfaces;
 using StackExchange.Redis;
 using System;
@@ -222,7 +224,9 @@ namespace ICode.API.Controllers
         }
 
         [HttpGet("{id}/players")]
-        public IActionResult GetAllPlayers(string id)
+        [QueryConstraint(Key = "sort", Value = "name, gender, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Depend = "sort", Value = "asc, desc")]
+        public IActionResult GetAllPlayers(string id, int? page = null, int pageSize = 5, string name = "", bool? gender = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
             Contest contest = _contestService.FindByID(id);
             if (contest == null)
@@ -233,13 +237,144 @@ namespace ICode.API.Controllers
                     detail = "Contest doesn't exist."
                 });
             }
-            return null;
+            if (page == null)
+            {
+                return Ok(_contestService.GetPlayerOfContest(id, name, gender, date, sort, orderBy));
+            }
+            else
+            {
+                return Ok(_contestService.GetPagePlayerOfContestByFilter(id, page.Value, pageSize, name, gender, date, sort, orderBy));
+            }
         }
 
         [HttpPost("{id}/players")]
-        public IActionResult RegisterContest(string id)
+        [Authorize]
+        public async Task<IActionResult> RegisterContest(string id)
         {
-            return null;
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            ServiceResult result = await _contestService.Register(id, User.FindFirst(Constant.ID).Value);
+            if (result.State)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = result.Message
+                });
+            }
+        }
+
+        [HttpPost("{id}/players/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RegisterContest(string id, string userId, [FromServices] IUserService userService)
+        {
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            User user = userService.FindByID(userId);
+            if (user == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User doesn't exist."
+                });
+            }
+            ServiceResult result = await _contestService.Register(id, userId);
+            if (result.State)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = result.Message
+                });
+            }
+        }
+
+        [HttpDelete("{id}/players")]
+        [Authorize]
+        public async Task<IActionResult> DiscardContest(string id)
+        {
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            ServiceResult result = await _contestService.RemoveUser(id, User.FindFirst(Constant.ID).Value);
+            if (result.State)
+            {
+                return Ok(result.Data);
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = result.Message
+                });
+            }
+        }
+
+        [HttpDelete("{id}/players/{userId}")]
+        [Authorize]
+        public async Task<IActionResult> DiscardContest(string id, string userId, [FromServices] IUserService userService)
+        {
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            User user = userService.FindByID(userId);
+            if (user == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "User doesn't exist."
+                });
+            }
+            ServiceResult result = await _contestService.RemoveUser(id, userId);
+            if (result.State)
+            {
+                return Ok(result.Data);
+            }
+            else
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = result.Message
+                });
+            }
         }
     }
 }

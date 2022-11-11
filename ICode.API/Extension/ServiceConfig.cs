@@ -56,6 +56,7 @@ namespace API.Extension
             services.AddAutoMapper(typeof(ProblemMapperConfig));
             services.AddAutoMapper(typeof(SubmissionMapperConfig));
             services.AddAutoMapper(typeof(ContestMapperConfig));
+            services.AddAutoMapper(typeof(UserMapperConfig));
         }
     }
 }

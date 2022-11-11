@@ -9,7 +9,10 @@ namespace ICode.Data.Repository.Interfaces
 {
     public interface IContestRepository: IRepository<Contest>
     {
-        IEnumerable<Contest> GetDetailMulti(Expression<Func<Contest, bool>> expression = null);
-        Contest GetDetailSingle(Expression<Func<Contest, bool>> expression = null);
+        IEnumerable<Contest> GetContestWithPlayerMulti(Expression<Func<Contest, bool>> expression = null);
+        IEnumerable<Contest> GetContestWithProblemMulti(Expression<Func<Contest, bool>> expression = null);
+
+        Contest GetContestWithPlayer(Expression<Func<Contest, bool>> expression = null);
+        Contest GetContestWithProblem(Expression<Func<Contest, bool>> expression = null);
     }
 }

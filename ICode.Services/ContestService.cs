@@ -5,6 +5,7 @@ using Data.Repository.Interfaces;
 using ICode.API.Mapper.ContestMapper;
 using ICode.Common;
 using ICode.Data.Repository.Interfaces;
+using ICode.Models;
 using ICode.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -27,18 +28,85 @@ namespace ICode.Services
         private readonly IProblemRepository _problemRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMailService _mail;
-        public ContestService(IContestRepository contestRepository, IUserRepository userRepository, IProblemRepository problemRepository, IUnitOfWork unitOfWork, IMailService mail)
+        private readonly IMapper _mapper;
+        public ContestService(IContestRepository contestRepository, IUserRepository userRepository, IProblemRepository problemRepository, IUnitOfWork unitOfWork, IMailService mail, IMapper mapper)
         {
             _contestRepository = contestRepository;
             _userRepository = userRepository;
             _problemRepository = problemRepository;
             _unitOfWork = unitOfWork;
             _mail = mail;
+            _mapper = mapper;
         }
         public async Task Add(Contest entity)
         {
             await _contestRepository.AddAsync(entity);
             await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<ServiceResult> Register(string id, string userId)
+        {
+            Contest contest = _contestRepository.GetContestWithPlayer(x => x.ID == id);
+            if (contest == null)
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Message = "Contest doesn't exist",
+                    Data = null,
+                };
+            }
+            if (contest.ContestDetails.Count() >= contest.PlayerLimit)
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Message = "Contest is full",
+                    Data = null,
+                };
+            }
+            if (contest.StartAt <= DateTime.Now)
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Message = "Contest has already started or has been ended.",
+                    Data = null
+                };
+            }
+            if (contest.ContestDetails.FirstOrDefault(x => x.UserID == userId) != null)
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Message = "You has already registered to this contest.",
+                    Data = null
+                };
+            }
+            User user = _userRepository.FindByID(userId);
+            if (user == null)
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Message = "User doesn't exist",
+                    Data = null,
+                };
+            }
+            contest.ContestDetails.Add(new ContestDetail
+            {
+                UserID = userId,
+                RegisteredAt = DateTime.Now,
+                Score = 0
+            });
+            _contestRepository.Update(contest);
+            await _unitOfWork.CommitAsync();
+            return new ServiceResult
+            {
+                State = true,
+                Message = "Register user successfully",
+                Data = null,
+            };
         }
 
         public Contest FindByID(string ID)
@@ -53,7 +121,7 @@ namespace ICode.Services
 
         public List<ContestBase> GetContestByFilter(string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper)
         {
-            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
+            List<ContestBase> contests = _contestRepository.GetContestWithProblemMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
             if (string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort)
@@ -71,7 +139,7 @@ namespace ICode.Services
 
         public ContestBase GetDetailById(string id, IContestMapper contestMapper)
         {
-            Contest contest = _contestRepository.GetDetailSingle(x => x.ID == id);
+            Contest contest = _contestRepository.GetContestWithProblem(x => x.ID == id);
             if (contest == null)
             {
                 return null;
@@ -81,7 +149,7 @@ namespace ICode.Services
 
         public PagingList<ContestBase> GetPageContestByFilter(int page, int pageSize, string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper)
         {
-            List<ContestBase> contests = _contestRepository.GetDetailMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
+            List<ContestBase> contests = _contestRepository.GetContestWithProblemMulti(x => x.Name.Contains(name) && (state == null || ((bool)state == (x.StartAt <= DateTime.Now && DateTime.Now <= x.EndAt))) && (date == null || x.StartAt.Date == date.Value.Date)).Select(x => contestMapper.Map(x)).ToList();
             PagingList<ContestBase> list = new PagingList<ContestBase>()
             {
                 TotalPage = (int)Math.Ceiling((float)contests.Count / pageSize),
@@ -100,6 +168,51 @@ namespace ICode.Services
                         break;
                     case "state":
                         list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.State).ToList() : list.Data.OrderByDescending(x => x.State).ToList();
+                        break;
+                };
+            }
+            return list;
+        }
+
+        public List<UserContest> GetPlayerOfContest(string id, string name, bool? gender, DateTime? registeredAt, string sort, string orderBy)
+        {
+            List<UserContest> users = _mapper.Map<List<ContestDetail>, List<UserContest>>(_contestRepository.GetContestWithPlayer(x => x.ID == id).ContestDetails.Where(x => x.User.Username.Contains(name) && (gender == null || (bool)gender == x.User.Gender) && (registeredAt == null || registeredAt.Value.Date == x.RegisteredAt.Date)).ToList());
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort)
+                {
+                    case "name":
+                        return (orderBy == "asc") ? users.OrderBy(x => x.User.Username).ToList() : users.OrderByDescending(x => x.User.Username).ToList();
+                    case "gender":
+                        return (orderBy == "asc") ? users.OrderBy(x => x.User.Gender).ToList() : users.OrderByDescending(x => x.User.Gender).ToList();
+                    case "date":
+                        return (orderBy == "asc") ? users.OrderBy(x => x.RegisteredAt).ToList() : users.OrderByDescending(x => x.RegisteredAt).ToList();
+                }
+            }
+            return users;
+        }
+
+        public PagingList<UserContest> GetPagePlayerOfContestByFilter(string id, int page, int pageSize, string name, bool? gender, DateTime? registeredAt, string sort, string orderBy)
+        {
+            List<UserContest> users = _mapper.Map<List<ContestDetail>, List<UserContest>>(_contestRepository.GetContestWithPlayer(x => x.ID == id).ContestDetails.Where(x => x.User.Username.Contains(name) && (gender == null || (bool)gender == x.User.Gender) && (registeredAt == null || registeredAt.Value.Date == x.RegisteredAt.Date)).ToList());
+            PagingList<UserContest> list = new PagingList<UserContest>()
+            {
+                TotalPage = (int)Math.Ceiling((float)users.Count / pageSize),
+                Data = users,
+                Page = page
+            };
+            if (string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort)
+                {
+                    case "name":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username).ToList() : list.Data.OrderByDescending(x => x.User.Username).ToList();
+                        break;
+                    case "gender":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Gender).ToList() : list.Data.OrderByDescending(x => x.User.Gender).ToList();
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.RegisteredAt).ToList() : list.Data.OrderByDescending(x => x.RegisteredAt).ToList();
                         break;
                 };
             }
@@ -134,7 +247,7 @@ namespace ICode.Services
 
         public async Task<bool> Update(string ID, object entity)
         {
-            Contest contest = _contestRepository.GetDetailSingle(x => x.ID == ID);
+            Contest contest = _contestRepository.GetContestWithProblem(x => x.ID == ID);
             if (contest == null)
             {
                 return false;
@@ -169,6 +282,44 @@ namespace ICode.Services
                 _contestRepository.Update(contest);
                 await _unitOfWork.CommitAsync();
                 return true;
+            }
+        }
+
+        public async Task<ServiceResult> RemoveUser(string id, string userId)
+        {
+            Contest contest = _contestRepository.GetContestWithPlayer(x => x.ID == id);
+            if (contest != null)
+            {
+                if (contest.ContestDetails.FirstOrDefault(x => x.UserID == userId) != null)
+                {
+                    contest.ContestDetails = contest.ContestDetails.Where(x => x.UserID != userId).ToList();
+                    _contestRepository.Update(contest);
+                    await _unitOfWork.CommitAsync();
+                    return new ServiceResult
+                    {
+                        State = true,
+                        Data = _mapper.Map<List<ContestDetail>, List<UserContest>>(contest.ContestDetails.ToList()),
+                        Message = "Success"
+                    };
+                }
+                else
+                {
+                    return new ServiceResult
+                    {
+                        State = false,
+                        Data = null,
+                        Message = "User hasn't registered to this contest yet."
+                    };
+                }
+            }
+            else
+            {
+                return new ServiceResult
+                {
+                    State = false,
+                    Data = null,
+                    Message = "Contest doesn't exist."
+                };
             }
         }
     }
