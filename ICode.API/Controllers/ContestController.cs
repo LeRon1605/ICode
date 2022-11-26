@@ -1,7 +1,9 @@
 ﻿using API.Extension;
 using API.Filter;
+using API.Services;
 using AutoMapper;
 using CloudinaryDotNet.Actions;
+using CodeStudy.Models;
 using Data.Entity;
 using Hangfire;
 using ICode.API.Mapper.ContestMapper;
@@ -17,6 +19,7 @@ using Services;
 using Services.Interfaces;
 using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,11 +31,13 @@ namespace ICode.API.Controllers
     {
         private readonly IContestService _contestService;
         private readonly IProblemService _problemService;
+        private readonly ISubmissionService _submissionService;
         private readonly IDistributedCache _cache;
-        public ContestController(IContestService contestService, IProblemService problemService, IDistributedCache cache)
+        public ContestController(IContestService contestService, IProblemService problemService, ISubmissionService submissionService, IDistributedCache cache)
         {
             _contestService = contestService;
             _problemService = problemService;
+            _submissionService = submissionService;
             _cache = cache;
         }
 
@@ -251,21 +256,16 @@ namespace ICode.API.Controllers
         [Authorize]
         public async Task<IActionResult> RegisterContest(string id)
         {
-            Contest contest = _contestService.FindByID(id);
-            if (contest == null)
+            ServiceResult result = await _contestService.Register(id, User.FindFirst(Constant.ID).Value);
+            if (result.State == ServiceState.EntityNotFound)
             {
                 return NotFound(new ErrorResponse
                 {
                     error = "Resource not found.",
-                    detail = "Contest doesn't exist."
+                    detail = result.Message
                 });
             }
-            ServiceResult result = await _contestService.Register(id, User.FindFirst(Constant.ID).Value);
-            if (result.State)
-            {
-                return Ok();
-            }
-            else
+            else if (result.State == ServiceState.InvalidAction)
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -273,36 +273,23 @@ namespace ICode.API.Controllers
                     detail = result.Message
                 });
             }
+            return Ok();
         }
 
         [HttpPost("{id}/players/{userId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RegisterContest(string id, string userId, [FromServices] IUserService userService)
         {
-            Contest contest = _contestService.FindByID(id);
-            if (contest == null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    error = "Resource not found.",
-                    detail = "Contest doesn't exist."
-                });
-            }
-            User user = userService.FindByID(userId);
-            if (user == null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    error = "Resource not found.",
-                    detail = "User doesn't exist."
-                });
-            }
             ServiceResult result = await _contestService.Register(id, userId);
-            if (result.State)
+            if (result.State == ServiceState.EntityNotFound)
             {
-                return Ok();
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = result.Message
+                });
             }
-            else
+            else if (result.State == ServiceState.InvalidAction)
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -310,27 +297,23 @@ namespace ICode.API.Controllers
                     detail = result.Message
                 });
             }
+            return Ok();
         }
 
         [HttpDelete("{id}/players")]
         [Authorize]
         public async Task<IActionResult> DiscardContest(string id)
         {
-            Contest contest = _contestService.FindByID(id);
-            if (contest == null)
+            ServiceResult result = await _contestService.RemoveUser(id, User.FindFirst(Constant.ID).Value);
+            if (result.State == ServiceState.EntityNotFound)
             {
                 return NotFound(new ErrorResponse
                 {
                     error = "Resource not found.",
-                    detail = "Contest doesn't exist."
+                    detail = result.Message
                 });
             }
-            ServiceResult result = await _contestService.RemoveUser(id, User.FindFirst(Constant.ID).Value);
-            if (result.State)
-            {
-                return Ok(result.Data);
-            }
-            else
+            else if (result.State == ServiceState.InvalidAction)
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -338,36 +321,23 @@ namespace ICode.API.Controllers
                     detail = result.Message
                 });
             }
+            return Ok();
         }
 
         [HttpDelete("{id}/players/{userId}")]
         [Authorize]
         public async Task<IActionResult> DiscardContest(string id, string userId, [FromServices] IUserService userService)
         {
-            Contest contest = _contestService.FindByID(id);
-            if (contest == null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    error = "Resource not found.",
-                    detail = "Contest doesn't exist."
-                });
-            }
-            User user = userService.FindByID(userId);
-            if (user == null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    error = "Resource not found.",
-                    detail = "User doesn't exist."
-                });
-            }
             ServiceResult result = await _contestService.RemoveUser(id, userId);
-            if (result.State)
+            if (result.State == ServiceState.EntityNotFound)
             {
-                return Ok(result.Data);
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = result.Message
+                });
             }
-            else
+            else if (result.State == ServiceState.InvalidAction)
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -375,6 +345,84 @@ namespace ICode.API.Controllers
                     detail = result.Message
                 });
             }
+            return Ok(result.Data);
+        }
+
+        [HttpGet("{id}/submissions")]
+        public IActionResult GetSubmissions(string id)
+        {
+            ServiceResult result = _contestService.GetSubmissions(id);
+            if (result.State == ServiceState.EntityNotFound)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = result.Message
+                });
+            }
+            return Ok(result.Data);
+        }
+
+        [HttpPost("{id}/submissions")]
+        [Authorize]
+        public async Task<IActionResult> SubmitContest(string id, SubmissionContestInput input)
+        {
+            Contest contest = _contestService.FindByID(id);
+            if (contest == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Contest not found.",
+                    detail = "Contest doesn't exist."
+                });
+            }
+            if (!_contestService.IsUserInContest(id, User.FindFirst(Constant.ID).Value))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = "You are not in the contest."
+                });
+            }
+            if (!_contestService.IsProblemInContest(id, input.ProblemID))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    error = "Invalid action.",
+                    detail = "Problem is not in the contest."
+                });
+            }
+
+            Submission submission = new Submission
+            {
+                ID = Guid.NewGuid().ToString(),
+                State = SubmitState.Pending,
+                UserID = User.FindFirst(Constant.ID).Value,
+                Code = input.Code,
+                Language = input.Language,
+                CreatedAt = DateTime.Now,
+                ContestSubmission = new ContestSubmission
+                {
+                    Contest = contest
+                },
+                SubmissionDetails = new List<SubmissionDetail>()
+            };
+
+            SubmissionResult submissionResult;
+
+            if (!_contestService.IsUserSolvedProblem(id, User.FindFirst(Constant.ID).Value, input.ProblemID))
+            {
+                submissionResult = await _submissionService.Submit(submission, input.ProblemID);
+                if (submissionResult.Status)
+                {
+                    await _contestService.AddPointForUser(id, User.FindFirst(Constant.ID).Value, input.ProblemID);
+                }
+            }
+            else
+            {
+                submissionResult = await _submissionService.Submit(submission, input.ProblemID);
+            }
+            return Ok(submissionResult);
         }
     }
 }

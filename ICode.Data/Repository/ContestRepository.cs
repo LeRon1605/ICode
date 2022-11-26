@@ -65,5 +65,27 @@ namespace ICode.Data.Repository
                 return _context.Contests.Include(x => x.ProblemContestDetails).ThenInclude(x => x.Problem).Where(expression).FirstOrDefault();
             }
         }
+
+        public Submission GetContestSubmission(Expression<Func<Submission, bool>> expression)
+        {
+            return _context.Submissions.Include(x => x.ContestSubmission).Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).FirstOrDefault(expression);
+        }
+
+        public IEnumerable<Submission> GetContestSubmissionMulti(Expression<Func<Submission, bool>> expression)
+        {
+            if (expression == null)
+            {
+                return _context.Submissions.Include(x => x.ContestSubmission).Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem);
+            }
+            else
+            {
+                return _context.Submissions.Include(x => x.ContestSubmission).Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).Where(expression);
+            }
+        }
+
+        public IEnumerable<ProblemContestDetail> GetProblemInContest(Expression<Func<Contest, bool>> expression)
+        {
+            return _context.Contests.Include(x => x.ProblemContestDetails).FirstOrDefault(expression).ProblemContestDetails;
+        }
     }
 }

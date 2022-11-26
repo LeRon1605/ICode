@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CodeStudy.Models;
 using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
@@ -51,7 +52,7 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.EntityNotFound,
                     Message = "Contest doesn't exist",
                     Data = null,
                 };
@@ -60,7 +61,7 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.InvalidAction,
                     Message = "Contest is full",
                     Data = null,
                 };
@@ -69,7 +70,7 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.InvalidAction,
                     Message = "Contest has already started or has been ended.",
                     Data = null
                 };
@@ -78,7 +79,7 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.InvalidAction,
                     Message = "You has already registered to this contest.",
                     Data = null
                 };
@@ -88,7 +89,7 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.EntityNotFound,
                     Message = "User doesn't exist",
                     Data = null,
                 };
@@ -103,7 +104,7 @@ namespace ICode.Services
             await _unitOfWork.CommitAsync();
             return new ServiceResult
             {
-                State = true,
+                State = ServiceState.Success,
                 Message = "Register user successfully",
                 Data = null,
             };
@@ -297,7 +298,7 @@ namespace ICode.Services
                     await _unitOfWork.CommitAsync();
                     return new ServiceResult
                     {
-                        State = true,
+                        State = ServiceState.Success,
                         Data = _mapper.Map<List<ContestDetail>, List<UserContest>>(contest.ContestDetails.ToList()),
                         Message = "Success"
                     };
@@ -306,7 +307,7 @@ namespace ICode.Services
                 {
                     return new ServiceResult
                     {
-                        State = false,
+                        State = ServiceState.InvalidAction,
                         Data = null,
                         Message = "User hasn't registered to this contest yet."
                     };
@@ -316,11 +317,97 @@ namespace ICode.Services
             {
                 return new ServiceResult
                 {
-                    State = false,
+                    State = ServiceState.EntityNotFound,
                     Data = null,
                     Message = "Contest doesn't exist."
                 };
             }
+        }
+
+        public ServiceResult GetSubmissions(string id)
+        {
+            Contest contest = _contestRepository.FindByID(id);
+            if (contest == null)
+            {
+                return new ServiceResult
+                {
+                    State = ServiceState.EntityNotFound,
+                    Data = null,
+                    Message = "Contest doesn't exist."
+                };
+            }
+            return new ServiceResult
+            {
+                State = ServiceState.Success,
+                Data = _mapper.Map<List<Submission>, List<SubmissionDTO>>(_contestRepository.GetContestSubmissionMulti(x => x.ContestSubmission.ContestID == id).ToList())
+            };
+        }
+
+        public bool IsUserInContest(string id, string userId)
+        {
+            Contest contest = _contestRepository.GetContestWithPlayer(x => x.ID == id);
+            if (contest == null) return false;
+            return contest.ContestDetails.FirstOrDefault(x => x.UserID == userId) != null;
+        }
+
+        public bool IsUserSolvedProblem(string id, string userId, string problemId)
+        {
+            Contest contest = _contestRepository.FindByID(id);
+            if (contest == null) return false;
+            return _contestRepository.GetContestSubmission(x => x.ContestSubmission.ContestID == id && x.SubmissionDetails.First().TestCase.ProblemID == problemId && x.State == SubmitState.Success) != null;
+        }
+
+        public bool IsProblemInContest(string id, string problemId)
+        {
+            Contest contest = _contestRepository.GetContestWithPlayer(x => x.ID == id);
+            if (contest == null) return false;
+            return _contestRepository.GetProblemInContest(x => x.ID == id).FirstOrDefault(x => x.ProblemID == problemId) != null;
+        }
+
+        public async Task<ServiceResult> AddPointForUser(string id, string userId, string problemId)
+        {
+            Contest contest = _contestRepository.GetContestWithPlayer(x => x.ID == id);
+            if (contest == null)
+            {
+                return new ServiceResult
+                {
+                    State = ServiceState.EntityNotFound,
+                    Data = null,
+                    Message = "Contest doesn't exist."
+                };
+            }
+            ContestDetail player = contest.ContestDetails.FirstOrDefault(x => x.UserID == userId);
+            if (player == null)
+            {
+                return new ServiceResult
+                {
+                    State = ServiceState.EntityNotFound,
+                    Data = null,
+                    Message = "Player hasn't been registered to the contest yet."
+                };
+            }
+            ProblemContestDetail problem = _contestRepository.GetProblemInContest(x => x.ID == id).FirstOrDefault(x => x.ProblemID == problemId);
+            if (problem == null)
+            {
+                return new ServiceResult
+                {
+                    State = ServiceState.EntityNotFound,
+                    Data = null,
+                    Message = "Problem is not in the contest."
+                };
+            }
+
+            int score = problem.Score;
+
+            player.Score += score;
+            _contestRepository.Update(contest);
+
+            await _unitOfWork.CommitAsync();
+
+            return new ServiceResult
+            {
+                State = ServiceState.Success
+            };
         }
     }
 }

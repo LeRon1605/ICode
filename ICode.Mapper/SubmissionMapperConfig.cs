@@ -38,6 +38,10 @@ namespace ICode.Mapper
                     return "Compiler Error";
                 case SubmitState.RuntimeError:
                     return "Runtime Error";
+                case SubmitState.TimeLimit:
+                    return "Time Limit";
+                case SubmitState.MemoryLimit:
+                    return "Memory Limit";
                 default:
                     return null;
             }

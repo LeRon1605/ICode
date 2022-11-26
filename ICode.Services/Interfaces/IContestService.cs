@@ -22,5 +22,10 @@ namespace ICode.Services.Interfaces
         PagingList<ContestBase> GetPageContestByFilter(int page, int pageSize, string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper);
         PagingList<UserContest> GetPagePlayerOfContestByFilter(string id, int page, int pageSize, string name, bool? gender, DateTime? registeredAt, string sort, string orderBy);
         List<ContestBase> GetContestByFilter(string name, DateTime? date, bool? state, string sort, string orderBy, IContestMapper contestMapper);
+        ServiceResult GetSubmissions(string id);
+        Task<ServiceResult> AddPointForUser(string id, string userId, string problemId);
+        bool IsUserInContest(string id, string userId);
+        bool IsProblemInContest(string id, string problemId);
+        bool IsUserSolvedProblem(string id, string userId, string problemId);
     }
 }
