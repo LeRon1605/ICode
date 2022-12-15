@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.UnitTest", "ICode.Uni
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.Common", "ICode.Common\ICode.Common.csproj", "{A8F0948D-514E-43F7-99BD-7D989DA74077}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICode.Mapper", "ICode.Mapper\ICode.Mapper.csproj", "{121F37B6-FF1B-42AD-B70E-7D7866C5538E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ICode.Mapper", "ICode.Mapper\ICode.Mapper.csproj", "{121F37B6-FF1B-42AD-B70E-7D7866C5538E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICode.Web", "ICode.Web\ICode.Web.csproj", "{66D7A90F-8554-4569-97E6-08059BA2C7EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{121F37B6-FF1B-42AD-B70E-7D7866C5538E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{121F37B6-FF1B-42AD-B70E-7D7866C5538E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{121F37B6-FF1B-42AD-B70E-7D7866C5538E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66D7A90F-8554-4569-97E6-08059BA2C7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66D7A90F-8554-4569-97E6-08059BA2C7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66D7A90F-8554-4569-97E6-08059BA2C7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66D7A90F-8554-4569-97E6-08059BA2C7EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
