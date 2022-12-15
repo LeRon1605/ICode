@@ -3,6 +3,7 @@ using CodeStudy.Models;
 using Data.Entity;
 using Google.Apis.Auth;
 using ICode.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
 using Services;
@@ -28,6 +29,13 @@ namespace API.Controllers
             _roleService = roleService;
             _tokenService = tokenSerivce;
             _mail = mail;
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult Auth()
+        {
+            return Ok();
         }
 
         [HttpPost("register")]

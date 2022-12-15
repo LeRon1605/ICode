@@ -5,9 +5,9 @@ using ICode.Common;
 using Models.DTO;
 using System.Linq;
 
-namespace API.Mapper
+namespace ICode.Mapper
 {
-    public class SubmissionMapperConfig: Profile
+    public class SubmissionMapperConfig : Profile
     {
         public SubmissionMapperConfig()
         {
@@ -15,9 +15,8 @@ namespace API.Mapper
                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.State == SubmitState.Success))
                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => getState(src.State)));
             CreateMap<Submission, SubmissionDTO>()
-               .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.SubmissionDetails.First().TestCase.Problem))
-               .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.State == SubmitState.Success))
-               .ForMember(dest => dest.Description, opt => opt.MapFrom(src => getState(src.State)));
+               .IncludeBase<Submission, SubmissionBase>()
+               .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.SubmissionDetails.First().TestCase.Problem));
             CreateMap<Submission, SubmissionResult>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.State == SubmitState.Success))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => getState(src.State)));
@@ -39,6 +38,10 @@ namespace API.Mapper
                     return "Compiler Error";
                 case SubmitState.RuntimeError:
                     return "Runtime Error";
+                case SubmitState.TimeLimit:
+                    return "Time Limit";
+                case SubmitState.MemoryLimit:
+                    return "Memory Limit";
                 default:
                     return null;
             }
