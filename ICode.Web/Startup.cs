@@ -1,8 +1,11 @@
 using ICode.Web.Auth;
+using ICode.Web.Services;
+using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -15,6 +18,11 @@ namespace ICode.Web
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+        public Startup(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(config =>
@@ -30,6 +38,12 @@ namespace ICode.Web
                 config.DefaultPolicy = policyBuilder.Build();
             });
 
+            services.AddScoped<IProblemService, ProblemService>();
+
+            services.AddHttpClient("ICode", config =>
+            {
+                config.BaseAddress = new Uri(_configuration["ICode.API"]);
+            });
             services.AddControllersWithViews();
         }
 

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -12,11 +13,13 @@ namespace ICode.Web.Auth
 {
     public class ICodeAuthSchemeOptions : AuthenticationSchemeOptions
     { }
-    
+
     public class ICodeAuthenticationScheme : AuthenticationHandler<ICodeAuthSchemeOptions>
     {
-        public ICodeAuthenticationScheme(Microsoft.Extensions.Options.IOptionsMonitor<ICodeAuthSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        private readonly HttpClient _client;
+        public ICodeAuthenticationScheme(IHttpClientFactory httpClientFactory, IOptionsMonitor<ICodeAuthSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
         {
+            _client = httpClientFactory.CreateClient("ICode");
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -26,10 +29,8 @@ namespace ICode.Web.Auth
                 return AuthenticateResult.Fail("Token not found!");
             }
 
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new System.Uri("http://localhost:5001");
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Request.Cookies["access_token"]);
-            HttpResponseMessage response = await client.GetAsync("/auth");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Request.Cookies["access_token"]);
+            HttpResponseMessage response = await _client.GetAsync("/auth");
             if (response.IsSuccessStatusCode)
             {
                 JwtSecurityToken token = new JwtSecurityToken(jwtEncodedString: Request.Cookies["access_token"]);
