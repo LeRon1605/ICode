@@ -84,10 +84,10 @@ namespace Services
                 }
 
                 // Check if token is expire
-                if (validatedToken.ValidTo > DateTime.Now)
-                {
-                    return false;
-                }
+                //if (validatedToken.ValidTo < DateTime.Now)
+                //{
+                //    return false;
+                //}
 
                 return true;
             }

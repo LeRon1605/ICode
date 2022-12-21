@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Google.Apis.Logging;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace API.Extension
 {
@@ -15,7 +16,7 @@ namespace API.Extension
             // configuration for item which will be set in cache
 
             // convert data to json string
-            var jsonData = JsonSerializer.Serialize(data);
+            var jsonData = JsonConvert.SerializeObject(data);
             await cache.SetStringAsync(recordId, jsonData, new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = absoluteExpireTime ?? TimeSpan.FromSeconds(60),
@@ -33,13 +34,13 @@ namespace API.Extension
 
         public static async Task<T> GetRecordAsync<T>(this IDistributedCache cache, string recordId)
         {
-            var jsonData = await cache.GetAsync(recordId);
+            var jsonData = await cache.GetStringAsync(recordId);
             if (jsonData is null)
             {
                 return default(T);
             }
 
-            return JsonSerializer.Deserialize<T>(jsonData);
+            return JsonConvert.DeserializeObject<T>(jsonData);
         }
     }
 }

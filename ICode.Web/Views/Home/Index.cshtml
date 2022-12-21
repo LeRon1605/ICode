@@ -1,0 +1,74 @@
+﻿@using CodeStudy.Models
+@using Models.Statistic
+@{
+    List<ProblemDTO> problems = (List<ProblemDTO>)ViewBag.problems;
+    List<ProblemStatistic> hotProblems = (List<ProblemStatistic>)ViewBag.hotProblems;
+}
+<table class="table table-bordered caption-top mt-5">
+    <caption>Danh sách bài tập</caption>
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Tên</th>
+            <th scope="col">Tác giả</th>
+            <th scope="col">Thể loại</th>
+            <th scope="col">Ngày tạo</th>
+            <th scope="col">Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ProblemDTO problem in problems)
+        {
+            <tr>
+                <th scope="row">@problem.ID</th>
+                <td>@problem.Name</td>
+                <td>@problem.Author.Username</td>
+                <td>
+                    @foreach (TagDTO tag in problem.Tags)
+                    {
+                        <span>@tag.Name</span>
+                    }
+                </td>
+                <td>@problem.CreatedAt</td>
+                <td>
+                    <a class="btn btn-primary" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">Xem chi tiết</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<table class="table table-bordered caption-top mt-5">
+    <caption>Danh sách bài tập hot</caption>
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Tên</th>
+            <th scope="col">Tác giả</th>
+            <th scope="col">Thể loại</th>
+            <th scope="col">Bài nộp đúng</th>
+            <th scope="col">Bài nộp</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (ProblemStatistic statistic in hotProblems)
+        {
+            <tr>
+                <th scope="row">@statistic.problem.ID</th>
+                <td>@statistic.problem.Name</td>
+                <td>@statistic.problem.Author.Username</td>
+                <td>
+                    @foreach (TagDTO tag in statistic.problem.Tags)
+                    {
+                        <span>@tag.Name</span>
+                    }
+                </td>
+                <td>@statistic.SubmitSuccessCount</td>
+                <td>@statistic.SubmitCount</td>
+                <td>
+                    <a class="btn btn-primary">Xem chi tiết</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
