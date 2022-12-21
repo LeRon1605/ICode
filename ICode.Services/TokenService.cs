@@ -94,8 +94,7 @@ namespace API.Services
         public string ValidateToken(string accessToken)
         {
             string jwtId = null;
-            _tokenProvider.ValidateToken(accessToken, ref jwtId);
-            return jwtId;
+            return _tokenProvider.ValidateToken(accessToken, ref jwtId) ? jwtId : null;
         }
     }
 }

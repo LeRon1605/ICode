@@ -38,13 +38,14 @@ namespace ICode.Web
                 config.DefaultPolicy = policyBuilder.Build();
             });
 
+            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProblemService, ProblemService>();
 
             services.AddHttpClient("ICode", config =>
             {
                 config.BaseAddress = new Uri(_configuration["ICode.API"]);
             });
-            services.AddControllersWithViews();
+            services.AddControllersWithViews().AddRazorRuntimeCompilation(); ;
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -55,6 +56,7 @@ namespace ICode.Web
             }
 
             app.UseRouting();
+            app.UseStaticFiles();
 
             app.UseAuthentication();
             app.UseAuthorization();
