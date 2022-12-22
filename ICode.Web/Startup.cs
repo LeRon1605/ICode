@@ -38,6 +38,7 @@ namespace ICode.Web
                 config.DefaultPolicy = policyBuilder.Build();
             });
 
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProblemService, ProblemService>();
 
