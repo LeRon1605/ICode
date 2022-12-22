@@ -74,7 +74,7 @@ namespace API
 
             services.AddDbContext<ICodeDbContext>(options =>
             {
-                options.UseSqlServer(DbConnectionString, x => x.MigrationsAssembly("API"));
+                options.UseSqlServer(DbConnectionString, x => x.MigrationsAssembly("ICode.API"));
             });
 
             services.AddStackExchangeRedisCache(options =>

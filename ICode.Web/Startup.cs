@@ -44,7 +44,7 @@ namespace ICode.Web
 
             services.AddHttpClient("ICode", config =>
             {
-                config.BaseAddress = new Uri(_configuration["ICode.API"]);
+                config.BaseAddress = new Uri(_configuration["ICode.API"] ?? "http://localhost:5001");
             });
             services.AddControllersWithViews().AddRazorRuntimeCompilation(); ;
         }

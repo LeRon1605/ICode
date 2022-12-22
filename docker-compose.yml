@@ -1,17 +1,26 @@
 version: '3'
 services:
   api:
-    build: .
-    ports: 
-      - "8080:80"
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       - DbConnectionString=Server=db;Database=ICode;UID=sa;PWD=leron@1605
       - HangFireDb=Server=db;Database=HangFire;UID=sa;PWD=leron@1605
-      - Redis="redis,abortConnect=false"
+      - Redis=redis,abortConnect=false
     restart: always
     depends_on:
       - db
       - redis
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.Web
+    environment:
+      - ICode.API=http://api
+    restart: always
+    depends_on:
+      - api
   db:
     build: 
       context: ./db
@@ -28,3 +37,9 @@ services:
     image: redis:7.0.5-alpine
     ports:
       - "6379:6379"
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "3000:80"
+    restart: always
