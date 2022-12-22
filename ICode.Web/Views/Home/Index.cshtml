@@ -1,74 +1,179 @@
 ﻿@using CodeStudy.Models
+@using Models
 @using Models.Statistic
 @{
     List<ProblemDTO> problems = (List<ProblemDTO>)ViewBag.problems;
+    List<ProblemDTO> newProblems = (List<ProblemDTO>)ViewBag.newProblems;
     List<ProblemStatistic> hotProblems = (List<ProblemStatistic>)ViewBag.hotProblems;
+    List<UserRank> rank = (List<UserRank>)ViewBag.rank;
 }
-<table class="table table-bordered caption-top mt-5">
-    <caption>Danh sách bài tập</caption>
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Tên</th>
-            <th scope="col">Tác giả</th>
-            <th scope="col">Thể loại</th>
-            <th scope="col">Ngày tạo</th>
-            <th scope="col">Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (ProblemDTO problem in problems)
-        {
-            <tr>
-                <th scope="row">@problem.ID</th>
-                <td>@problem.Name</td>
-                <td>@problem.Author.Username</td>
-                <td>
-                    @foreach (TagDTO tag in problem.Tags)
-                    {
-                        <span>@tag.Name</span>
-                    }
-                </td>
-                <td>@problem.CreatedAt</td>
-                <td>
-                    <a class="btn btn-primary" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">Xem chi tiết</a>
-                </td>
-            </tr>
+<div class="container py-4 py-xl-5">
+    <div class="row gy-4 gy-md-0">
+        <div class="col-md-6 text-center text-md-start d-flex d-sm-flex d-md-flex justify-content-center align-items-center justify-content-md-start align-items-md-center justify-content-xl-center">
+            <div style="max-width: 350px;">
+                <h2 class="text-uppercase fw-bold">ICode</h2>
+                <p class="my-3">
+                    Tincidunt laoreet leo, adipiscing taciti tempor. Primis senectus sapien, risus donec ad fusce
+                    augue interdum.
+                </p><a class="btn btn-primary btn-lg me-2" role="button" href="#">Button</a><a class="btn btn-outline-primary btn-lg" role="button" href="#">Button</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <script src=@("https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js")></script>
+            <lottie-player src="https://assets7.lottiefiles.com/packages/lf20_jjsrh4we.json" background="transparent" speed="1" style="width: 500px; height: 500px;" loop autoplay></lottie-player>
+        </div>
+    </div>
+</div>
+<div class="container py-4 py-xl-5 rounded" style="background-color: #cff7e6">
+    <div class="row mb-5">
+        <div class="col-md-8 col-xl-6 text-center mx-auto">
+            <h2>Bài tập hot</h2>
+            <p class="w-lg-50">
+                Curae hendrerit donec commodo hendrerit egestas tempus, turpis facilisis nostra nunc.
+                Vestibulum dui eget ultrices.
+            </p>
+        </div>
+    </div>
+    <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+        @foreach (ProblemStatistic statistic in hotProblems) {
+            <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@statistic.problem.ID">
+                <div class="rounded p-4 bg-white shadow">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex">
+                            <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
+                             src="@statistic.problem.Author.Avatar">
+                            <div>
+                                <p class="fw-bold mb-0">@statistic.problem.Author.Username</p>
+                                <p class="text-muted mb-0">@statistic.problem.Author.Email</p>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill bg-primary mb-2">Article</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h4>@statistic.problem.Name</h4>
+                        <span>@statistic.SubmitSuccessCount/@statistic.SubmitCount</span>
+                    </div>
+                    <p>
+                        @statistic.problem.Description
+                    </p>
+                </div>
+            </a>
         }
-    </tbody>
-</table>
-
-<table class="table table-bordered caption-top mt-5">
-    <caption>Danh sách bài tập hot</caption>
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Tên</th>
-            <th scope="col">Tác giả</th>
-            <th scope="col">Thể loại</th>
-            <th scope="col">Bài nộp đúng</th>
-            <th scope="col">Bài nộp</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (ProblemStatistic statistic in hotProblems)
+    </div>
+</div>
+<div class="container py-4 py-xl-5 rounded mt-5" style="background-color: #f9e7ef">
+    <div class="row mb-5">
+        <div class="col-md-8 col-xl-6 text-center mx-auto">
+            <h2>Bài tập mới</h2>
+            <p class="w-lg-50">
+                Curae hendrerit donec commodo hendrerit egestas tempus, turpis facilisis nostra nunc.
+                Vestibulum dui eget ultrices.
+            </p>
+        </div>
+    </div>
+    <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+        @foreach (ProblemDTO problem in newProblems)
         {
-            <tr>
-                <th scope="row">@statistic.problem.ID</th>
-                <td>@statistic.problem.Name</td>
-                <td>@statistic.problem.Author.Username</td>
-                <td>
-                    @foreach (TagDTO tag in statistic.problem.Tags)
-                    {
-                        <span>@tag.Name</span>
-                    }
-                </td>
-                <td>@statistic.SubmitSuccessCount</td>
-                <td>@statistic.SubmitCount</td>
-                <td>
-                    <a class="btn btn-primary">Xem chi tiết</a>
-                </td>
-            </tr>
+            <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">
+                <div class="bg-white p-4 shadow rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex">
+                            <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
+                             src="@problem.Author.Avatar">
+                            <div>
+                                <p class="fw-bold mb-0">@problem.Author.Username</p>
+                                <p class="text-muted mb-0">@problem.Author.Email</p>
+                            </div>
+                        </div>
+                        <span class="badge rounded-pill bg-primary mb-2">Article</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h4>@problem.Name</h4>
+                        <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <p>
+                        @problem.Description
+                    </p>
+                </div>
+            </a>
         }
-    </tbody>
-</table>
+    </div>
+</div>
+<div class="container py-4 py-xl-5">
+    <div class="row mb-5">
+        <div class="col-md-8 col-xl-6 text-center mx-auto">
+            <h2>Danh sách bài tập</h2>
+            <p class="w-lg-50">
+                Curae hendrerit donec commodo hendrerit egestas tempus, turpis facilisis nostra nunc.
+                Vestibulum dui eget ultrices.
+            </p>
+        </div>
+    </div>
+    <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+        <div class="col-xl-12">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tên bài tập</th>
+                            <th>Mô tả</th>
+                            <th>Tác giả</th>
+                            <th>Thể loại</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (ProblemDTO problem in problems) {
+                            <tr>
+                                <td>@problem.Name</td>
+                                <td>@problem.Description</td>
+                                <td>@problem.Author.Username</td>
+                                <td>
+                                    @foreach (TagDTO tag in problem.Tags) {
+                                        <span class="bg-light">@tag.Name</span>
+                                    }
+                                </td>
+                                <td>@problem.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <a asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID" class="text-decoration-none text-center">Làm bài</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-center">
+                    <a asp-action="Index" asp-controller="Problem" class="text-decoration-none text-center btn btn-primary">Xem thêm</a>
+                </div>
+               
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container py-4 py-xl-5 rounded" style="background-color: #e0f6fd">
+    <div class="row mb-4 mb-lg-5">
+        <div class="col-md-8 col-xl-6 text-center mx-auto">
+            <h2>Bảng xếp hạng</h2>
+            <p class="w-lg-50">
+                Curae hendrerit donec commodo hendrerit egestas tempus, turpis facilisis nostra nunc.
+                Vestibulum dui eget ultrices.
+            </p>
+        </div>
+    </div>
+    <div class="row gy-4 row-cols-2 row-cols-md-4">
+        @foreach (UserRank statistic in rank) {
+            <div class="col">
+                <div class="card border-0 shadow-none">
+                    <div class="card-body text-center d-flex flex-column align-items-center p-3">
+                        <img class="rounded-circle mb-3 fit-cover" width="130" height="130"
+                         src="@statistic.User.Avatar">
+                        <span class="badge rounded-pill bg-primary mb-2">@statistic.Rank</span>
+                        <h5 class="fw-bold text-primary card-title mb-0"><strong>@statistic.User.Username</strong></h5>
+                        <p class="text-muted card-text mb-2">@statistic.User.Email</p>
+                        <span class="badge rounded-pill bg-success mb-2">@statistic.ProblemSovled bài đã giải</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -38,12 +38,13 @@ namespace ICode.Web
                 config.DefaultPolicy = policyBuilder.Build();
             });
 
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProblemService, ProblemService>();
 
             services.AddHttpClient("ICode", config =>
             {
-                config.BaseAddress = new Uri(_configuration["ICode.API"]);
+                config.BaseAddress = new Uri(_configuration["ICode.API"] ?? "http://localhost:5001");
             });
             services.AddControllersWithViews().AddRazorRuntimeCompilation(); ;
         }
