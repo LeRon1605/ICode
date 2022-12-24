@@ -1,4 +1,5 @@
 using ICode.Web.Auth;
+using ICode.Web.Models.DTO;
 using ICode.Web.Services;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,10 +38,11 @@ namespace ICode.Web
                 policyBuilder.RequireClaim(ClaimTypes.NameIdentifier);
                 config.DefaultPolicy = policyBuilder.Build();
             });
-
+            services.AddHttpContextAccessor();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProblemService, ProblemService>();
+            services.AddScoped<ISubmissionService, SubmissionService>();
 
             services.AddHttpClient("ICode", config =>
             {

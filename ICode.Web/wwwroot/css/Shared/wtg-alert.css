@@ -1,0 +1,34 @@
+﻿.wtg-alert {
+    border-left: 4px solid;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    padding: 20px;
+    -webkit-box-shadow: 0 5px 8px -6px rgba(0,0,0,.2);
+    -moz-box-shadow: 0 5px 8px -6px rgba(0,0,0,.2);
+    box-shadow: 0 5px 8px -6px rgba(0,0,0,.2);
+}
+
+.wtg-alert-title {
+    font-weight: 700;
+    padding-bottom: 15px;
+}
+
+.wtg-alert-danger {
+    background-color: #FDF7F7;
+    border-left-color: #B74B4B;
+    color: #B74B4B;
+}
+
+.wtg-alert-success {
+    background-color: #EBF7E7;
+    border-left-color: #3E753F;
+    color: #3E753F;
+}
+
+.wtg-alert > div.wtg-alert-title {
+    text-transform: uppercase;
+}
+
+    .wtg-alert > div.wtg-alert-title > strong {
+        font-size: 20px;
+    }

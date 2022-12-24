@@ -3,7 +3,11 @@ using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System.Net.Http;
 using System.Security.Policy;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
@@ -12,9 +16,11 @@ namespace ICode.Web.Controllers
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly IConfiguration _configuration;
+        public AuthController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
+            _configuration = configuration;
         }
         public IActionResult Login()
         {
@@ -139,6 +145,42 @@ namespace ICode.Web.Controllers
                 TempData["error"] = result.Description;
                 return View("ForgetPasswordForm");
             }
+        }
+
+        [Route("auth/google/callback")]
+        public async Task<IActionResult> GoogleCallback(string code, string scope, string error)
+        {
+            if (error != null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            HttpClient client = new HttpClient();
+            HttpContent body = new StringContent(JsonConvert.SerializeObject(new {
+                client_id = _configuration["Oauth:Google:ClientID"],
+                client_secret = _configuration["Oauth:Google:ClientSecret"],
+                code = code,
+                grant_type = "authorization_code",
+                redirect_uri = "https://localhost:8001/auth/google/callback"
+            }), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PostAsync("https://oauth2.googleapis.com/token", body);
+            if (response.IsSuccessStatusCode)
+            {
+                GoogleTokenResponse token = JsonConvert.DeserializeObject<GoogleTokenResponse>(await response.Content.ReadAsStringAsync());
+                AuthCredential credential = await _authService.LoginByGoogle(token.access_token);
+                if (credential != null)
+                {
+                    HttpContext.Response.Cookies.Append("access_token", credential.access_token);
+                    HttpContext.Response.Cookies.Append("refresh_token", credential.refresh_token);
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    TempData["error"] = "Invalid token";
+                    return View("Login");
+                }
+            }
+            TempData["error"] = "Invalid";
+            return View("Login");
         }
 
         [Authorize]

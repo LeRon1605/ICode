@@ -1,0 +1,11 @@
+﻿.codeflask__lines {
+    background-color: #FFF;
+}
+
+.codeflask {
+    width: 100% !important;
+    height: 400px !important;
+    border-radius: 3px;
+    position: relative !important;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}

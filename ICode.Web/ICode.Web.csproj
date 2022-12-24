@@ -13,8 +13,4 @@
     <ProjectReference Include="..\ICode.Models\ICode.Models.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\js\" />
-  </ItemGroup>
-
 </Project>
