@@ -12,21 +12,37 @@
     <link href="~/css/Auth/base.css" rel="stylesheet"/>
 </head>
 <body>
-    <div class="main d-flex flex-column align-items-center justify-content-center">
-        @if (TempData["error"] != null) {
-                <div class="alert alert-danger text-center" role="alert" style="width: 20rem">
-                      @TempData["error"]
+    <div class="container">
+        <div class="row d-flex justify-content-center align-items-center" style="height: 100vh">
+            <div class="col-md-6 col-xl-4">
+                @if (TempData["error"] != null) {
+                        <div class="alert alert-danger text-center" role="alert" style="width: 20rem">
+                              @TempData["error"]
+                        </div>
+                }
+                <div class="d-flex flex-column align-items-center">
+                    <form class="text-center" method="post" asp-action="Login" asp-controller="Auth">
+                        <div class="mb-3">
+                            <input class="form-control" placeholder="Tên đăng nhập" asp-for="Name">
+                            <span asp-validation-for="Name"></span>
+                        </div>
+                        <div class="mb-3">
+                            <input class="form-control" type="password" placeholder="Password" asp-for="Password">
+                            <span asp-validation-for="Password"></span>
+                        </div>
+                        <div class="mb-3"><button class="btn btn-primary d-block w-100" type="submit">Đăng nhập</button></div>
+                        <div class="mb-3"><a href="https://accounts.google.com/o/oauth2/v2/auth?client_id=49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com&redirect_uri=https://localhost:8001/auth/google/callback&response_type=code&scope=email profile" class="btn btn-info text-white d-block w-100">Đăng nhập bằng google</a></div>
+                        <div class="d-flex flex-column">
+                            <a class="text-decoration-none" style="text-align: left;">Đặt lại mật khẩu</a>
+                            <span>
+                                Không có tài khoản?
+                                <a class="text-decoration-none" style="text-align: left;">Đăng kí</a>
+                            </span>
+                        </div>
+                    </form>
                 </div>
-        }
-        <form class="d-flex flex-column align-items-center justify-content-center col-2" asp-action="Login" asp-controller="Auth" method="POST">
-            <input class="mb-3 p-2" placeholder="Tên đăng nhập" asp-for="Name" />
-            <span asp-validation-for="Name"></span>
-            <input class="mb-3 p-2" placeholder="Mật khẩu" type="password" asp-for="Password" />
-            <span asp-validation-for="Password"></span>
-            <input class="text-center p-2" value="Đăng nhập" type="submit" />
-        </form>
-        <span class="mt-2">Không có tài khoản? <a asp-action="Register" asp-controller="Auth"> Đăng kí ngay</a></span>
-        <span class="mt-2">Quên mật khẩu? <a asp-action="ForgetPassword" asp-controller="Auth"> Đặt lại mật khẩu</a></span>
+            </div>
+        </div>
     </div>
     <partial name="_ValidationScriptsPartial"/>
 </body>

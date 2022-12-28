@@ -7,6 +7,7 @@ namespace ICode.Web.Services.Interfaces
     public interface IAuthService
     {
         Task<AuthCredential> Login(LoginUser user);
+        Task<AuthCredential> LoginByGoogle(string access_token);
         Task<bool> Register(RegisterUser user);
         Task<bool> RequestChangePassword(ForgetPassword data);
         Task<ServiceResponse<bool>> ChangePassword(string userId, string token, ForgetPasswordSubmit data);

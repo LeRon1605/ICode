@@ -2,6 +2,7 @@
 using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -70,6 +71,17 @@ namespace ICode.Web.Services
                     Description = "Token không hợp lệ"
                 };
             }
+        }
+
+        public async Task<AuthCredential> LoginByGoogle(string access_token)
+        {
+            HttpContent body = new StringContent(JsonConvert.SerializeObject(new { AccessToken = access_token }), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PostAsync($"/auth/google-signin", body);
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<AuthCredential>(await response.Content.ReadAsStringAsync());
+            }
+            return null;
         }
     }
 }

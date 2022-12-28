@@ -2,7 +2,6 @@
 using API.Filter;
 using API.Services;
 using AutoMapper;
-using CloudinaryDotNet.Actions;
 using CodeStudy.Models;
 using Data.Entity;
 using Hangfire;

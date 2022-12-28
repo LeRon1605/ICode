@@ -5,11 +5,14 @@ using Google.Apis.Auth;
 using ICode.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models;
 using Models.DTO;
+using Newtonsoft.Json;
 using Services;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -163,35 +166,40 @@ namespace API.Controllers
         }
 
         [HttpPost("google-signin")]
-        [QueryConstraint(Key = "tokenID")]
-        public async Task<IActionResult> SignInWithGoogle(string tokenID, [FromServices] IGoogleAuth authHandler)
+        public async Task<IActionResult> SignInWithGoogle(Token access_token, [FromServices] IGoogleAuth authHandler)
         {
-            GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = await client.GetAsync($"https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token.AccessToken}");
+            if (response.IsSuccessStatusCode)
             {
-                Audience = new List<string>() { "49702556741-2isp8q3bmku7qn6m3t37nnjm6rjrimcj.apps.googleusercontent.com" }
-            };
-
-            GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(tokenID, settings);
-            User user = await _userSerivce.Login(payload.Email, Constant.PASSWORD_DEFAULT, authHandler);
-            if (user == null)
-            {
-                user = new User
+                GooglePayload payload = JsonConvert.DeserializeObject<GooglePayload>(await response.Content.ReadAsStringAsync());
+                User user = await _userSerivce.Login(payload.email, Constant.PASSWORD_DEFAULT, authHandler);
+                if (user == null)
                 {
-                    ID = Guid.NewGuid().ToString(),
-                    Email = payload.Email,
-                    Password = Encryptor.MD5Hash(Constant.PASSWORD_DEFAULT),
-                    Username = payload.Name,
-                    CreatedAt = DateTime.Now,
-                    Type = AccountType.Google,
-                    RoleID = _roleService.FindByName(Constant.USER).ID
-                };
-                await _userSerivce.Add(user);
+                    user = new User
+                    {
+                        ID = Guid.NewGuid().ToString(),
+                        Email = payload.email,
+                        Password = Encryptor.MD5Hash(Constant.PASSWORD_DEFAULT),
+                        Avatar = payload.picture,
+                        Username = payload.name,
+                        CreatedAt = DateTime.Now,
+                        Type = AccountType.Google,
+                        AllowNotification = true,
+                        Gender = true,
+                        RoleID = _roleService.FindByName(Constant.USER).ID
+                    };
+                    await _userSerivce.Add(user);
+                }
+                Token token = await _tokenService.GenerateToken(user);
+                return Ok(new
+                {
+                    access_token = token.AccessToken,
+                    refresh_token = token.RefreshToken
+                });
             }
-            Token token = await _tokenService.GenerateToken(user);
-            return Ok(new
-            {
-                token = token.AccessToken,
-                refreshToken = token.RefreshToken
+            return BadRequest(new {
+                message = "Invalid token"
             });
         }
     }
