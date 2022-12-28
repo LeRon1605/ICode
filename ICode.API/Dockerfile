@@ -5,25 +5,18 @@ COPY *.sln ./
 COPY ICode.API/*.csproj ./ICode.API/
 COPY ICode.Data/*.csproj ./ICode.Data/
 COPY ICode.Models/*.csproj ./ICode.Models/
-COPY ICode.Services/*.csproj ./ICode.Services/
-COPY ICode.UnitTest/*.csproj ./ICode.UnitTest/
-COPY ICode.Mapper/*.csproj ./ICode.Mapper/
-COPY ICode.Common/*.csproj ./ICode.Common/
-COPY ICode.Web/*.csproj ./ICode.Web/
 
-RUN dotnet restore
+RUN dotnet restore ./ICode.API/*.csproj
+RUN dotnet restore ./ICode.Data/*.csproj
+RUN dotnet restore ./ICode.Models/*.csproj
 
-COPY . .
+COPY ICode.API/. ./ICode.API/
+COPY ICode.Data/. ./ICode.Data/
+COPY ICode.Models/. ./ICode.Models/
 
-WORKDIR /src/ICode.Common
-RUN dotnet build -c Release -o /app
-WORKDIR /src/ICode.Mapper
-RUN dotnet build -c Release -o /app
 WORKDIR /src/ICode.Data
 RUN dotnet build -c Release -o /app
 WORKDIR /src/ICode.Models
-RUN dotnet build -c Release -o /app
-WORKDIR /src/ICode.Services
 RUN dotnet build -c Release -o /app
 WORKDIR /src/ICode.API
 RUN dotnet publish -c Release -o /app

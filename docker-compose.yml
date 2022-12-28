@@ -3,7 +3,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ICode.API/Dockerfile
     environment:
       - DbConnectionString=Server=db;Database=ICode;UID=sa;PWD=leron@1605
       - HangFireDb=Server=db;Database=HangFire;UID=sa;PWD=leron@1605
@@ -15,7 +15,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile.Web
+      dockerfile: ICode.Web/Dockerfile
     environment:
       - ICode.API=http://api
     restart: always
@@ -23,7 +23,7 @@ services:
       - api
   db:
     build: 
-      context: ./db
+      context: ./Services/database
       dockerfile: Dockerfile
     ports: 
       - "11433:1433"
@@ -31,7 +31,7 @@ services:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=leron@1605
     volumes:
-      - ./db:/var/opt/mssql/data
+      - ./Services/database:/var/opt/mssql/data
     restart: always
   redis:
     image: redis:7.0.5-alpine
@@ -39,7 +39,7 @@ services:
       - "6379:6379"
   nginx:
     build:
-      context: ./nginx
+      context: ./Services/nginx
     ports:
       - "3000:80"
     restart: always

@@ -22,7 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ICode.API\ICode.API.csproj" />
-    <ProjectReference Include="..\ICode.Services\ICode.Services.csproj" />
   </ItemGroup>
 
 </Project>
