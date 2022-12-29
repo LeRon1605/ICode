@@ -10,6 +10,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace ICode.Web.Controllers
 {
@@ -147,6 +148,17 @@ namespace ICode.Web.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult GoogleLogin()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            string authorizationEndpoint = $"https://accounts.google.com/o/oauth2/v2/auth?client_id={_configuration["Oauth:Google:ClientID"]}&redirect_uri={_configuration["Oauth:Google:RedirectURL"]}&response_type=code&scope=email profile";
+            return Redirect(authorizationEndpoint);
+        }
+
         [Route("auth/google/callback")]
         public async Task<IActionResult> GoogleCallback(string code, string scope, string error)
         {
@@ -154,18 +166,14 @@ namespace ICode.Web.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            HttpClient client = new HttpClient();
-            HttpContent body = new StringContent(JsonConvert.SerializeObject(new {
-                client_id = _configuration["Oauth:Google:ClientID"],
-                client_secret = _configuration["Oauth:Google:ClientSecret"],
-                code = code,
-                grant_type = "authorization_code",
-                redirect_uri = "https://localhost:8001/auth/google/callback"
-            }), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await client.PostAsync("https://oauth2.googleapis.com/token", body);
-            if (response.IsSuccessStatusCode)
+            GoogleTokenResponse token = await _authService.GetGoogleToken(code);
+            if (token == null)
             {
-                GoogleTokenResponse token = JsonConvert.DeserializeObject<GoogleTokenResponse>(await response.Content.ReadAsStringAsync());
+                TempData["error"] = "Invalid";
+                return View("Login");
+            }
+            else
+            {
                 AuthCredential credential = await _authService.LoginByGoogle(token.access_token);
                 if (credential != null)
                 {
@@ -179,8 +187,6 @@ namespace ICode.Web.Controllers
                     return View("Login");
                 }
             }
-            TempData["error"] = "Invalid";
-            return View("Login");
         }
 
         [Authorize]

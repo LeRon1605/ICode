@@ -48,6 +48,10 @@ namespace ICode.Web
             {
                 config.BaseAddress = new Uri(_configuration["ICode.API"] ?? "http://localhost:5001");
             });
+            services.AddHttpClient("GoogleOAuth", config =>
+            {
+                config.BaseAddress = new Uri("https://oauth2.googleapis.com");
+            });
             services.AddControllersWithViews().AddRazorRuntimeCompilation(); ;
         }
 
