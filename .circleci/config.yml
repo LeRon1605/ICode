@@ -1,0 +1,117 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:3.1
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: |
+            echo 'Test passed :))'
+  build-and-deploy-code_executor-image:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login docker
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Build docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM 
+            docker build -t $DOCKER_USER/code_executor:latest -f ./ICode.CodeExecutor/Dockerfile . 
+            docker build -t $DOCKER_USER/code_executor:$TAG -f ./ICode.CodeExecutor/Dockerfile . 
+      - run:
+          name: Deploy docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker push $DOCKER_USER/code_executor:latest
+            docker push $DOCKER_USER/code_executor:$TAG
+  build-and-deploy-api-image:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login docker
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Build docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM 
+            docker build -t $DOCKER_USER/icode_api:latest -f ./ICode.API/Dockerfile . 
+            docker build -t $DOCKER_USER/icode_api:$TAG -f ./ICode.API/Dockerfile . 
+      - run:
+          name: Deploy docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker push $DOCKER_USER/icode_api:latest
+            docker push $DOCKER_USER/icode_api:$TAG
+  build-and-deploy-web-image:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Login docker
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+      - run:
+          name: Build docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM 
+            docker build -t $DOCKER_USER/icode_web:latest -f ./ICode.Web/Dockerfile . 
+            docker build -t $DOCKER_USER/icode_web:$TAG -f ./ICode.Web/Dockerfile . 
+      - run:
+          name: Deploy docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            docker push $DOCKER_USER/icode_web:latest
+            docker push $DOCKER_USER/icode_web:$TAG
+workflows:
+  deploy-code_executor: 
+    jobs:
+      - test
+      - build-and-deploy-code_executor-image:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+                - ICode.CodeExecutor
+  deploy-api:
+    jobs:
+      - test
+      - build-and-deploy-api-image:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+  deploy-web:
+    jobs:
+      - test
+      - build-and-deploy-web-image:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+                - ICode.Web
