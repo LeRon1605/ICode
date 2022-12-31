@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+WORKDIR /src
+
+COPY ICode.CodeExecutor/*.csproj ./ICode.CodeExecutor/
+
+RUN dotnet restore ./ICode.CodeExecutor/*.csproj
+
+COPY ./ICode.CodeExecutor ./ICode.CodeExecutor/
+
+RUN apt-get update && \
+    apt-get -y install g++
+RUN apt install time
+RUN dotnet dev-certs https
+
+WORKDIR /src/ICode.CodeExecutor
+ENTRYPOINT ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5000"]

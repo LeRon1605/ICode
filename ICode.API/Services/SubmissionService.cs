@@ -100,6 +100,7 @@ namespace API.Services
                 {
                     submitDetail.State = SubmitState.CompilerError;
                     submission.SubmissionDetails.Add(submitDetail);
+                    break;
                 }
                 else
                 {
