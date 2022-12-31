@@ -17,7 +17,7 @@ namespace UnitTest.Data
                 Language = "Language",
                 UserID = UserConstant.ID,
                 CreatedAt = DateTime.Now,
-                Status = false,
+                State = ICode.Common.SubmitState.CompilerError,
                 SubmissionDetails = new List<SubmissionDetail>()
             };
         }
