@@ -1,7 +1,7 @@
 ﻿using Castle.Core.Configuration;
 using CodeStudy.Models;
-using Data.Common;
 using Data.Entity;
+using ICode.Common;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Services;

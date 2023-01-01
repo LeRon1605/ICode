@@ -1,8 +1,8 @@
 ﻿using API.Controllers;
 using AutoMapper;
 using CodeStudy.Models;
-using Data.Common;
 using Data.Entity;
+using ICode.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
@@ -101,7 +101,7 @@ namespace UnitTest.ControllerTest
         {
             SetupFindTestcase(true);
 
-            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseInput());
+            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseUpdate());
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             var resultObj = Assert.IsType<ErrorResponse>(notFoundResult.Value);
         }
@@ -112,7 +112,7 @@ namespace UnitTest.ControllerTest
             SetupFindTestcase(false);
             SetupFindProblem(false, true);
 
-            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseInput());
+            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseUpdate());
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             var resultObj = Assert.IsType<ErrorResponse>(notFoundResult.Value);
         }
@@ -126,7 +126,7 @@ namespace UnitTest.ControllerTest
             SetupFindTestcase(false);
             SetupFindProblem(false, false);
 
-            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseInput());
+            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseUpdate());
             var forbidResult = Assert.IsType<ForbidResult>(result);
         }
 
@@ -139,7 +139,7 @@ namespace UnitTest.ControllerTest
             SetupFindTestcase(false);
             SetupFindProblem(true, false);
 
-            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseInput());
+            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseUpdate());
             var okResult = Assert.IsType<NoContentResult>(result);
             //var returnObj = Assert.IsType<TestcaseDTO>(okResult.Value);
             testcaseServiceMock.Verify(x => x.Update("testcase_id", It.IsAny<TestcaseInput>()), Times.Once);
@@ -154,7 +154,7 @@ namespace UnitTest.ControllerTest
             SetupFindTestcase(false);
             SetupFindProblem(false, false);
 
-            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseInput());
+            var result = await testcaseController.UpdateTestcase("testcase_id", new TestcaseUpdate());
             var okResult = Assert.IsType<NoContentResult>(result);
             //var returnObj = Assert.IsType<TestcaseDTO>(okResult.Value);
 
