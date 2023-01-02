@@ -10,7 +10,7 @@ namespace ICode.CodeExecutor.Compiler
         {
             Language = language;
             Extension = extension;
-            string[] folders = new string[] { "Code", "Exec", "Error", "Input" };
+            string[] folders = new string[] { "Code", "Exec", "Error", "Input", "Output" };
             foreach (string folder in folders)
             {
                 if (!Directory.Exists(Path.GetFullPath($"Data/{Language}/{folder}")))
@@ -21,7 +21,8 @@ namespace ICode.CodeExecutor.Compiler
         }
 
         public string GenerateCodePath(string id) => $"Data/{Language}/Code/{id}{Extension}";
-        public string GenerateOuputPath(string id) => $"Data/{Language}/Exec/{id}";
+        public string GenerateExecPath(string id) => $"Data/{Language}/Exec/{id}";
+        public string GenerateOutputPath(string id, string input = "") => $"Data/{Language}/Output/{id}_{input}.txt";
         public string GenerateErrorPath(string id) => $"Data/{Language}/Error/{id}.txt";
         public string GenerateInputPath(string id) => $"Data/{Language}/Input/{id}.txt";
 

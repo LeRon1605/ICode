@@ -27,8 +27,9 @@ namespace ICode.CodeExecutor
                 CommandResult commandResult = await compiler.Execute(compileResult.Result, input);
                 if (commandResult.Status)
                 {
-                    result.Time = GetTime(commandResult.Result);
-                    result.Output = GetOutput(commandResult.Result);
+                    string runnerResult = await File.ReadAllTextAsync(commandResult.Result.Trim());
+                    result.Time = GetTime(runnerResult);
+                    result.Output = GetOutput(runnerResult);
                 }
                 result.Memory = commandResult.Memory;
                 result.Status = commandResult.Status ? ExecutorStatus.Success : ExecutorStatus.RuntimeError;
@@ -38,9 +39,7 @@ namespace ICode.CodeExecutor
 
         private float GetTime(string str)
         {
-            string timeStr = str.Trim('\n').Split("|")[1];
-            string[] timeArr = timeStr.Split(":");
-            return float.Parse(timeArr[0]) * 60 * 1000 + float.Parse(timeArr[1]);
+            return float.Parse(str.Trim('\n').Split("|")[1]);
         }
 
         private string GetOutput(string str)
