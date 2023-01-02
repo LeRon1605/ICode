@@ -2,6 +2,7 @@
 using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Text;
 
 namespace ICode.Web.Extension
 {

@@ -41,6 +41,7 @@ namespace ICode.Web
             services.AddHttpContextAccessor();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ITagService, TagService>();
             services.AddScoped<IProblemService, ProblemService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
 
@@ -70,6 +71,10 @@ namespace ICode.Web
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute(
+                    name: "areaRoute",
+                    pattern: "{area}/{controller=Home}/{action=Index}"
+                );
                 endpoints.MapDefaultControllerRoute();
             });
         }

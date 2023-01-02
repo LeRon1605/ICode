@@ -38,5 +38,10 @@ namespace ICode.Web.Controllers
         {
             return Content(User.Identity.Name);
         }
+
+        public IActionResult CodeExecutor()
+        {
+            return View();
+        }
     }
 }

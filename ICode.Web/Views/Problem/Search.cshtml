@@ -1,0 +1,109 @@
+@using CodeStudy.Models
+@using Models.DTO;
+@{
+    PagingList<ProblemDTO> problems = (PagingList<ProblemDTO>)ViewBag.problems;
+    List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
+    string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
+}
+<div class="container py-4 py-xl-5 rounded mt-5">
+        <div class="row mb-5">
+            <div class="col-md-8 col-xl-6 text-center mx-auto">
+                <h2>Danh sách bài tập</h2>
+                <p class="w-lg-50">
+                    Curae hendrerit donec commodo hendrerit egestas tempus, turpis facilisis nostra nunc.
+                    Vestibulum dui eget ultrices.
+                </p>
+            </div>
+        </div>
+        <form class="row d-flex justify-content-between" asp-action="Search" asp-controller="Problem" method="get">
+            <div class="col-4 d-flex justify-content-between">
+                <div class="col-5">
+                    <select class="form-select" name="tag">
+                        <option value="" selected>Thể loại</option>
+                        @foreach (TagDTO tag in tags)
+                        {
+                            if (tag.ID == (string)ViewData["tag"])
+                            {
+                                <option value="@tag.ID" selected>@tag.Name</option>
+                            } 
+                            else
+                            {
+                                <option value="@tag.ID">@tag.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-5">
+                    <select class="form-select" name="sort">
+                        <option value="">Sắp xếp</option>
+                        @foreach (string sort in sortAllow)
+                        {
+                            if (sort.Split("|")[0] == (string)ViewData["sort"])
+                            {
+                                <option value="@(sort.Split("|")[0])" selected>@(sort.Split("|")[1])</option>
+                            }
+                            else
+                            {
+                                <option value="@(sort.Split("|")[0])">@(sort.Split("|")[1])</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-4 d-flex justify-content-between align-items-center">
+                <input class="form-control" placeholder="Nhập từ khóa tìm kiếm" name="keyword" value="@ViewData["keyword"]"/>
+                <button class="btn btn-primary col-3 ms-1">Tìm kiếm</button>
+            </div>
+        </form>
+        @if (problems.Data.Count() > 0)
+        {
+            <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3 mt-3">
+                @foreach (ProblemDTO problem in problems.Data)
+                {
+                    <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">
+                        <div class="bg-white p-4 shadow rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex">
+                                    <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
+                                 src="@problem.Author.Avatar">
+                                    <div>
+                                        <p class="fw-bold mb-0">@problem.Author.Username</p>
+                                        <p class="text-muted mb-0">@problem.Author.Email</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    @foreach (TagDTO tag in problem.Tags)
+                                    {
+                                        <span class="badge rounded bg-primary mb-2">@tag.Name</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <h4>@problem.Name</h4>
+                                <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <p>
+                                @problem.Description
+                            </p>
+                        </div>
+                    </a>
+                }
+            </div>
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                    <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page - 1)">Previous</a></li>
+                        @for (int i = 1; i <= problems.TotalPage; i++)
+                        {
+                            <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-page="@i" asp-route-sort="@ViewData["sort"]">@i</a></li>
+                        }
+                    <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page + 1)">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
+        }
+        else
+        {
+            <p class="text-danger text-center mt-3">Sorry, we didn't found any thing.</p>
+        }
+    </div>

@@ -61,13 +61,21 @@ namespace ICode.Web.Services
             builder.AddQuery("date", date);
             builder.AddQuery("sort", sort);
             builder.AddQuery("orderBy", orderBy);
-            string response = await _client.GetStringAsync($"/problems?{builder}");
+            string response = await _client.GetStringAsync($"/problems{builder}");
             return JsonConvert.DeserializeObject<List<ProblemDTO>>(response);
         }
 
         public async Task<PagingList<ProblemDTO>> GetPage(int page, int pageSize = 5, string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
-            string response = await _client.GetStringAsync($"/problems?name={keyword}&author={keyword}&tag={tag}&sort={sort}&orderBy={orderBy}&date={date}&page={page}&pageSize={pageSize}");
+            QueryBuilder builder = new QueryBuilder();
+            builder.AddQuery("name", keyword);
+            builder.AddQuery("tag", tag);
+            builder.AddQuery("date", date);
+            builder.AddQuery("sort", sort);
+            builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("page", page);
+            builder.AddQuery("pageSize", pageSize);
+            string response = await _client.GetStringAsync($"/problems{builder}");
             return JsonConvert.DeserializeObject<PagingList<ProblemDTO>>(response);
         }
     }
