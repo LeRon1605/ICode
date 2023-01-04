@@ -1,9 +1,7 @@
 version: '3'
 services:
   api:
-    build:
-      context: .
-      dockerfile: ICode.API/Dockerfile
+    image: rubeha/icode_api
     environment:
       - ConnectionStrings__ICode=Server=db;Database=ICode;UID=sa;PWD=leron@1605
       - ConnectionStrings__Master=Server=db;Database=master;UID=sa;PWD=leron@1605
@@ -14,37 +12,34 @@ services:
       - db
       - redis
   web:
-    build:
-      context: .
-      dockerfile: ICode.Web/Dockerfile
+    image: rubeha/icode_web
     environment:
       - ICode.API=http://api
-      - Oauth__Google__RedirectURL=http://localhost:3000/auth/google/callback
+      - Oauth__Google__RedirectURL=http://icode-1605.tech/auth/google/callback
     restart: always
     depends_on:
       - api
   code_executor:
-    build: 
-      context: .
-      dockerfile: ICode.CodeExecutor/Dockerfile
+    image: rubeha/code_executor
     restart: always
   db:
     image: rubeha/icode_db
     ports: 
-      - "11433:1433"
+      - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=leron@1605
     volumes:
-      - ./Services/database:/var/opt/mssql/data
+      - ./database:/var/opt/mssql/data
     restart: always
   redis:
     image: redis:7.0.5-alpine
     ports:
       - "6379:6379"
   nginx:
-    build:
-      context: ./Services/nginx
+    image: rubeha/icode_nginx
     ports:
-      - "3000:80"
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     restart: always

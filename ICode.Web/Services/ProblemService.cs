@@ -2,6 +2,7 @@
 using ICode.Web.Extension;
 using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Models;
 using Models.DTO;
@@ -11,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -19,9 +22,11 @@ namespace ICode.Web.Services
     public class ProblemService : IProblemService
     {
         private readonly HttpClient _client;
-        public ProblemService(IHttpClientFactory httpFactory)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public ProblemService(IHttpClientFactory httpFactory, IHttpContextAccessor httpContextAccessor)
         {
             _client = httpFactory.CreateClient("ICode");
+            _httpContextAccessor = httpContextAccessor; 
         }
 
         public async Task<ProblemDTO> GetById(string id)
@@ -61,14 +66,30 @@ namespace ICode.Web.Services
             builder.AddQuery("date", date);
             builder.AddQuery("sort", sort);
             builder.AddQuery("orderBy", orderBy);
-            string response = await _client.GetStringAsync($"/problems?{builder}");
+            string response = await _client.GetStringAsync($"/problems{builder}");
             return JsonConvert.DeserializeObject<List<ProblemDTO>>(response);
         }
 
         public async Task<PagingList<ProblemDTO>> GetPage(int page, int pageSize = 5, string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
         {
-            string response = await _client.GetStringAsync($"/problems?name={keyword}&author={keyword}&tag={tag}&sort={sort}&orderBy={orderBy}&date={date}&page={page}&pageSize={pageSize}");
+            QueryBuilder builder = new QueryBuilder();
+            builder.AddQuery("name", keyword);
+            builder.AddQuery("tag", tag);
+            builder.AddQuery("date", date);
+            builder.AddQuery("sort", sort);
+            builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("page", page);
+            builder.AddQuery("pageSize", pageSize);
+            string response = await _client.GetStringAsync($"/problems{builder}");
             return JsonConvert.DeserializeObject<PagingList<ProblemDTO>>(response);
+        }
+
+        public async Task<bool> Add(ProblemInput data)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _httpContextAccessor.HttpContext.Request.Cookies["access_token"]);
+            HttpContent body = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PostAsync("/problems", body);
+            return response.IsSuccessStatusCode;
         }
     }
 }

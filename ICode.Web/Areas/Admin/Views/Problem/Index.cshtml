@@ -1,0 +1,103 @@
+﻿@using CodeStudy.Models
+@using Models.DTO;
+@{
+    PagingList<ProblemDTO> problems = (PagingList<ProblemDTO>)ViewBag.problems;
+    List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
+    string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
+    int count = 0;
+}
+
+<div class="d-flex justify-content-between align-items-end">
+    <div class="d-flex align-items-center">
+        <h3>Danh sách bài tập</h3>
+        <a href="#" class="ms-2 text-decoration-none">Thêm bài tập</a>
+    </div>
+    <form class="d-flex align-items-center justify-content-end col-8" asp-action="Index" asp-controller="Problem" asp-area="Admin">
+        <select class="form-select me-2" aria-label="Default select example" style="width: 20%" name="tag">
+            <option value="" selected>Thể loại</option>
+            @foreach (TagDTO tag in tags)
+            {
+                if (tag.ID == (string)ViewData["tag"])
+                {
+                    <option value="@tag.ID" selected>@tag.Name</option>
+                }
+                else
+                {
+                    <option value="@tag.ID">@tag.Name</option>
+                }
+            }
+        </select>
+        <select class="form-select me-2" aria-label="Default select example" style="width: 20%" name="sort">
+            <option value="" selected>Sắp xếp</option>
+            @foreach (string sort in sortAllow)
+            {
+                if (sort.Split("|")[0] == (string)ViewData["sort"])
+                {
+                    <option value="@(sort.Split("|")[0])" selected>@(sort.Split("|")[1])</option>
+                }
+                else
+                {
+                    <option value="@(sort.Split("|")[0])">@(sort.Split("|")[1])</option>
+                }
+            }
+        </select>
+        <div class="d-flex align-items-center">
+            <input type="text" class="form-control me-2" placeholder="Nhập từ khóa tìm kiếm">
+            <button class="btn btn-primary" type="submit" name="keyword" value="@ViewData["keyword"]">Search</button>
+        </div>
+    </form>
+</div>
+<div class="table-responsive mt-3">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên bài tập</th>
+                <th>Mô tả</th>
+                <th>Tác giả</th>
+                <th>Thể loại</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (ProblemDTO problem in problems.Data)
+            {
+                <tr>
+                    <td>@(++count)</td>
+                    <td>@problem.Name</td>
+                    <td>@Html.Raw(problem.Description.Substring(0, 50))</td>
+                    <td>@problem.Author.Username</td>
+                    <td>
+                        @foreach (TagDTO tag in problem.Tags)
+                        {
+                            <span class="badge bg-primary me-1">@tag.Name</span>
+                        }
+                    </td>
+                    <td>@problem.CreatedAt.ToString("dd/MM/yyyy")</td>
+                    <td>@(problem.UpdatedAt == null ? "None" : problem.UpdatedAt.Value.ToString("dd/MM/yyyy"))</td>
+                    <td>
+                        <a class="text-decoration-none" href="">Xem</a>
+                        <a class="text-decoration-none" href="">Sửa</a>
+                        <a class="text-decoration-none" href="">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@if (problems.Data.Count() <= 0)
+{
+    <p class="text-danger text-center">Sorry, we didn't found any thing.</p>
+}
+<nav class="d-flex justify-content-center">
+    <ul class="pagination">
+        <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page - 1)">Previous</a></li>
+        @for (int i = 1; i <= problems.TotalPage; i++)
+        {
+            <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-page="@i" asp-route-sort="@ViewData["sort"]">@i</a></li>
+        }
+        <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page + 1)">Next</a></li>
+    </ul>
+</nav>

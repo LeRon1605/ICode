@@ -58,7 +58,7 @@
                         <span>@statistic.SubmitSuccessCount/@statistic.SubmitCount</span>
                     </div>
                     <p>
-                        @statistic.problem.Description
+                        @Html.Raw(statistic.problem.Description.Substring(0, 50))
                     </p>
                 </div>
             </a>
@@ -101,7 +101,7 @@
                         <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
                     </div>
                     <p>
-                        @problem.Description
+                        @Html.Raw(problem.Description.Substring(0, 50))
                     </p>
                 </div>
             </a>
@@ -136,7 +136,7 @@
                         @foreach (ProblemDTO problem in problems) {
                             <tr>
                                 <td>@problem.Name</td>
-                                <td>@problem.Description</td>
+                                <td>@Html.Raw(problem.Description.Substring(0, 50))</td>
                                 <td>@problem.Author.Username</td>
                                 <td>
                                     @foreach (TagDTO tag in problem.Tags) {

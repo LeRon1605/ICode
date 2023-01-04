@@ -82,6 +82,14 @@ jobs:
             TAG=0.1.$CIRCLE_BUILD_NUM
             docker push $DOCKER_USER/icode_web:latest
             docker push $DOCKER_USER/icode_web:$TAG
+  deploy:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    steps:
+      - run:
+          name: Deploy over ssh
+          command: |
+            ssh $SSH_USER@$SSH_HOST "cd /usr/src/icode && ./deploy.sh"
 workflows:
   deploy-code_executor: 
     jobs:
@@ -92,7 +100,6 @@ workflows:
           filters:
             branches:
               only:
-                - master
                 - ICode.CodeExecutor
   deploy-api:
     jobs:
@@ -100,6 +107,21 @@ workflows:
       - build-and-deploy-api-image:
           requires:
             - test
+          filters:
+            branches:
+              only:
+                - master
+      - build-and-deploy-web-image:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          requires:
+            - build-and-deploy-api-image
+            - build-and-deploy-web-image
           filters:
             branches:
               only:
@@ -113,5 +135,4 @@ workflows:
           filters:
             branches:
               only:
-                - master
                 - ICode.Web

@@ -16,6 +16,7 @@ namespace CodeStudy.Models
         [Required(ErrorMessage = "Chứa ít nhất một testcase")]
         [MinLength(1, ErrorMessage = "Chứa ít nhất một testcase")]
         public List<TestcaseInput> TestCases { get; set; }
+        [Required(ErrorMessage = "Chọn ít nhất một tag")]
         public List<string> Tags { get; set; }
     }
 }

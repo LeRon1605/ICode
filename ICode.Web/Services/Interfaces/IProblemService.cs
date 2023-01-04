@@ -9,6 +9,7 @@ namespace ICode.Web.Services.Interfaces
 {
     public interface IProblemService
     {
+        Task<bool> Add(ProblemInput data);
         Task<ProblemDTO> GetById(string id);
         Task<List<ProblemDTO>> GetAll(string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "");
         Task<PagingList<ProblemDTO>> GetPage(int page, int pageSize = 5, string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "");

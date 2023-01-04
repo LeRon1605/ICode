@@ -4,9 +4,18 @@ using ICode.CodeExecutor.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(config =>
+{
+    config.AddPolicy("ICode", builder => builder.WithOrigins("*")
+                                                .AllowAnyHeader()
+                                                .WithMethods("PUT", "DELETE", "GET", "POST")
+                    );
+});
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
+app.UseCors("ICode");
 
 Runner runner = new Runner();
 

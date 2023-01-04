@@ -1,0 +1,65 @@
+﻿<div id="layoutSidenav_nav">
+    <div id="sidenavAccordion" class="sb-sidenav accordion sb-sidenav-dark">
+        <div class="sb-sidenav-menu">
+            <div class="nav">
+                <div>
+                    <div class="sb-sidenav-menu-heading"><span>Labeling</span></div>
+                    <a class="nav-link active" asp-area="Admin" asp-action="Index" asp-controller="Home">
+                        <div class="sb-nav-link-icon"><i class="fa fa-dashboard"></i></div>
+                        <span>ICode</span>
+                    </a>
+                </div>
+                <div>
+                    <div class="sb-sidenav-menu-heading"><span>Quản lí</span></div>
+                    <a class="nav-link collapsed" href="#" aria-expanded="false" aria-controls="collapseLayouts" data-bs-toggle="collapse" data-bs-target="#collapseLayouts">
+                        <div class="sb-nav-link-icon"><i class="fa fa-dashboard"></i></div>
+                        <span>Quản lí bài tập</span>
+                        <div class="sb-sidenav-collapse-arrow"><i class="fa fa-angle-down"></i></div>
+                    </a>
+                    <div id="collapseLayouts" class="collapse" aria-labelledby="headingOne"
+                         data-bs-parent="#sidenavAccordion">
+                        <div class="sb-sidenav-menu-nested nav">
+                            <a class="nav-link" asp-area="Admin" asp-action="Index" asp-controller="Problem">Danh sách</a>
+                            <a class="nav-link" asp-area="Admin" asp-action="Index" asp-controller="Problem">Thêm bài tập</a>
+                            <a class="nav-link" href="#">Menu Accordion</a>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="sb-sidenav-menu-heading"><span>Labeling</span></div><a class="nav-link collapsed" href="#" aria-expanded="false" aria-controls="collapse2"
+                                                                                       data-bs-toggle="collapse" data-bs-target="#collapse2">
+                        <div class="sb-nav-link-icon"><i class="fa fa-dashboard"></i></div><span>
+                            Accordion 2
+                            Layer
+                        </span>
+                        <div class="sb-sidenav-collapse-arrow"><i class="fa fa-angle-down"></i></div>
+                    </a>
+                    <div id="collapse2" class="collapse" aria-labelledby="heading2"
+                         data-bs-parent="#sidenavAccordion">
+                        <div id="sidenavAccordionPages" class="sb-sidenav-menu-nested nav accordion">
+                            <a class="nav-link collapsed" href="#" aria-expanded="false"
+                               aria-controls="pagesCollapseAuth" data-bs-toggle="collapse"
+                               data-bs-target="#pagesCollapseAuth">
+                                <span>Menu Item</span>
+                                <div class="sb-sidenav-collapse-arrow"><i class="fa fa-angle-down"></i></div>
+                            </a>
+                            <div id="pagesCollapseAuth" class="collapse" aria-labelledby="headingOne"
+                                 data-bs-parent="#sidenavAccordionPages">
+                                <div class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link" href="#">
+                                        Menu
+                                        Item
+                                    </a><a class="nav-link" href="#">Menu Item</a><a class="nav-link"
+                                                                                     href="#">Menu Item</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sb-sidenav-footer">
+            <div class="small"><span>Logged as : David Aprilio</span></div>
+        </div>
+    </div>
+</div>

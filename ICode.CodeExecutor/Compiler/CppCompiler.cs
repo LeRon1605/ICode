@@ -16,7 +16,7 @@ namespace ICode.CodeExecutor.Compiler
         {
             string id = UniqueID.GenerateID(code);
 
-            if (File.Exists(GenerateOuputPath(id)))
+            if (File.Exists(GenerateExecPath(id)))
             {
                 if (File.Exists(GenerateErrorPath(id)))
                 {
@@ -30,7 +30,7 @@ namespace ICode.CodeExecutor.Compiler
             else
             {
                 await File.WriteAllTextAsync(GenerateCodePath(id), code);
-                CommandResult commandResult = Command.Execute($"g++ {GenerateCodePath(id)} -o {GenerateOuputPath(id)} 2>&1");
+                CommandResult commandResult = Command.Execute($"g++ {GenerateCodePath(id)} -o {GenerateExecPath(id)} 2>&1");
                 if (!commandResult.Status)
                 {
                     await File.WriteAllTextAsync(GenerateErrorPath(id), commandResult.Result);
@@ -52,12 +52,12 @@ namespace ICode.CodeExecutor.Compiler
         {
             if (string.IsNullOrEmpty(input))
             {
-                return Command.Execute($"timeout 10s /usr/bin/time -f '|%E' {GenerateOuputPath(id)} 2>&1");
+                return Command.Execute($"timeout 30s /usr/bin/time -f '|%S' {GenerateExecPath(id)} &> {GenerateOutputPath(id)} && echo {GenerateOutputPath(id)}");
             }
             else
             {
                 await File.WriteAllTextAsync(GenerateInputPath(id), input);
-                return Command.Execute($"timeout 10s /usr/bin/time -f '|%E' {GenerateOuputPath(id)} < {GenerateInputPath(id)} 2>&1");
+                return Command.Execute($"timeout 30s /usr/bin/time -f '|%S' {GenerateExecPath(id)} < {GenerateInputPath(id)} &> {GenerateOutputPath(id)} && echo {GenerateOutputPath(id)}");
             }
         }
     }

@@ -8,7 +8,7 @@ namespace ICode.CodeExecutor.Utils
             string []files = Directory.GetFiles("Data", "*", SearchOption.AllDirectories);
             foreach (string file in files) 
             {
-                if (File.GetCreationTime(file).AddSeconds(1) < DateTime.Now) 
+                if (File.GetCreationTime(file).AddMinutes(1) < DateTime.Now) 
                 {
                     tasks.Add(Task.Run(() => File.Delete(file)));
                 }

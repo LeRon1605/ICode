@@ -6,6 +6,7 @@ using Data.Repository;
 using Data.Repository.Interfaces;
 using Hangfire;
 using Hangfire.SqlServer;
+using ICode.API.Extension;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -68,9 +69,9 @@ namespace API
                         };
                     });
 
-            string DbConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("ICode") : Configuration["DbConnectionString"];
-            string RedisConnecionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("Redis") : Configuration["Redis"];
-            string HangFireConnectionString = Environment.IsDevelopment() ? Configuration.GetConnectionString("HangFire") : Configuration["HangFireDb"];
+            string DbConnectionString = Configuration.GetConnectionString("ICode");
+            string RedisConnecionString = Configuration.GetConnectionString("Redis");
+            string HangFireConnectionString = new HangFireDb(Configuration).GetHangfireConnectionString();
 
             services.AddDbContext<ICodeDbContext>(options =>
             {
@@ -155,5 +156,26 @@ namespace API
                 endpoints.MapHangfireDashboard();
             });
         }
+
+        //private string GetHangfireConnectionString()
+        //{
+        //    string dbName = SettingsHelper.HangfireDbName;
+        //    string connectionStringFormat = SettingsHelper.HangfireConnectionString;
+
+        //    using (var connexion = new SqlConnection(string.Format(connectionStringFormat, "master")))
+        //    {
+        //        connexion.Open();
+
+        //        using (var command = new SqlCommand(string.Format(
+        //            @"IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{0}') 
+        //                            create database [{0}];
+        //              ", dbName), connexion))
+        //        {
+        //            command.ExecuteNonQuery();
+        //        }
+        //    }
+
+        //    return string.Format(connectionStringFormat, dbName);
+        //}
     }
 }

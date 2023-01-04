@@ -1,0 +1,56 @@
+﻿@section Styles
+{
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/css/nice-select.css" integrity="sha512-uHuCigcmv3ByTqBQQEwngXWk7E/NaPYP+CFglpkXPnRQbSubJmEENgh+itRDYbWV0fUZmUz7fD/+JDdeQFD5+A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="~/css/Problem/index.css" rel="stylesheet" />
+}
+<div class="container mt-5">
+    <div class="row bg-light p-3 rounded shadow-sm">
+        <div class="col-md-12 d-flex flex-column">
+            <h6>IDE</h6>
+            <div class="d-flex align-items-center mb-3" id="wrapper">
+                <label>Ngôn ngữ: </label>
+                <select class="ms-3" id="language_Selector" name="language">
+                    <option value="cpp">C++</option>
+                </select>
+            </div>
+            <div id="txt-code"></div>
+            <button class="btn btn-primary ms-auto mt-3" type="button" id="btn-submit">Submit</button>
+        </div>
+    </div>
+    <div class="row bg-light p-3 rounded mt-3 shadow-sm">
+        <div class="col-md-6">
+            <h6>Input:</h6>
+            <textarea class="col-12 border rounded" rows="5" style="outline: none" id="txt-input"></textarea>
+        </div>
+        <div class="col-md-6 col-xl-6">
+            <h6>Output: </h6>
+            <textarea readonly class="col-12 border rounded" rows="5" style="outline: none" id="txt-output"></textarea>
+            <span>Status: <span id="status-txt"></span></span>
+            <br>
+            <span>Time: <span id="time-txt"></span></span>
+            <br>
+            <span>Memory: <span id="memory-txt"></span></span>
+        </div>
+    </div>
+</div>
+@section Scripts
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/CodeFlask.js/1.4.1/codeflask.min.js"
+        integrity="sha512-Bf/Qkbt7wQQq5+DSLtN5E/IoNnxmdCw5D8TibX466Vcr9JZVw45dENcw5Xcty1NZByDJ1nm7kWJq05ujIC5DHA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js"
+        integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-c.min.js"
+        integrity="sha512-EWIJI7uQnA8ClViH2dvhYsNA7PHGSwSg03FAfulqpsFiTPHfhdQIvhkg/l3YpuXOXRF2Dk0NYKIl5zemrl1fmA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-cpp.min.js"
+        integrity="sha512-/kakiUcgosfrW14dYIe0cMjXoK6PN67r96Dz2zft/Rlm6TcgdCJjb6ZD/jpobHzduAs8NdSeMQHda8iJGkjdow=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-java.min.js"
+        integrity="sha512-BEknrL2CnuVpqnSTwO4a9y9uW5bQ/nabkJeahZ5seRXvmzAMq59Ja9OxZe3lVGrnKEcVlamL4nUBl03wzPM/nA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/js/jquery.nice-select.min.js" integrity="sha512-NqYds8su6jivy1/WLoW8x1tZMRD7/1ZfhWG/jcRQLOzV1k1rIODCpMgoBnar5QXshKJGV7vi0LXLNXPoFsM5Zg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/js/Home/code-executor.js"></script>
+}

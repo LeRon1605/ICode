@@ -2,7 +2,7 @@
 {
         language: 'c',
         lineNumbers: true
-    });
+});
 flask.addLanguage('c', Prism.languages['c']);
 $(document).ready(function () {
     $('select').niceSelect();
