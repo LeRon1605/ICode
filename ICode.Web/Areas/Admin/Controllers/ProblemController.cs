@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ICode.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class ProblemController : Controller
     {
         private readonly IProblemService _problemService;
@@ -33,6 +33,36 @@ namespace ICode.Web.Areas.Admin.Controllers
             ViewData["keyword"] = keyword;
             ViewData["page"] = page;
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Insert()
+        {
+            List<TagDTO> tags = await _tagService.GetAll();
+
+            ViewBag.tags = tags;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Insert(ProblemInput data)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Dữ liệu không hợp lệ.";
+                return RedirectToAction("Insert", "Problem", new { area = "Admin" });
+            }
+
+            bool result = await _problemService.Add(data);
+            if (result)
+            {
+                TempData["error"] = "Thêm bài tập không thành công.";
+            }
+            else
+            {
+                TempData["success"] = "Thêm bài tập thành công";
+            }
+            return RedirectToAction("Insert", "Problem", new { area = "Admin" });
         }
     }
 }

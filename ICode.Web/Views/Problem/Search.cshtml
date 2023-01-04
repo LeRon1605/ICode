@@ -83,7 +83,7 @@
                                 <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
                             </div>
                             <p>
-                                @problem.Description
+                                @Html.Raw(problem.Description.Substring(0, 100))
                             </p>
                         </div>
                     </a>

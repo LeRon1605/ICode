@@ -11,8 +11,7 @@
                 <div class="d-flex flex-row justify-content-between align-items-center">
                     <h4 class="text-center m-auto">@Model.Name</h4><span class="badge bg-danger">Báo lỗi</span>
                 </div>
-                <p><strong>Đề bài</strong></p>
-                @Model.Description
+            @Html.Raw(Model.Description)
             </div>
             <form class="bg-light rounded p-4 mt-3" id="form" asp-action="Submit" asp-controller="Submission" asp-route-id="@Model.ID" method="POST">
                 <div class="d-flex align-items-center mb-3" id="wrapper">

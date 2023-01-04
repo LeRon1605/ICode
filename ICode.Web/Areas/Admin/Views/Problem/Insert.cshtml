@@ -1,0 +1,129 @@
+﻿@model ProblemInput;
+@section Styles {
+    <style>
+        .ck-editor__editable[role="textbox"] {
+            min-height: 70vh;
+        }
+
+        .btnDelete {
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(50%, -50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 100px;
+            margin: 0;
+            padding: 0;
+            display: none;
+            transition: 0.5s;
+            cursor: pointer;
+        }
+
+        .btnDelete::before {
+            content: "x";
+            transform: translate(10%, -10%)
+        }
+
+        .testcaseBlock {
+            position: relative;
+        }
+
+        .testcaseBlock:hover .btnDelete {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    <link href="https://unpkg.com/multiple-select@1.5.2/dist/multiple-select.min.css" rel="stylesheet">
+}
+@{
+    List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
+}
+<form class="container" asp-action="Insert" asp-controller="Problem" asp-area="Admin" method="post" id="insert-form">
+    <div class="row">
+        <div class="col-8">
+            <div class="mb-3">
+                <label class="form-label">Tên bài tập</label>
+                <input class="form-control" placeholder="Nhập tên bài tập" asp-for="Name">
+                <span class="form-text text-danger" asp-validation-for="Name"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mô tả</label>
+                <textarea class="col-12 rounded" id="editor" placeholder="Nhập mô tả cho bài tập" asp-for="Description"></textarea>
+                <span asp-validation-for="Description" class="form-text text-danger d-none" id="editor-validate">Mô tả bài tập có độ dài ít nhất 10 kí tự</span>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Thể loại</label>
+                <select class="multiple-select" aria-label="Default select example" asp-for="Tags" style="width: 100%">
+                    @foreach (TagDTO tag in tags) 
+                    {
+                        <option value="@tag.ID">@tag.Name</option>
+                    }
+                </select>
+                <span class="form-text text-danger" asp-validation-for="Tags"></span>
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label">Testcases</label>
+                <div id="testcase-block">
+                    <div class="border rounded p-3 mb-3 testcaseBlock">
+                        <div class="d-flex mb-3 justify-content-between">
+                            <div class="col-6">
+                                <label for="exampleInputEmail1" class="form-label">Input</label>
+                                <textarea class="form-control testcase-input" name="TestCases[0].Input" placeholder="Nhập đầu vào" rows="1"></textarea>
+                                <span class="field-validation-valid form-text text-danger" data-valmsg-for="TestCases[0].Input" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-5">
+                                <label for="exampleInputEmail1" class="form-label">Time Limit</label>
+                                <input class="form-control testcase-timelimit" id="TestCases[0].TimeLimit" name="TestCases[0].TimeLimit" placeholder="Nhập giới hạn thời gian" data-val="true" data-val-required="Required field." data-val-number="Number field" />
+                                <span class="field-validation-valid form-text text-danger" data-valmsg-for="TestCases[0].TimeLimit" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="col-6">
+                                <label for="exampleInputEmail1" class="form-label">Output</label>
+                                <textarea class="form-control testcase-output" name="TestCases[0].Output" placeholder="Nhập đầu ra" data-val="true" data-val-required="Required field." rows="1"></textarea>
+                                <span class="field-validation-valid form-text text-danger" data-valmsg-for="TestCases[0].Output" data-valmsg-replace="true"></span>
+                            </div>
+                            <div class="col-5">
+                                <label for="exampleInputEmail1" class="form-label">Memory Limit</label>
+                                <input class="form-control testcase-memorylimit" name="TestCases[0].MemoryLimit" placeholder="Nhập giới hạn bộ nhớ" data-val="true" data-val-required="Required field." data-val-number="Number field" />
+                                <span class="field-validation-valid form-text text-danger" data-valmsg-for="TestCases[0].MemoryLimit" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger btnDelete" onClick="deleteTestcase(this)" data-index="0"></button>
+                    </div>
+                </div>
+                @if (TempData["error"] != null)
+                {
+                    <div class="alert alert-danger text-center" role="alert">
+                        @TempData["error"]
+                    </div>
+                }
+                else if (TempData["success"] != null)
+                {
+                    <div class="alert alert-success text-center" role="alert">
+                        @TempData["success"]
+                    </div>
+                }
+                <button class="btn btn-primary col-12 mb-3" id="btn-add-testcase" type="button">Thêm testcases</button>
+                <button class="btn btn-success col-12" type="submit" id="btn-submit">Thêm bài tập</button>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.4.0/classic/ckeditor.js"></script>
+    <script src="~/js/Admin/Problem/insert.js"></script>
+    <script src="https://unpkg.com/multiple-select@1.5.2/dist/multiple-select.min.js"></script>
+    <script>
+        $(function () {
+            $('.multiple-select').multipleSelect({
+                placeholder: "Chọn thẻ cho bài tập"
+            })
+        })
+    </script>
+}

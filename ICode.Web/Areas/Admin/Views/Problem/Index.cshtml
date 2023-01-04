@@ -67,7 +67,7 @@
                 <tr>
                     <td>@(++count)</td>
                     <td>@problem.Name</td>
-                    <td>@problem.Description</td>
+                    <td>@Html.Raw(problem.Description.Substring(0, 50))</td>
                     <td>@problem.Author.Username</td>
                     <td>
                         @foreach (TagDTO tag in problem.Tags)
