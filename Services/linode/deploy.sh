@@ -5,4 +5,4 @@ docker pull rubeha/icode_web
 docker pull rubeha/code_executor
 
 docker-compose down
-docker-compose up
+docker-compose up -d

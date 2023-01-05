@@ -136,7 +136,7 @@ namespace API.Controllers
                 });
             }
             string forgetPasswordToken = await _tokenService.GenerateForgerPasswordToken(user);
-            string callbackURL = Url.ActionLink("ForgetPassword", "Auth", new { token = forgetPasswordToken, userID = user.ID }, "https", "localhost:44350");
+            string callbackURL = Url.ActionLink("ForgetPassword", "Auth", new { token = forgetPasswordToken, userID = user.ID }, "http", "icode1605.tech");
             _ = Task.Run(async () => await _mail.SendMailAsync(user.Email, "Thay đổi mật khẩu", $"<a href={callbackURL}>Bấm vào đây</a>"));
             return Ok();
         }
