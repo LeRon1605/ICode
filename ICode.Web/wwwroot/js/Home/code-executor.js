@@ -16,7 +16,7 @@ btnSubmit.addEventListener('click', async () => {
     if (flask.getCode().trim() != '') {
         btnSubmit.innerText = 'Processing';
         btnSubmit.classList.add('disabled');
-        const response = await fetch('http://localhost:5000/execute', {
+        const response = await fetch('/services/code_executor', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -29,7 +29,6 @@ btnSubmit.addEventListener('click', async () => {
             })
         });
         const responseObj = await response.json();
-        console.log(responseObj);
         statusTxt.innerText = (responseObj.status == 1) ? "Success" : ((responseObj.status == 2) ? "Compiler Error" : "Runtime error");
         outputTxt.value = responseObj.output;
         timeTxt.innerText = responseObj.time + 's';

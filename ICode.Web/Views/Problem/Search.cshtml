@@ -5,6 +5,24 @@
     List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
     string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
 }
+@section Styles {
+    <style>
+        .text {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+            .text :not(:first-child) {
+                display: none;
+            }
+
+            .text p:first-child {
+                margin: 0;
+                padding: 0;
+            }
+    </style>
+}
 <div class="container py-4 py-xl-5 rounded mt-5">
         <div class="row mb-5">
             <div class="col-md-8 col-xl-6 text-center mx-auto">
@@ -79,12 +97,12 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <h4>@problem.Name</h4>
+                                <h4 class="text col-9">@problem.Name</h4>
                                 <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
                             </div>
-                            <p>
-                                @Html.Raw(problem.Description.Substring(0, 100))
-                            </p>
+                            <div class="text">
+                                @Html.Raw(problem.Description)
+                            </div>
                         </div>
                     </a>
                 }

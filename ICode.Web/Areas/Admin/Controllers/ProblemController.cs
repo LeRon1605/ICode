@@ -56,11 +56,11 @@ namespace ICode.Web.Areas.Admin.Controllers
             bool result = await _problemService.Add(data);
             if (result)
             {
-                TempData["error"] = "Thêm bài tập không thành công.";
+                TempData["success"] = "Thêm bài tập thành công";
             }
             else
             {
-                TempData["success"] = "Thêm bài tập thành công";
+                TempData["error"] = "Thêm bài tập không thành công.";
             }
             return RedirectToAction("Insert", "Problem", new { area = "Admin" });
         }

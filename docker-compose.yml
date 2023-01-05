@@ -29,12 +29,12 @@ services:
       dockerfile: ICode.CodeExecutor/Dockerfile
     restart: always
   db:
-    image: rubeha/icode_db
+    image: mcr.microsoft.com/mssql/server:2019-latest
     ports: 
       - "11433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=leron@1605
+      - MSSQL_SA_PASSWORD=leron@1605
     volumes:
       - ./Services/database:/var/opt/mssql/data
     restart: always

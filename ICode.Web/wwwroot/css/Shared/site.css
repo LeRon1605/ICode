@@ -5,3 +5,12 @@
 .bg-green-box {
     background-color: #64ffd3;
 }
+
+@font-face {
+    font-family: 'KaTex-Regular';
+    src: url('../../fonts/KaTeX-Regular.woff2');
+}
+
+body {
+    font-family: KaTex-Regular, sans-serif;
+}

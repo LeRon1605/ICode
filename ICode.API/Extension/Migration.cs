@@ -42,8 +42,8 @@ namespace API.Extension
             {
                 ID = Guid.NewGuid().ToString(),
                 Username = "icode",
-                Email = "Icode@gmail.com",
-                Password = "bb04d1ee-7836-4252-b2b2-0cbca85e451f",
+                Email = "leron1605@gmail.com",
+                Password = "9ead4518a2f3ba040470cd65ae246d81",
                 Gender = true,
                 Avatar = "",
                 Role = adminRole

@@ -7,6 +7,23 @@
     List<ProblemStatistic> hotProblems = (List<ProblemStatistic>)ViewBag.hotProblems;
     List<UserRank> rank = (List<UserRank>)ViewBag.rank;
 }
+@section Styles {
+    <style>
+        .text {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+            .text :not(:first-child) {
+                display: none;
+            }
+            .text p:first-child {
+                margin: 0;
+                padding: 0;
+            }
+    </style>
+}
 <div class="container py-4 py-xl-5">
     <div class="row gy-4 gy-md-0">
         <div class="col-md-6 text-center text-md-start d-flex d-sm-flex d-md-flex justify-content-center align-items-center justify-content-md-start align-items-md-center justify-content-xl-center">
@@ -54,12 +71,12 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <h4>@statistic.problem.Name</h4>
+                        <h4 class="text col-9">@statistic.problem.Name</h4>
                         <span>@statistic.SubmitSuccessCount/@statistic.SubmitCount</span>
                     </div>
-                    <p>
-                        @Html.Raw(statistic.problem.Description.Substring(0, 50))
-                    </p>
+                    <div class="text">
+                        @Html.Raw(statistic.problem.Description)
+                    </div>
                 </div>
             </a>
         }
@@ -97,12 +114,12 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <h4>@problem.Name</h4>
+                        <h4 class="text col-9">@problem.Name</h4>
                         <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
                     </div>
-                    <p>
-                        @Html.Raw(problem.Description.Substring(0, 50))
-                    </p>
+                    <div class="text">
+                        @Html.Raw(problem.Description)
+                    </div>
                 </div>
             </a>
         }
@@ -125,7 +142,6 @@
                     <thead>
                         <tr>
                             <th>Tên bài tập</th>
-                            <th>Mô tả</th>
                             <th>Tác giả</th>
                             <th>Thể loại</th>
                             <th>Ngày tạo</th>
@@ -136,7 +152,6 @@
                         @foreach (ProblemDTO problem in problems) {
                             <tr>
                                 <td>@problem.Name</td>
-                                <td>@Html.Raw(problem.Description.Substring(0, 50))</td>
                                 <td>@problem.Author.Username</td>
                                 <td>
                                     @foreach (TagDTO tag in problem.Tags) {
@@ -152,7 +167,7 @@
                     </tbody>
                 </table>
                 <div class="d-flex justify-content-center">
-                    <a asp-action="Index" asp-controller="Problem" class="text-decoration-none text-center btn btn-primary">Xem thêm</a>
+                    <a asp-action="Search" asp-controller="Problem" class="text-decoration-none text-center btn btn-primary">Xem thêm</a>
                 </div>
                
             </div>
