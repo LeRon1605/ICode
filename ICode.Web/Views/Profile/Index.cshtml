@@ -1,0 +1,89 @@
+﻿@model UserDTO
+@{
+    List<ProblemDTO> problemsSolved = (List<ProblemDTO>)ViewBag.problemsSolved;
+}
+@section Styles {
+    <link href="~/css/Profile/index.css" rel="stylesheet"/>
+}
+<div class="container">
+    <div class="grid wide">
+        <div class="row user__block">
+            <div class="col-3 bg-light p-4 rounded">
+                <div class="user__card">
+                    <img src="@Model.Avatar" class="user__card-image" />
+                    <p class="user__card-name mt-2 mb-2">@Model.Username</p>
+                </div>
+                <div class="user__info-action">
+                    <button class="btn btn-primary col-12">Lưu</button>
+                </div>
+            </div>
+                <div class="col user__info bg-light p-4 rounded">
+                <div class="user__info-block">
+                    <label class="user__info-label">ID</label>
+                    <input class="user__info-detail" type="text" asp-for="@Model.ID" readonly />
+                    <span class="validation-error"></span>
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Username</label>
+                    <input class="user__info-detail" type="text" asp-for="@Model.Username" placeholder="Nhập Username" />
+                    <span class="validation-error"></span>
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Email</label>
+                    <input class="user__info-detail" type="email" asp-for="@Model.Email" readonly />
+                    <span class="validation-error"></span>
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Giới tính</label>
+                    <div class="user__info-detail">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="Gender" checked value="Nam">
+                                <label class="form-check-label" for="flexRadioDefault1 m-0">
+                                    Nam
+                                </label>
+                            </div>
+                            <div class="form-check ms-3">
+                                <input class="form-check-input" type="radio" name="Gender" checked value="Nữ">
+                                <label class="form-check-label" for="flexRadioDefault2">
+                                    Nữ
+                                </label>
+                            </div>
+                    </div>
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Tham gia vào</label>
+                    <input class="user__info-detail" type="date" asp-for="@Model.CreatedAt" readonly/>
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Cập nhật lần cuối</label>
+                    <input class="user__info-detail" type="date" asp-for="@Model.UpdatedAt" readonly />
+                </div>
+                <div class="user__info-block">
+                    <label class="user__info-label">Cho phép thông báo</label>
+                        <div class="user__info-detail">
+                            <input class="form-check-input" type="checkbox" asp-for="@Model.AllowNotification">
+                            <label class="form-check-label ms-2">
+                                Chúng tôi sẽ gửi thông báo đến gmail của bạn
+                            </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row user__statistic">
+            <h3 class="col-3 user__title">
+                <i class="fa-solid fa-circle-check"></i>
+                Danh sách bài đã vượt qua
+            </h3>
+        </div>
+        <div class="row user__statistic-block">
+            <div class="col col-12 user__statistic-list-problem">
+                @foreach (ProblemDTO problem in problemsSolved) 
+                {
+                    <div class="user__statistic-problem">
+                        <a asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">@problem.Name</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,122 @@
+﻿.user__block {
+    margin-top: 5%;
+}
+
+.user__card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.user__card-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 100%;
+    object-fit: cover;
+}
+
+.user__card-name {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.user__card-detail-block {
+    display: flex;
+}
+
+.user__card-detail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    padding: 5px;
+    font-size: 15px;
+    border-radius: 5px;
+}
+
+.user__card-detail-heading {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 5px 5px 10px 0px;
+}
+
+.user__info {
+    margin-left: 2%;
+    flex: 0 0 73%;
+    max-width: 73%;
+    padding: 10px;
+}
+
+.user__info-block {
+    padding: 10px;
+    border-bottom: 1px solid #CFD2CF;
+    display: flex;
+}
+
+.user__info-label {
+    font-size: 15px;
+    display: inline-block;
+    width: 20%;
+    font-weight: bold;
+}
+
+.user__info-detail {
+    font-size: 16px;
+    width: 79%;
+    border: none;
+    outline: none;
+    background-color: inherit;
+    display: flex;
+}
+
+.divider {
+    background-color: #CFD2CF;
+    width: 80%;
+    height: 1px;
+}
+
+.user__info-action {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.validation-error {
+    color: red;
+    font-size: 15px;
+    padding: 0;
+    margin-left: 20.5%;
+    display: none;
+}
+
+.user__title {
+    font-size: 17px;
+    margin-top: 30px
+}
+
+.user__statistic-list-problem {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.user__statistic-problem {
+    text-align: center;
+    border: 1px solid #CFD2CF;
+    padding: 10px;
+    font-size: 15px;
+    border-radius: 5px;
+    margin: 6.92px;
+}
+
+    .user__statistic-problem:hover {
+        border: 1px solid #0C6EFD;
+    }
+
+    .user__statistic-problem a {
+        color: black;
+        text-decoration: none;
+    }

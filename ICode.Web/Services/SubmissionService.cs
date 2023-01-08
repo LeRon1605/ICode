@@ -1,8 +1,12 @@
 ﻿using CodeStudy.Models;
+using ICode.Web.Extension;
 using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
+using Models.DTO;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -20,6 +24,16 @@ namespace ICode.Web.Services
         {
             _client = httpFactory.CreateClient("ICode");
             _httpContextAccessor = httpContextAccessor; 
+        }
+
+        public async Task<List<SubmissionDTO>> GetAll()
+        {
+            HttpResponseMessage response = await _client.GetAsync($"/submissions");
+            if (response.IsSuccessStatusCode)
+            {
+                return JsonConvert.DeserializeObject<List<SubmissionDTO>>(await response.Content.ReadAsStringAsync());
+            }
+            return null;
         }
 
         public async Task<ServiceResponse<SubmissionResponse>> GetById(string id)
@@ -52,6 +66,52 @@ namespace ICode.Web.Services
                 };
             }
             return null;
+        }
+
+        public async Task<PagingList<SubmissionDTO>> GetPage(int page, int pageSize, string keyword = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "asc")
+        {
+            QueryBuilder builder = new QueryBuilder();
+            builder.AddQuery("problem", keyword);
+            builder.AddQuery("language", language);
+            builder.AddQuery("date", date);
+            builder.AddQuery("sort", sort);
+            builder.AddQuery("status", status);
+            builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("page", page);
+            builder.AddQuery("pageSize", pageSize);
+            string response = await _client.GetStringAsync($"/submissions{builder}");
+            return JsonConvert.DeserializeObject<PagingList<SubmissionDTO>>(response);
+        }
+
+        public async Task<PagingList<SubmissionDTO>> GetPageSubmissionsOfProblem(string problemId, int page, int pageSize, string keyword = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "asc")
+        {
+            QueryBuilder builder = new QueryBuilder();
+            builder.AddQuery("user", keyword);
+            builder.AddQuery("language", language);
+            builder.AddQuery("date", date);
+            builder.AddQuery("sort", sort);
+            builder.AddQuery("status", status);
+            builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("page", page);
+            builder.AddQuery("pageSize", pageSize);
+            string response = await _client.GetStringAsync($"/problems/{problemId}/submissions{builder}");
+            return JsonConvert.DeserializeObject<PagingList<SubmissionDTO>>(response);
+        }
+
+        public async Task<PagingList<SubmissionDTO>> GetPageSubmissionsOfUser(string userId, int page, int pageSize, string keyword = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "asc")
+        {
+            QueryBuilder builder = new QueryBuilder();
+            builder.AddQuery("problem", keyword);
+            builder.AddQuery("user", userId);
+            builder.AddQuery("language", language);
+            builder.AddQuery("date", date);
+            builder.AddQuery("sort", sort);
+            builder.AddQuery("status", status);
+            builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("page", page);
+            builder.AddQuery("pageSize", pageSize);
+            string response = await _client.GetStringAsync($"/submissions{builder}");
+            return JsonConvert.DeserializeObject<PagingList<SubmissionDTO>>(response);
         }
 
         public async Task<List<SubmissionDTO>> GetSubmissionOfProblem(string problemId, string userId)

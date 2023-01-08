@@ -21,9 +21,9 @@ namespace ICode.Web.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            List<ProblemDTO> problems = await _problemService.GetAll();
-            List<ProblemDTO> newProblems = await _problemService.GetNewProblems();
-            List<ProblemStatistic> hotProblems = await _problemService.GetHotProblems();
+            List<ProblemDTO> problems = (await _problemService.GetPage(1, 10)).Data.ToList();
+            List<ProblemDTO> newProblems = await _problemService.GetNewProblems(6);
+            List<ProblemStatistic> hotProblems = await _problemService.GetHotProblems(6);
             List<UserRank> rank = await _userService.GetUserRank();
 
             ViewBag.problems = problems;

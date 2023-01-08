@@ -1,0 +1,19 @@
+﻿@{
+    Layout = "_PlainLayout";
+}
+@section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <script src=@("https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js")></script>
+    <link href="~/css/Error/error.css" rel="stylesheet"></link>
+}
+
+<lottie-player src="@(ViewData["icon"])" background="transparent" speed="1" style="width: 500px; height: 500px;" loop autoplay></lottie-player>
+<h1 class="heading__title">
+    @ViewData["statusCode"] - @ViewData["error"]
+</h1>
+<p class="heading__description">
+    @ViewData["description"]
+</p>
+<a class="heading__direction" asp-action="Index" asp-controller="Home">
+    <span>Quay về trang chủ</span>
+</a>
