@@ -22,33 +22,18 @@ namespace API.Controllers
             _userService = userService;
         }
 
-        [Authorize]
         [HttpGet]
         [QueryConstraint(Key = "sort", Value = "user, problem, language, status, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
         public async Task<IActionResult> Find(int? page = null, int pageSize = 5, string user = "", string problem = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
-            if (User.FindFirst(Constant.ROLE).Value == Constant.ADMIN)
+            if (page == null)
             {
-                if (page == null)
-                {
-                    return Ok(_submissionService.GetSubmissionByFilter(user, problem, language, status, date, sort, orderBy));
-                }
-                else
-                {
-                    return Ok(await _submissionService.GetPageByFilter((int)page, pageSize, user, problem, language, status, date, sort, orderBy));
-                }
+                return Ok(_submissionService.GetSubmissionByFilter(user, problem, language, status, date, sort, orderBy));
             }
             else
             {
-                if (page == null)
-                {
-                    return Ok(_userService.GetSubmitOfUser(User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
-                }
-                else
-                {
-                    return Ok(await _userService.GetPageSubmitOfUser((int)page, pageSize, User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
-                }
+                return Ok(await _submissionService.GetPageByFilter((int)page, pageSize, user, problem, language, status, date, sort, orderBy));
             }
         }
 

@@ -18,13 +18,21 @@
         <div class="collapse navbar-collapse" id="navcol-1">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link active" asp-action="Search" asp-controller="Problem">Danh sách bài tập</a></li>
+                <li class="nav-item"><a class="nav-link active" asp-action="List" asp-controller="Submission">Danh sách bài nộp</a></li>
                 <li class="nav-item"><a class="nav-link" asp-action="CodeExecutor" asp-controller="Home">Live IDE</a></li>
             </ul>
             @if (User.Identity.IsAuthenticated)
             {
-                <div>
-                    <a>@User.Identity.Name</a>
-                    <a class="btn btn-primary ms-2" asp-action="Logout" asp-controller="Auth">Đăng xuất</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-dark" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @User.Identity.Name
+                        <img class="rounded-circle flex-shrink-0 ms-1 fit-cover border" width="40" height="40" src="@User.FindFirst("Avatar").Value" />
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <li><a class="dropdown-item" asp-action="Index" asp-controller="Profile">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Quản lí</a></li>
+                        <li><a class="dropdown-item" asp-action="Logout" asp-controller="Auth">Đăng xuất</a></li>
+                    </ul>
                 </div>
             }
             else

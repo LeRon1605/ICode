@@ -3,6 +3,8 @@ using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTO;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -15,6 +17,32 @@ namespace ICode.Web.Controllers
         public SubmissionController(ISubmissionService submissionService)
         {
             _submissionService = submissionService;
+        }
+
+        [Authorize]
+        public async Task<IActionResult> List(int page = 1, string keyword = "", bool your = false, string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
+        {
+            PagingList<SubmissionDTO> submissions;
+
+            if (your)
+            {
+                submissions = await _submissionService.GetPageSubmissionsOfUser(User.FindFirstValue(ClaimTypes.NameIdentifier), page, 10, keyword, language, status, date, sort, orderBy);
+            }
+            else
+            {
+                submissions = await _submissionService.GetPage(page, 10, keyword, language, status, date, sort, orderBy);
+            }    
+
+            ViewBag.submissions = submissions;
+
+            ViewData["page"] = page;
+            ViewData["keyword"] = keyword;
+            ViewData["language"] = language;
+            ViewData["status"] = status;
+            ViewData["your"] = your;
+            ViewData["date"] = date;
+            ViewData["sort"] = sort;
+            return View();
         }
 
         [Authorize]

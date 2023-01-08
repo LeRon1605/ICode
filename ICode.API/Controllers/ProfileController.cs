@@ -120,5 +120,20 @@ namespace API.Controllers
                 }
             }
         }
+
+        [HttpGet("submissions")]
+        [QueryConstraint(Key = "sort", Value = "problem, language, status, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> GetSubmissionsOfUser(int? page = null, int pageSize = 5, string problem = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
+        {
+            if (page == null)
+            {
+                return Ok(_userService.GetSubmitOfUser(User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
+            }
+            else
+            {
+                return Ok(await _userService.GetPageSubmitOfUser((int)page, pageSize, User.FindFirst(Constant.ID).Value, problem, language, status, date, sort, orderBy));
+            }
+        }
     }
 }

@@ -62,7 +62,11 @@ namespace ICode.Web
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            else
+            {
+                app.UseExceptionHandler("/error/500");
+                app.UseStatusCodePagesWithRedirects("/error/{0}");
+            }
             app.UseRouting();
             app.UseStaticFiles();
 

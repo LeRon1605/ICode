@@ -4,6 +4,7 @@ using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
 using ICode.Common;
+using Microsoft.EntityFrameworkCore;
 using Models.DTO;
 using Services.Interfaces;
 using System;
@@ -79,6 +80,32 @@ namespace API.Services
             return _mapper.Map<IEnumerable<Submission>, IEnumerable<SubmissionDTO>>(_submissionRepository.GetSubmissionsDetail(x => x.SubmissionDetails.First().TestCase.ProblemID == problemId));
         }
 
+        public async Task<PagingList<SubmissionDTO>> GetPageSubmissionsOfProblem(string problemId, int page, int pageSize, string user, string language, bool? status, DateTime? date, string sort, string orderBy)
+        {
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => (x.User.Username.Contains(user) || x.User.ID == user) && x.SubmissionDetails.First().TestCase.Problem.ID == problemId && (string.IsNullOrEmpty(language) || x.Language == language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), submission => submission.Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem)));
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                switch (sort.ToLower())
+                {
+                    case "user":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.User.Username) : list.Data.OrderByDescending(x => x.User.Username);
+                        break;
+                    case "language":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Language) : list.Data.OrderByDescending(x => x.Language);
+                        break;
+                    case "status":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.Status) : list.Data.OrderByDescending(x => x.Status);
+                        break;
+                    case "date":
+                        list.Data = (orderBy == "asc") ? list.Data.OrderBy(x => x.CreatedAt) : list.Data.OrderByDescending(x => x.CreatedAt);
+                        break;
+                    default:
+                        throw new Exception("Invalid Action.");
+                }
+            }
+            return list;
+        }
+
         public async Task<SubmissionResult> Submit(Submission submission, string problemID)
         {
             IEnumerable<TestcaseDTO> testcases = _testcaseService.GetTestcaseOfProblem(problemID);
@@ -104,7 +131,7 @@ namespace API.Services
                 }
                 else
                 {
-                    if (result.output == testcase.Output)
+                    if (result.output.Replace("\n", "") == testcase.Output.Replace("\r\n", ""))
                     {
                         if (Convert.ToSingle(result.cpuTime) <= testcase.TimeLimit)
                         {
@@ -137,7 +164,7 @@ namespace API.Services
 
         public async Task<PagingList<SubmissionDTO>> GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
         {
-            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => x.User.Username.Contains(user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && x.Language.Contains(language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), x => x.SubmissionDetails, x => x.User));
+            PagingList<SubmissionDTO> list = _mapper.Map<PagingList<Submission>, PagingList<SubmissionDTO>>(await _submissionRepository.GetPageAsync(page, pageSize, x => (x.User.Username.Contains(user) || x.UserID == user) && x.SubmissionDetails.First().TestCase.Problem.Name.Contains(problem) && (string.IsNullOrEmpty(language) || x.Language == language) && (status == null || (bool)status == (x.State == SubmitState.Success)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), submission => submission.Include(x => x.User).Include(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem)));
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort.ToLower())
@@ -186,11 +213,6 @@ namespace API.Services
                 }
             }
             return submissions;
-        }
-
-        Task<PagingList<SubmissionDTO>> ISubmissionService.GetPageByFilter(int page, int pageSize, string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy)
-        {
-            throw new NotImplementedException();
         }
     }
 }

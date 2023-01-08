@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -35,14 +36,14 @@ namespace ICode.Web.Services
             return JsonConvert.DeserializeObject<ProblemDTO>(response);
         }
 
-        public async Task<List<ProblemStatistic>> GetHotProblems()
+        public async Task<List<ProblemStatistic>> GetHotProblems(int take)
         {
             string response = await _client.GetStringAsync("/collection/hot-problems");
             CollectionResponse<List<ProblemStatistic>> responseObj = JsonConvert.DeserializeObject<CollectionResponse<List<ProblemStatistic>>>(response);
-            return responseObj.Data;
+            return responseObj.Data.Take(take).ToList();
         }
 
-        public async Task<List<ProblemDTO>> GetNewProblems()
+        public async Task<List<ProblemDTO>> GetNewProblems(int take)
         {
             string response = await _client.GetStringAsync($"/collection/new-problems?startDate={DateTime.Now.AddDays(-7).Date}");
             CollectionResponse<List<StatisticResponse<List<ProblemDTO>>>> responseObj = JsonConvert.DeserializeObject<CollectionResponse<List<StatisticResponse<List<ProblemDTO>>>>>(response);
@@ -54,7 +55,7 @@ namespace ICode.Web.Services
                     problems.AddRange(item.Data);
                 }
             }
-            return problems;
+            return problems.Take(take).ToList();
         }
 
         public async Task<List<ProblemDTO>> GetAll(string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
@@ -89,6 +90,13 @@ namespace ICode.Web.Services
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _httpContextAccessor.HttpContext.Request.Cookies["access_token"]);
             HttpContent body = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _client.PostAsync("/problems", body);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> Remove(string id)
+        {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _httpContextAccessor.HttpContext.Request.Cookies["access_token"]);
+            HttpResponseMessage response = await _client.DeleteAsync($"/problems/{id}");
             return response.IsSuccessStatusCode;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Data.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Models.DTO;
 using System;
 using System.Collections.Generic;
@@ -94,6 +95,24 @@ namespace Data.Repository
                 data = data.Include(prop);
             }
             return data.Where(expression);
+        }
+
+        public Task<PagingList<T>> GetPageAsync(int page, int pageSize, Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>> includes = null)
+        {
+            IQueryable<T> data = _context.Set<T>();
+
+            if (includes != null)
+            {
+                data = includes(data);
+            }
+
+            data = data.Where(expression);
+            return Task.FromResult(new PagingList<T>
+            {
+                Page = page,
+                TotalPage = (int)(Math.Ceiling((float)data.Count() / pageSize)),
+                Data = data.Skip(pageSize * (page - 1)).Take(pageSize)
+            });
         }
     }
 }

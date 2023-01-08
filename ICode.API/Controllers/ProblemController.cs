@@ -304,8 +304,9 @@ namespace API.Controllers
         }
 
         [HttpGet("{ID}/submissions")]
-        [Authorize]
-        public IActionResult GetSubmitOfProblem(string ID)
+        [QueryConstraint(Key = "sort", Value = "user, language, status, date", Retrict = false)]
+        [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
+        public async Task<IActionResult> GetSubmitOfProblem(string ID, int? page = null, int pageSize = 5, string user = "", string language = "", bool? status = null, DateTime? date = null, string sort = "", string orderBy = "")
         {
             Problem problem = _problemService.FindByID(ID);
             if (problem == null)
@@ -316,7 +317,14 @@ namespace API.Controllers
                     detail = "Problem does not exist."
                 });
             }
-            return Ok(_submissionService.GetSubmissionsOfProblem(ID));
+            if (page != null)
+            {
+                return Ok(await _submissionService.GetPageSubmissionsOfProblem(ID, (int)page, pageSize, user, language, status, date, sort, orderBy));
+            }
+            else
+            {
+                return Ok(_submissionService.GetSubmissionsOfProblem(ID));
+            }
         }
 
         [HttpPost("{ID}/reports")]

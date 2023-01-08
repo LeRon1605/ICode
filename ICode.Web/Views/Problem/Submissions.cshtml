@@ -1,0 +1,126 @@
+﻿@model ProblemDTO
+@{
+    PagingList<SubmissionDTO> submissions = (PagingList<SubmissionDTO>)ViewBag.submissions;
+    string[] languages = new string[] { "cpp|C++" };
+    int count = 0;
+    var routeData = new Dictionary<string, string>()
+    {
+        { "keyword", (string)ViewData["keyword"] },
+        { "your",  ViewData["your"].ToString() },
+        { "sort", (string)ViewData["sort"] },
+        { "orderBy", (string)ViewData["orderBy"]},
+        { "status", ViewData["status"] == null ? null : ViewData["status"].ToString() },
+        { "date", ViewData["date"] == null ? null : ((DateTime)(ViewData["date"])).ToString("yyyy-MM-dd") }
+    };
+}
+<div class="container py-4 py-xl-5">
+    <div class="row mb-4">
+        <div class="col-md-8 col-xl-6 text-center mx-auto">
+            <h2>Danh sách bài nộp</h2>
+            <p class="w-lg-50">@Model.Name</p>
+        </div>
+    </div>
+    <form class="row d-flex justify-content-between" asp-action="Submissions" asp-controller="Problem" asp-route-id="@Model.ID" method="get">
+        <div class="col-4 d-flex">
+            <div class="col-5">
+                <select class="form-select" name="status">
+                    <option selected>Trạng thái</option>
+                    @if (ViewData["status"] != null)
+                    {
+                        if (Convert.ToBoolean(ViewData["status"]))
+                        {
+                            <option value="true" selected>Thành công</option>
+                            <option value="false">Thất bại</option>
+                        }
+                        else
+                        {
+                            <option value="true">Thành công</option>
+                            <option value="false" selected>Thất bại</option>
+                        }
+                    }
+                    else
+                    {
+                        <option value="true">Thành công</option>
+                        <option value="false">Thất bại</option>
+                    }
+                </select>
+            </div>
+            <div class="col-5 ms-3">
+                <select class="form-select" name="language">
+                    <option value="" selected>Ngôn ngữ</option>
+                    @foreach (string language in languages)
+                    {
+                        if (language.Split("|")[0] == (string)ViewData["language"])
+                        {
+                            <option value="@language.Split("|")[0]" selected>@language.Split("|")[1]</option>
+                        }
+                        else
+                        {
+                            <option value="@language.Split("|")[0]">@language.Split("|")[1]</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-5 ms-3">
+                <input name="date" type="date" class="form-control" value="@routeData["date"]" />
+            </div>
+            <div class="col-5 ms-3">
+                <select class="form-select" name="your">
+                    <option value="false" selected>Tất cả</option>
+                    @if (Convert.ToBoolean(ViewData["your"])) {                       
+                        <option value="true" selected>Của bạn</option>
+                    }
+                    else
+                    {
+                         <option value="true">Của bạn</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-4 d-flex justify-content-between align-items-center">
+            <input class="form-control" placeholder="Nhập từ khóa tìm kiếm" name="keyword" value="@routeData["keyword"]" />
+            <button class="btn btn-primary col-3 ms-1">Tìm kiếm</button>
+        </div>
+    </form>
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Mã bài nộp</th>
+                    <th>Người nộp</th>
+                    <th>Ngôn ngữ</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian nộp</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (SubmissionDTO submission in submissions.Data)
+                {
+                    <tr>
+                        <td>@(++count)</td>
+                        <td>@submission.ID</td>
+                        <td>@submission.User.Username</td>
+                        <td>@submission.Language</td>
+                        <td>
+                            <span class="badge bg-@(submission.Status ? "success" : "danger")">@submission.Description</span>
+                        </td>
+                        <td>@submission.CreatedAt.ToString("dd/MM/yyyy hh:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item @(submissions.Page > 1 ? "" : "disabled")"><a class="page-link" asp-action="Submissions" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(submissions.Page - 1)" asp-route-id="@Model.ID">Previous</a></li>
+                @for (int i = 1; i <= submissions.TotalPage; i++)
+                {
+                    <li class="page-item @(i == submissions.Page ? "active" : "")"><a class="page-link" asp-action="Submissions" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@i" asp-route-id="@Model.ID">@i</a></li>
+                }
+                <li class="page-item @(submissions.Page >= submissions.TotalPage ? "disabled" : "")"><a class="page-link" asp-action="Submissions" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(submissions.Page + 1)" asp-route-id="@Model.ID">Next</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>

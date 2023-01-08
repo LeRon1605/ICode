@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System;
 using Models.DTO;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Linq;
 
 namespace Data.Repository.Interfaces
 {
@@ -20,6 +22,7 @@ namespace Data.Repository.Interfaces
         int Count();
         Task AddAsync(T entity);
         Task<T> FindByIDAsync(string Id);
+        Task<PagingList<T>> GetPageAsync(int page, int pageSize, Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>> includes = null);
         Task<PagingList<T>> GetPageAsync(int page, int pageSize, Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes);
     }
 }
