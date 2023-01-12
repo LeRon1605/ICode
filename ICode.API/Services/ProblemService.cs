@@ -73,6 +73,8 @@ namespace Services
             problem.Name = string.IsNullOrWhiteSpace(data.Name) ? problem.Name : data.Name;
             problem.Description = string.IsNullOrWhiteSpace(data.Description) ? problem.Description : data.Description;
             problem.Status = data.Status ?? problem.Status;
+            problem.Level = data.Level ?? problem.Level;
+            problem.Score = data.Score ?? problem.Score;
             if (data.Tags != null && data.Tags.Length > 0)
             {
                 problem.Tags = data.Tags.Select(x => _tagRepository.FindSingle(tag => tag.ID == x)).ToList();

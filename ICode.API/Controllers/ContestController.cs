@@ -400,6 +400,7 @@ namespace ICode.API.Controllers
                 Code = input.Code,
                 Language = input.Language,
                 CreatedAt = DateTime.Now,
+                ProblemID = input.ProblemID,
                 ContestSubmission = new ContestSubmission
                 {
                     Contest = contest
@@ -411,7 +412,7 @@ namespace ICode.API.Controllers
 
             if (!_contestService.IsUserSolvedProblem(id, User.FindFirst(Constant.ID).Value, input.ProblemID))
             {
-                submissionResult = await _submissionService.Submit(submission, input.ProblemID);
+                submissionResult = await _submissionService.Submit(submission);
                 if (submissionResult.Status)
                 {
                     await _contestService.AddPointForUser(id, User.FindFirst(Constant.ID).Value, input.ProblemID);
@@ -419,7 +420,7 @@ namespace ICode.API.Controllers
             }
             else
             {
-                submissionResult = await _submissionService.Submit(submission, input.ProblemID);
+                submissionResult = await _submissionService.Submit(submission);
             }
             return Ok(submissionResult);
         }
