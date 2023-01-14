@@ -11,7 +11,7 @@ namespace Services.Interfaces
 {
     public interface ISubmissionService: IService<Submission>
     {
-        Task<SubmissionResult> Submit(Submission submission, string problemID);
+        Task<SubmissionResult> Submit(Submission submission);
         SubmissionDTO GetDetail(string Id);
         IEnumerable<SubmissionDetailDTO> GetSubmitDetail(string Id);
         IEnumerable<SubmissionDTO> GetSubmissionByFilter(string user, string problem, string language, bool? status, DateTime? date, string sort, string orderBy);

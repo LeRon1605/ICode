@@ -1,4 +1,5 @@
 ﻿using CodeStudy.Models;
+using ICode.Common;
 using ICode.Web.Extension;
 using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
@@ -71,7 +72,7 @@ namespace ICode.Web.Services
             return JsonConvert.DeserializeObject<List<ProblemDTO>>(response);
         }
 
-        public async Task<PagingList<ProblemDTO>> GetPage(int page, int pageSize = 5, string keyword = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
+        public async Task<PagingList<ProblemDTO>> GetPage(int page, int pageSize = 5, string keyword = "", string tag = "", DateTime? date = null, string level = "", string sort = "", string orderBy = "")
         {
             QueryBuilder builder = new QueryBuilder();
             builder.AddQuery("name", keyword);
@@ -79,6 +80,7 @@ namespace ICode.Web.Services
             builder.AddQuery("date", date);
             builder.AddQuery("sort", sort);
             builder.AddQuery("orderBy", orderBy);
+            builder.AddQuery("level", level);
             builder.AddQuery("page", page);
             builder.AddQuery("pageSize", pageSize);
             string response = await _client.GetStringAsync($"/problems{builder}");

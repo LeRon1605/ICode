@@ -36,11 +36,23 @@
                         <span>Tác giả</span><span>@Model.Author.Username</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
+                        <span>Độ khó</span>
+                        <span class="badge bg-@(Model.Level == "Easy" ? "success" : (Model.Level == "Medium" ? "primary" : "danger"))">
+                            @Model.Level
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
                         <span>Tag</span>
                         <span>
                             @foreach (TagDTO tag in Model.Tags) {
                                 <span class="badge bg-primary">@tag.Name</span>
                             }
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Đã nộp</span>
+                        <span>
+                            @Model.TotalSubmit
                         </span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">

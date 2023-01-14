@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using ICode.Common;
 
 namespace CodeStudy.Models
 {
@@ -18,5 +19,10 @@ namespace CodeStudy.Models
         public List<TestcaseInput> TestCases { get; set; }
         [Required(ErrorMessage = "Chọn ít nhất một tag")]
         public List<string> Tags { get; set; }
+        [Required]
+        public Level Level { get; set; }
+        [Required]
+        [Range(0, int.MaxValue)]
+        public int Score { get; set; }
     }
 }

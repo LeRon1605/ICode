@@ -1,5 +1,6 @@
 ﻿using CodeStudy.Models;
 using Data.Entity;
+using ICode.Common;
 using Models.DTO;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,6 @@ namespace Services.Interfaces
         Task<bool> DeleteTag(string Id, string tagId);
         ProblemDTO GetProblemDetail(string ID);
         IEnumerable<ProblemDTO> GetProblemsByFilter(string name, string author, string tag, DateTime? date, string sort, string orderBy);
-        Task<PagingList<ProblemDTO>> GetPageByFilter(int page, int pageSize, string name, string author, string tag, DateTime? date, string sort, string orderBy);
+        Task<PagingList<ProblemDTO>> GetPageByFilter(int page, int pageSize, string name, string author, string tag, DateTime? date, Level? level, string sort, string orderBy);
     }
 }

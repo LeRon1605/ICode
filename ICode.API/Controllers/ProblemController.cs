@@ -40,11 +40,11 @@ namespace API.Controllers
         [HttpGet]
         [QueryConstraint(Key = "sort", Value = "name, author, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
-        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", string author = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
+        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", string author = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "", Level? level = null)
         {
             if (page != null)
             {
-                return Ok(await _problemService.GetPageByFilter((int)page, pageSize, name, author, tag, date, sort, orderBy));
+                return Ok(await _problemService.GetPageByFilter((int)page, pageSize, name, author, tag, date, level, sort, orderBy));
             }
             else
             {
@@ -77,6 +77,8 @@ namespace API.Controllers
                 Description = input.Description,
                 ArticleID = User.FindFirst(Constant.ID).Value,
                 CreatedAt = DateTime.Now,
+                Level = input.Level,
+                Score = input.Score,
                 TestCases = input.TestCases.Select(x => new TestCase
                 {
                     ID = Guid.NewGuid().ToString(),
@@ -247,9 +249,10 @@ namespace API.Controllers
                 UserID = User.FindFirst(Constant.ID).Value,
                 Code = input.Code,
                 Language = input.Language,
+                ProblemID = ID,
                 CreatedAt = DateTime.Now,
                 SubmissionDetails = new List<SubmissionDetail>()
-            }, ID);
+            });
             
             return Ok(submission);
         }
@@ -290,10 +293,11 @@ namespace API.Controllers
                     State = SubmitState.Pending,
                     UserID = User.FindFirst(Constant.ID).Value,
                     Code = code,
+                    ProblemID = ID,
                     Language = "cpp",
                     CreatedAt = DateTime.Now,
                     SubmissionDetails = new List<SubmissionDetail>()
-                }, ID);
+                });
                 return Ok(submission);
             }
             return BadRequest(new ErrorResponse

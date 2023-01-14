@@ -5,6 +5,7 @@ using CloudinaryDotNet.Actions;
 using CodeStudy.Models;
 using Data.Entity;
 using ICode.Common;
+using ICode.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ namespace API.Controllers
         [HttpGet]
         public IActionResult GetProfile()
         {
-            User user = _userService.FindByID(User.FindFirst(Constant.ID).Value);
+            UserDetail user = _userService.GetDetailById(User.FindFirst(Constant.ID).Value);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -42,7 +43,7 @@ namespace API.Controllers
                     detail = "User does not exist."
                 });
             }
-            return Ok(_mapper.Map<User, UserDTO>(user));
+            return Ok(user);
         }
 
         [HttpPut]
@@ -57,14 +58,14 @@ namespace API.Controllers
                     detail = "User does not exist."
                 });
             }
-            if (_userService.Exist(input.Username, input.Username))
-            {
-                return Conflict(new ErrorResponse
-                {
-                    error = "Update failed.",
-                    detail = "Username or email already exist."
-                }); ;
-            }
+            //if (_userService.Exist(input.Username, input.Username))
+            //{
+            //    return Conflict(new ErrorResponse
+            //    {
+            //        error = "Update failed.",
+            //        detail = "Username or email already exist."
+            //    }); ;
+            //}
             if (avatar != null && avatar.Length > 0)
             {
                 using (var stream = avatar.OpenReadStream())

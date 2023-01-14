@@ -56,6 +56,19 @@
         </div>
         <div class="col-4">
             <div class="mb-3">
+                <label class="form-label">Độ khó</label>
+                <select class="form-select" asp-for="Level">
+                    <option value="0">Dễ</option>
+                    <option value="1">Trung bình</option>
+                    <option value="2">Khó</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Điểm</label>
+                <input class="form-control" placeholder="Nhập điểm bài tập" asp-for="Score">
+                <span class="form-text text-danger" asp-validation-for="Score"></span>
+            </div>
+            <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label">Thể loại</label>
                 <select class="multiple-select" aria-label="Default select example" asp-for="Tags" style="width: 100%">
                     @foreach (TagDTO tag in tags) 

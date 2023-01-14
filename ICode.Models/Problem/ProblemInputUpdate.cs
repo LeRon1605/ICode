@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ICode.Common;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -13,5 +14,7 @@ namespace CodeStudy.Models
         public string Description { get; set; }
         public bool? Status { get; set; }
         public string[] Tags { get; set; }
+        public Level? Level { get; set; }
+        public int? Score { get; set; }
     }
 }
