@@ -3,6 +3,7 @@ using CodeStudy.Models;
 using Data.Entity;
 using Data.Repository;
 using Data.Repository.Interfaces;
+using ICode.Common;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTO;
 using Services.Interfaces;
@@ -91,9 +92,9 @@ namespace Services
             return _mapper.Map<Problem, ProblemDTO>(_problemRepository.GetProblemDetail(x => x.ID == ID));
         }
 
-        public async Task<PagingList<ProblemDTO>> GetPageByFilter(int page, int pageSize, string name, string author, string tag, DateTime? date, string sort, string orderBy)
+        public async Task<PagingList<ProblemDTO>> GetPageByFilter(int page, int pageSize, string name, string author, string tag, DateTime? date, Level? level, string sort, string orderBy)
         {
-            PagingList<Problem> list = await _problemRepository.GetPageAsync(page, pageSize, x => x.Name.Contains(name) && x.Article.Username.Contains(author) && (tag == "" || x.Tags.Any(x => x.Name.Contains(tag) || x.ID == tag)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), problem => problem.Article, problem => problem.Tags);
+            PagingList<Problem> list = await _problemRepository.GetPageAsync(page, pageSize, x => (level == null || x.Level == level) && x.Name.Contains(name) && x.Article.Username.Contains(author) && (tag == "" || x.Tags.Any(x => x.Name.Contains(tag) || x.ID == tag)) && (date == null || ((DateTime)date).Date == x.CreatedAt.Date), problem => problem.Article, problem => problem.Tags, problem => problem.Submissions);
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 switch (sort)

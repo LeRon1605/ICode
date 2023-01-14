@@ -40,11 +40,11 @@ namespace API.Controllers
         [HttpGet]
         [QueryConstraint(Key = "sort", Value = "name, author, date", Retrict = false)]
         [QueryConstraint(Key = "orderBy", Value = "asc, desc", Depend = "sort")]
-        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", string author = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "")
+        public async Task<IActionResult> GetAll(int? page = null, int pageSize = 5, string name = "", string author = "", string tag = "", DateTime? date = null, string sort = "", string orderBy = "", Level? level = null)
         {
             if (page != null)
             {
-                return Ok(await _problemService.GetPageByFilter((int)page, pageSize, name, author, tag, date, sort, orderBy));
+                return Ok(await _problemService.GetPageByFilter((int)page, pageSize, name, author, tag, date, level, sort, orderBy));
             }
             else
             {

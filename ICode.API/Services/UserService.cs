@@ -71,7 +71,6 @@ namespace Services
                 return false;
             }
             UserUpdate data = entity as UserUpdate;
-            user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
             user.Avatar = (string.IsNullOrWhiteSpace(data.UploadImage)) ? user.Avatar : data.UploadImage;
             user.AllowNotification = data.AllowNotification ?? user.AllowNotification;
             user.UpdatedAt = DateTime.Now;

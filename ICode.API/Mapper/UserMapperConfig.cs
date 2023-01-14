@@ -23,7 +23,8 @@ namespace ICode.Mapper
 
             CreateMap<User, UserDetail>()
                 .IncludeBase<User, UserBase>()
-                .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Sum(x => x.Score)));
+                .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Sum(x => x.Score)))
+                .ForMember(dest => dest.SubmitCount, opt => opt.MapFrom(src => src.Submissions.Count()));
 
             CreateMap<ContestDetail, UserContest>()
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))

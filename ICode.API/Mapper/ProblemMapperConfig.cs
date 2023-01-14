@@ -33,6 +33,8 @@ namespace ICode.Mapper
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.Problem.UpdatedAt))
                 .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.Level))
                 .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score));
+
+            CreateMap<PagingList<Problem>, PagingList<ProblemDTO>>();
         }
     }
 }

@@ -69,14 +69,14 @@ namespace API.Controllers
                     detail = "User does not exist."
                 });
             }
-            if (_userService.Exist(input.Username, input.Username))
-            {
-                return Conflict(new ErrorResponse
-                {
-                    error = "Update failed.",
-                    detail = "Username or email already exist."
-                });
-            }
+            //if (_userService.Exist(input.Username, input.Username))
+            //{
+            //    return Conflict(new ErrorResponse
+            //    {
+            //        error = "Update failed.",
+            //        detail = "Username or email already exist."
+            //    });
+            //}
             await _userService.Update(ID, input);
             return NoContent();
         }

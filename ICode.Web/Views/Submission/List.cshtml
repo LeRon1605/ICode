@@ -111,12 +111,12 @@
                             <span class="badge bg-@(submission.Status ? "success" : "danger")">@submission.Description</span>
                         </td>
                         <td>@submission.CreatedAt.ToString("dd/MM/yyyy hh:mm:ss")</td>
-                        <td>
-                            @if (Convert.ToBoolean(ViewData["your"]))
-                            {
+                        @if (Convert.ToBoolean(ViewData["your"]))
+                        {
+                            <td>
                                 <a asp-action="Detail" asp-controller="Submission" asp-route-id="@submission.ID" class="text-decoration-none">Xem</a>
-                            }
-                        </td>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
