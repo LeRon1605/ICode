@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Data;
 using Data.Entity;
 using ICode.Common;
@@ -16,10 +17,14 @@ namespace API.Extension
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
-                var context = serviceScope.ServiceProvider.GetRequiredService<ICodeDbContext>();                
-                if (!(context.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
+                var context = serviceScope.ServiceProvider.GetRequiredService<ICodeDbContext>(); 
+                if (context.Database.GetPendingMigrations().Any())
                 {
                     context.Database.Migrate();
+                    Console.WriteLine("Migration DB successfully");
+                }
+                if (!(context.Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
+                {
                     SeedData(context);
                 }    
             }
