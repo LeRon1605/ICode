@@ -16,8 +16,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 RUN apt-get update && \
     apt-get -y install g++
 RUN apt install time
-# RUN apt install -y default-jdk && \
-#     apt install -y default-jre
+RUN apt install -y default-jdk && \
+    apt install -y default-jre
 
 WORKDIR /app
 COPY --from=build /app .

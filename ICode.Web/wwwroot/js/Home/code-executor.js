@@ -5,17 +5,55 @@ const memoryTxt = document.getElementById('memory-txt');
 const timeTxt = document.getElementById('time-txt');
 const statusTxt = document.getElementById('status-txt');
 const languageSelector = document.getElementById('language_Selector');
+const data = {
+    c: {
+        template: `
+#include <stdio.h>
+int main() {
+    printf("Hello, World!");
+    return 0;
+}
+        `,
+        content: null
+    },
+    cpp: {
+        template: `
+#include <iostream>
+
+int main() {
+    std::cout << "Hello World!";
+    return 0;
+}
+        `,
+        content: null
+    },
+    java: {
+        template: `
+class Main {
+    public static void main(String[] args) {
+        // Insert code here 
+    }
+}
+        `,
+        content: null
+    }
+};
 
 let flask = new CodeFlask('#txt-code', {
-        language: 'cpp',
-        lineNumbers: true
+    language: 'c',
+    lineNumbers: true
 });
-flask.addLanguage('cpp', Prism.languages['cpp']);
+flask.addLanguage('c', Prism.languages['c']);
 
 btnSubmit.addEventListener('click', async () => {
     if (flask.getCode().trim() != '') {
-        btnSubmit.innerText = 'Processing';
+        btnSubmit.innerText = 'Pending';
         btnSubmit.classList.add('disabled');
+        console.log(JSON.stringify({
+            code: flask.getCode(),
+            input: inputTxt.value,
+            lang: languageSelector.value
+        }));
         const response = await fetch('/services/code_executor', {
             method: 'POST',
             mode: 'cors',
@@ -25,16 +63,21 @@ btnSubmit.addEventListener('click', async () => {
             body: JSON.stringify({
                 code: flask.getCode(),
                 input: inputTxt.value,
-                lang: 'cpp'
+                lang: languageSelector.value
             })
         });
-        const responseObj = await response.json();
-        statusTxt.innerText = (responseObj.status == 1) ? "Success" : ((responseObj.status == 2) ? "Compiler Error" : "Runtime error");
-        outputTxt.value = responseObj.output;
-        timeTxt.innerText = responseObj.time + 's';
-        memoryTxt.innerText = responseObj.memory + 'Mb';
-        btnSubmit.innerText = 'Submit';
-        btnSubmit.classList.remove('disabled');
+        try {
+            const responseObj = await response.json();
+            statusTxt.innerText = (responseObj.status == 1) ? "Success" : ((responseObj.status == 2) ? "Compiler Error" : "Runtime error");
+            outputTxt.value = responseObj.output;
+            timeTxt.innerText = responseObj.time + 's';
+            memoryTxt.innerText = responseObj.memory + 'Kb';
+        } catch {
+            alert('Something went wrong!!');
+        } finally {
+            btnSubmit.innerText = 'Submit';
+            btnSubmit.classList.remove('disabled');
+        }
     }
 });
 
@@ -43,12 +86,16 @@ $(document).ready(function () {
 });
 
 $('#wrapper').on('change', 'select', () => {
-    const code = flask.getCode();
+    data[flask.opts.language].content = flask.getCode();
     flask = new CodeFlask('#txt-code',
-        {
-            language: languageSelector.value,
-            lineNumbers: true
-        });
+    {
+        language: languageSelector.value,
+        lineNumbers: true
+    });
     flask.addLanguage(languageSelector.value, Prism.languages[languageSelector.value]);
-    flask.updateCode(code);
+    if (!data[languageSelector.value].content) {
+        flask.updateCode(data[languageSelector.value].template.trim());
+    } else {
+        flask.updateCode(data[languageSelector.value].content.trim());
+    }
 });

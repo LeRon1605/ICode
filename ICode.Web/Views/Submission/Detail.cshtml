@@ -5,8 +5,8 @@
 @section Styles {
     <link href="~/css/Shared/wtg-alert.css" rel="stylesheet"/>
 }
-
-    @{
+@{
+    ViewData["Title"] = "Chi tiết bài nộp";
     List<SubmissionDTO> userSubmissions = (List<SubmissionDTO>)ViewBag.userSubmissions;
 }
 <div class="container mt-5">

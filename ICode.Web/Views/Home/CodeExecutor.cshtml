@@ -1,4 +1,7 @@
-﻿@section Styles
+﻿@{
+    ViewData["Title"] = "Live IDE";
+}
+@section Styles
 {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/css/nice-select.css" integrity="sha512-uHuCigcmv3ByTqBQQEwngXWk7E/NaPYP+CFglpkXPnRQbSubJmEENgh+itRDYbWV0fUZmUz7fD/+JDdeQFD5+A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="~/css/Problem/index.css" rel="stylesheet" />
@@ -10,7 +13,9 @@
             <div class="d-flex align-items-center mb-3" id="wrapper">
                 <label>Ngôn ngữ: </label>
                 <select class="ms-3" id="language_Selector" name="language">
+                    <option value="c">C</option>
                     <option value="cpp">C++</option>
+                    <option value="java">Java</option>
                 </select>
             </div>
             <div id="txt-code"></div>

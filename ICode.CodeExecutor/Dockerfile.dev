@@ -10,6 +10,8 @@ COPY ./ICode.CodeExecutor ./ICode.CodeExecutor/
 RUN apt-get update && \
     apt-get -y install g++
 RUN apt install time
+RUN apt install -y default-jdk && \
+    apt install -y default-jre
 RUN dotnet dev-certs https
 
 WORKDIR /src/ICode.CodeExecutor

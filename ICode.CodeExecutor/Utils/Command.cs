@@ -10,7 +10,6 @@ namespace ICode.CodeExecutor.Utils
             try
             {
                 long memory = 0;
-
                 ProcessStartInfo procStartInfo = new ProcessStartInfo("/bin/bash", $"-c \"{command}\"");
                 procStartInfo.RedirectStandardOutput = true;
                 procStartInfo.UseShellExecute = false;
@@ -31,7 +30,7 @@ namespace ICode.CodeExecutor.Utils
                 {
                     Result = proc.StandardOutput.ReadToEnd(),
                     Status = (proc.ExitCode == 0),
-                    Memory = (int)(memory * 1e-6)
+                    Memory = (int)(memory * 1e-3)
                 };
             }
             catch (Exception objException)

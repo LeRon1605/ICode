@@ -1,9 +1,10 @@
 @using CodeStudy.Models
 @using Models.DTO;
 @{
+    ViewData["Title"] = "Danh sách bài tập";
     PagingList<ProblemDTO> problems = (PagingList<ProblemDTO>)ViewBag.problems;
     List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
-    string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
+    string[] sortAllow = new string[] { "name|Tên bài tập", "author|Tên tác giả", "date|Ngày tạo" };
 }
 @section Styles {
     <style>

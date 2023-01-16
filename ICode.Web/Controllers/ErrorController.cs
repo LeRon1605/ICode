@@ -21,6 +21,12 @@ namespace ICode.Web.Controllers
                     ViewData["error"] = "UNAUTHORIZED";
                     ViewData["description"] = "You are not allow to acccess to this page. Please make sure you are logged in.";
                     break;
+                case 403:
+                    ViewData["icon"] = "https://assets10.lottiefiles.com/temp/lf20_QYm9j9.json";
+                    ViewData["statusCode"] = 403;
+                    ViewData["error"] = "FORBIDDEN";
+                    ViewData["description"] = "You are not allow to acccess to this page.";
+                    break;
                 case 404:
                     ViewData["icon"] = "https://assets1.lottiefiles.com/packages/lf20_aN06YJCbME.json";
                     ViewData["statusCode"] = 404;
