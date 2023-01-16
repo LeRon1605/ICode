@@ -10,6 +10,7 @@ using Data.Repository.Interfaces;
 using Data.Repository;
 using Models.DTO;
 using ICode.Common;
+using ICode.Models;
 
 namespace Services
 {
@@ -70,7 +71,6 @@ namespace Services
                 return false;
             }
             UserUpdate data = entity as UserUpdate;
-            user.Username = (string.IsNullOrEmpty(data.Username)) ? user.Username : data.Username;
             user.Avatar = (string.IsNullOrWhiteSpace(data.UploadImage)) ? user.Avatar : data.UploadImage;
             user.AllowNotification = data.AllowNotification ?? user.AllowNotification;
             user.UpdatedAt = DateTime.Now;
@@ -100,7 +100,7 @@ namespace Services
 
         public bool Exist(string username, string email)
         {
-            return _userRepository.isExist(x => x.Username == username || x.Email == email);
+            return _userRepository.isExist(x => (x.Username == username || x.Email == email) && x.Type == AccountType.Local);
         }
 
         public User FindById(string id)
@@ -256,6 +256,11 @@ namespace Services
             }
             await Task.WhenAll(tasks);
             await _unitOfWork.CommitAsync();
+        }
+
+        public UserDetail GetDetailById(string id)
+        {
+            return _mapper.Map<UserDetail>(_userRepository.GetDetail(x => x.ID == id));
         }
     }
 }

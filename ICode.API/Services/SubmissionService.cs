@@ -106,9 +106,9 @@ namespace API.Services
             return list;
         }
 
-        public async Task<SubmissionResult> Submit(Submission submission, string problemID)
+        public async Task<SubmissionResult> Submit(Submission submission)
         {
-            IEnumerable<TestcaseDTO> testcases = _testcaseService.GetTestcaseOfProblem(problemID);
+            IEnumerable<TestcaseDTO> testcases = _testcaseService.GetTestcaseOfProblem(submission.ProblemID);
             if (testcases.Count() <= 0)
             {
                 return null;

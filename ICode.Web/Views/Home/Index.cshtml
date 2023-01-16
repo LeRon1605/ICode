@@ -144,6 +144,9 @@
                             <th>Tên bài tập</th>
                             <th>Tác giả</th>
                             <th>Thể loại</th>
+                            <th>Độ khó</th>
+                            <th>Đã đạt</th>
+                            <th>Đã nộp</th>
                             <th>Ngày tạo</th>
                             <th>Hành động</th>
                         </tr>
@@ -158,6 +161,13 @@
                                         <span class="bg-light">@tag.Name</span>
                                     }
                                 </td>
+                                <td>
+                                    <span class="badge bg-@(problem.Level == "Easy" ? "success" : (problem.Level == "Medium" ? "primary" : "danger"))">
+                                        @problem.Level
+                                    </span>
+                                </td>
+                                <td>@problem.SuccessSubmit</td>
+                                <td>@problem.TotalSubmit</td>
                                 <td>@problem.CreatedAt.ToString("dd/MM/yyyy")</td>
                                 <td>
                                     <a asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID" class="text-decoration-none text-center">Làm bài</a>

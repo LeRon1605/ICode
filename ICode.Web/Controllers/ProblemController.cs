@@ -32,15 +32,16 @@ namespace ICode.Web.Controllers
             return View(problem);
         }
 
-        public async Task<IActionResult> Search(string tag = "", string sort = "", string keyword = "", string orderBy = "asc", int page = 1)
+        public async Task<IActionResult> Search(string tag = "", string sort = "", string keyword = "", string orderBy = "asc", string level = "", int page = 1)
         {
-            PagingList<ProblemDTO> problems = await _problemService.GetPage(page, 12, keyword, tag, null, sort, orderBy);
+            PagingList<ProblemDTO> problems = await _problemService.GetPage(page, 12, keyword, tag, null, level, sort, orderBy);
             List<TagDTO> tags = await _tagService.GetAll();
 
             ViewBag.tags = tags;
             ViewBag.problems = problems;
 
             ViewData["tag"] = tag;
+            ViewData["level"] = level;
             ViewData["sort"] = sort;
             ViewData["keyword"] = keyword;
             ViewData["page"] = page;

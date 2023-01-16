@@ -1,4 +1,5 @@
 ﻿using CodeStudy.Models;
+using ICode.Models;
 using ICode.Web.Models.DTO;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -34,13 +35,13 @@ namespace ICode.Web.Services
             return null;
         }
 
-        public async Task<UserDTO> GetProfile()
+        public async Task<UserDetail> GetProfile()
         {
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _httpContextAccessor.HttpContext.Request.Cookies["access_token"]);
             HttpResponseMessage response = await _client.GetAsync("/me");
             if (response.IsSuccessStatusCode)
             {
-                return JsonConvert.DeserializeObject<UserDTO>(await response.Content.ReadAsStringAsync());
+                return JsonConvert.DeserializeObject<UserDetail>(await response.Content.ReadAsStringAsync());
             }
             return null;
         }

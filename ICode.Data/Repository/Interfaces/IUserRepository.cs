@@ -10,6 +10,7 @@ namespace Data.Repository.Interfaces
 {
     public interface IUserRepository : IRepository<User>
     {
+        User GetDetail(Expression<Func<User, bool>> expression);
         User GetUserWithRole(Expression<Func<User, bool>> expression);
         User GetUserWithSubmit(Expression<Func<User, bool>> expression);
         Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression = null);

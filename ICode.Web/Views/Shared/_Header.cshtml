@@ -30,7 +30,10 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <li><a class="dropdown-item" asp-action="Index" asp-controller="Profile">Profile</a></li>
-                        <li><a class="dropdown-item" href="#">Quản lí</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li><a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="Admin">Quản lí</a></li>
+                        }
                         <li><a class="dropdown-item" asp-action="Logout" asp-controller="Auth">Đăng xuất</a></li>
                     </ul>
                 </div>

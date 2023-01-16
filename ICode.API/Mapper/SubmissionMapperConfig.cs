@@ -16,7 +16,7 @@ namespace ICode.Mapper
                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => getState(src.State)));
             CreateMap<Submission, SubmissionDTO>()
                .IncludeBase<Submission, SubmissionBase>()
-               .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.SubmissionDetails.First().TestCase.Problem));
+               .ForMember(dest => dest.Problem, opt => opt.MapFrom(src => src.Problem));
             CreateMap<Submission, SubmissionResult>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.State == SubmitState.Success))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => getState(src.State)));
