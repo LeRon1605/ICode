@@ -1,9 +1,10 @@
 # ICode
-> Write an API using ASP.NET Core and consume it by MVC Client.
-
-API documentation: [here](https://documenter.getpostman.com/view/15687929/VUxLy9Jm).
+> Write an API using ASP.NET Core and consume it by MVC Client. Deploy at Linode.
 ## What am I doing so far?
-![diagrams-13 - containers drawio (1)](https://user-images.githubusercontent.com/78067510/209193592-e89d88a9-edee-4d65-8e50-5edddc1ce645.png)
+<p align="center">
+  <img  src="https://user-images.githubusercontent.com/78067510/210708944-c12bd652-91d1-4c08-b99d-7220a1718bb0.png">
+</p>
+
 ## Usage
 Clone this repository by running following command
 ```
@@ -16,7 +17,8 @@ docker-compose up
 Visit http://localhost:3000/api/swagger/index.html for Swagger document for the web API project.
 
 Visit http://localhost:3000 to access web application.
-
+## Live IDE
+![screencapture-icode1605-tech-Home-CodeExecutor-2023-01-05-12_18_31](https://user-images.githubusercontent.com/78067510/210709311-fce835b9-0e9a-4093-8f15-a84fe994a2d2.png)
 ## Tech Stack
 1. Platforms/Framework: ASP.NET Core, Entity Framework, Docker.
 2. Database: SQL Server.

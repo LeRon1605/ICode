@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace ICode.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class ProblemController : Controller
     {
         private readonly IProblemService _problemService;
@@ -20,9 +20,9 @@ namespace ICode.Web.Areas.Admin.Controllers
             _tagService = tagService;
         }
 
-        public async Task<IActionResult> Index(string tag = "", string sort = "", string keyword = "", string orderBy = "asc", int page = 1)
+        public async Task<IActionResult> Index(string tag = "", string sort = "", string keyword = "", string orderBy = "asc", string level = "", int page = 1)
         {
-            PagingList<ProblemDTO> problems = await _problemService.GetPage(page, 20, keyword, tag, null, sort, orderBy);
+            PagingList<ProblemDTO> problems = await _problemService.GetPage(page, 20, keyword, tag, null, level, sort, orderBy);
             List<TagDTO> tags = await _tagService.GetAll();
 
             ViewBag.tags = tags;
@@ -30,6 +30,7 @@ namespace ICode.Web.Areas.Admin.Controllers
 
             ViewData["tag"] = tag;
             ViewData["sort"] = sort;
+            ViewData["level"] = level;
             ViewData["keyword"] = keyword;
             ViewData["page"] = page;
             return View();

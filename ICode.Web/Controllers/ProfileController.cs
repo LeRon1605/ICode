@@ -1,4 +1,5 @@
 ﻿using CodeStudy.Models;
+using ICode.Models;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace ICode.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            UserDTO me = await _userService.GetProfile();
+            UserDetail me = await _userService.GetProfile();
             if (me == null)
             {
                 throw new Exception();

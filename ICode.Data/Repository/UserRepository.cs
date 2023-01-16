@@ -22,6 +22,11 @@ namespace Data.Repository
             _mapper = mapper;
         }
 
+        public User GetDetail(Expression<Func<User, bool>> expression)
+        {
+            return _context.Users.Include(x => x.Submissions).ThenInclude(x => x.Problem).FirstOrDefault(expression);
+        }
+
         public IEnumerable<User> GetNewUserInDay(DateTime Date, Expression<Func<User, bool>> expression)
         {
             if (expression == null)
@@ -32,15 +37,15 @@ namespace Data.Repository
 
         public Task<IEnumerable<Problem>> GetProblemSolvedByUser(string UserID, Func<Problem, bool> expression)
         {
-            User user = _context.Users.Include(x => x.Submissions).ThenInclude(x => x.SubmissionDetails).ThenInclude(x => x.TestCase).ThenInclude(x => x.Problem).ThenInclude(x => x.Tags).FirstOrDefault(x => x.ID == UserID);
+            User user = _context.Users.Include(x => x.Submissions).ThenInclude(x => x.Problem).ThenInclude(x => x.Tags).FirstOrDefault(x => x.ID == UserID);
             if (user == null)
             {
                 return null;
             }
             if (expression == null)
-                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()));
+                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()));
             else
-                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.SubmissionDetails.First().TestCase.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Where(expression));
+                return Task.FromResult(user.Submissions.Where(x => x.State == SubmitState.Success).Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).Where(expression));
         }
 
         public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()

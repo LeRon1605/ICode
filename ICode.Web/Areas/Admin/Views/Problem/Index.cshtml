@@ -5,6 +5,15 @@
     List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
     string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
     int count = 0;
+    string[] levels = new string[] { "0|Dễ", "1|Trung bình", "2|Khó" };
+    var routeData = new Dictionary<string, string>()
+    {
+        { "tag", (string)ViewData["tag"] },
+        { "level", (string)ViewData["level"] },
+        { "sort", (string)ViewData["sort"]},
+        { "orderBy", (string)ViewData["orderBy"]},
+        { "keyword", (string)ViewData["keyword"] }
+    };
 }
 
 <div class="d-flex justify-content-between align-items-end">
@@ -24,6 +33,20 @@
                 else
                 {
                     <option value="@tag.ID">@tag.Name</option>
+                }
+            }
+        </select>
+        <select class="form-select me-2" aria-label="Default select example" style="width: 20%" name="level">
+            <option value="" selected>Độ khó</option>
+            @foreach (string level in levels)
+            {
+                if (level.Split("|")[0] == (string)ViewData["level"])
+                {
+                    <option value="@(level.Split("|")[0])" selected>@(level.Split("|")[1])</option>
+                }
+                else
+                {
+                    <option value="@(level.Split("|")[0])">@(level.Split("|")[1])</option>
                 }
             }
         </select>
@@ -53,9 +76,12 @@
             <tr>
                 <th>#</th>
                 <th>Tên bài tập</th>
-                <th>Mô tả</th>
                 <th>Tác giả</th>
                 <th>Thể loại</th>
+                <th>Độ khó</th>
+                <th>Điểm</th>
+                <th>Đã đạt</th>
+                <th>Đã nộp</th>
                 <th>Ngày tạo</th>
                 <th>Ngày cập nhật</th>
                 <th>Hành động</th>
@@ -67,7 +93,6 @@
                 <tr>
                     <td>@(++count)</td>
                     <td>@problem.Name</td>
-                    <td>@Html.Raw(problem.Description.Substring(0, 50))</td>
                     <td>@problem.Author.Username</td>
                     <td>
                         @foreach (TagDTO tag in problem.Tags)
@@ -75,6 +100,14 @@
                             <span class="badge bg-primary me-1">@tag.Name</span>
                         }
                     </td>
+                    <td>
+                        <span class="badge bg-@(problem.Level == "Easy" ? "success" : (problem.Level == "Medium" ? "primary" : "danger"))">
+                            @problem.Level
+                        </span>
+                    </td>
+                    <td>@problem.Score</td>
+                    <td>@problem.SuccessSubmit</td>
+                    <td>@problem.TotalSubmit</td>
                     <td>@problem.CreatedAt.ToString("dd/MM/yyyy")</td>
                     <td>@(problem.UpdatedAt == null ? "None" : problem.UpdatedAt.Value.ToString("dd/MM/yyyy"))</td>
                     <td>
@@ -93,11 +126,11 @@
 }
 <nav class="d-flex justify-content-center">
     <ul class="pagination">
-        <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page - 1)">Previous</a></li>
+        <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(problems.Page - 1)">Previous</a></li>
         @for (int i = 1; i <= problems.TotalPage; i++)
         {
-            <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-page="@i" asp-route-sort="@ViewData["sort"]">@i</a></li>
+            <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@i" >@i</a></li>
         }
-        <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page + 1)">Next</a></li>
+        <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-area="Admin" asp-action="Index" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(problems.Page + 1)">Next</a></li>
     </ul>
 </nav>

@@ -127,10 +127,7 @@ namespace API
                 app.UseDeveloperExceptionPage();
             }
 
-            if (!env.IsDevelopment())
-            {
-                app.MigrateDB();
-            }
+            app.MigrateDB();
             app.UseCors("ICode");
             app.UseSwagger();
 

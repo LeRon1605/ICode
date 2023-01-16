@@ -4,7 +4,16 @@
     ViewData["Title"] = "Danh sách bài tập";
     PagingList<ProblemDTO> problems = (PagingList<ProblemDTO>)ViewBag.problems;
     List<TagDTO> tags = (List<TagDTO>)ViewBag.tags;
-    string[] sortAllow = new string[] { "name|Tên bài tập", "author|Tên tác giả", "date|Ngày tạo" };
+    string[] levels = new string[] { "0|Dễ", "1|Trung bình", "2|Khó" };
+    var routeData = new Dictionary<string, string>()
+    {
+        { "tag", (string)ViewData["tag"] },
+        { "level", (string)ViewData["level"] },
+        { "sort", (string)ViewData["sort"]},
+        { "orderBy", (string)ViewData["orderBy"]},
+        { "keyword", (string)ViewData["keyword"] }
+    };
+    string[] sortAllow = new string[] { "name|Tên bài viết", "author|Tên tác giả", "date|Ngày tạo" };
 }
 @section Styles {
     <style>
@@ -35,8 +44,8 @@
             </div>
         </div>
         <form class="row d-flex justify-content-between" asp-action="Search" asp-controller="Problem" method="get">
-            <div class="col-4 d-flex justify-content-between">
-                <div class="col-5">
+            <div class="col-5 d-flex justify-content-between">
+                <div class="col-4">
                     <select class="form-select" name="tag">
                         <option value="" selected>Thể loại</option>
                         @foreach (TagDTO tag in tags)
@@ -52,7 +61,23 @@
                         }
                     </select>
                 </div>
-                <div class="col-5">
+                <div class="col-4 ms-2">
+                    <select class="form-select" name="level">
+                        <option value="" selected>Độ khó</option>
+                        @foreach (string level in levels)
+                        {
+                            if (level.Split("|")[0] == (string)ViewData["level"])
+                            {
+                                <option value="@(level.Split("|")[0])" selected>@(level.Split("|")[1])</option>
+                            }
+                            else
+                            {
+                                <option value="@(level.Split("|")[0])">@(level.Split("|")[1])</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-4 ms-2">
                     <select class="form-select" name="sort">
                         <option value="">Sắp xếp</option>
                         @foreach (string sort in sortAllow)
@@ -80,11 +105,10 @@
                 @foreach (ProblemDTO problem in problems.Data)
                 {
                     <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">
-                        <div class="bg-white p-4 shadow rounded">
+                    <div class="bg-white p-4 shadow rounded border border-2 border-@(problem.Level == "Easy" ? "success" : (problem.Level == "Medium" ? "primary" : "danger"))">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="d-flex">
-                                    <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
-                                 src="@problem.Author.Avatar">
+                                    <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50" src="@problem.Author.Avatar">
                                     <div>
                                         <p class="fw-bold mb-0">@problem.Author.Username</p>
                                         <p class="text-muted mb-0">@problem.Author.Email</p>
@@ -111,12 +135,12 @@
             <div class="d-flex justify-content-center mt-4">
                 <nav aria-label="Page navigation example">
                     <ul class="pagination">
-                    <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page - 1)">Previous</a></li>
+                    <li class="page-item @(problems.Page > 1 ? "" : "disabled")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(problems.Page - 1)">Previous</a></li>
                         @for (int i = 1; i <= problems.TotalPage; i++)
                         {
-                            <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-page="@i" asp-route-sort="@ViewData["sort"]">@i</a></li>
+                        <li class="page-item @(i == problems.Page ? "active" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@i">@i</a></li>
                         }
-                    <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-route-tag="@ViewData["tag"]" asp-route-keyword="@ViewData["keyword"]" asp-route-sort="@ViewData["sort"]" asp-route-page="@(problems.Page + 1)">Next</a></li>
+                    <li class="page-item @(problems.Page >= problems.TotalPage ? "disabled" : "")"><a class="page-link" asp-action="Search" asp-controller="Problem" asp-all-route-data="@routeData" asp-route-page="@(problems.Page + 1)">Next</a></li>
                     </ul>
                 </nav>
             </div>

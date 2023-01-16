@@ -1,0 +1,28 @@
+﻿@model ProblemDTO
+<a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@Model.ID">
+    <div class="rounded p-4 bg-white shadow">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex">
+                <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
+                     src="@Model.Author.Avatar">
+                <div>
+                    <p class="fw-bold mb-0">@Model.Author.Username</p>
+                    <p class="text-muted mb-0">@Model.Author.Email</p>
+                </div>
+            </div>
+            <div>
+                @foreach (TagDTO tag in Model.Tags)
+                {
+                    <span class="badge rounded bg-primary mb-2">@tag.Name</span>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <h4 class="text col-9">@Model.Name</h4>
+            <span>@Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+        </div>
+        <div class="text">
+            @Html.Raw(Model.Description)
+        </div>
+    </div>
+</a>

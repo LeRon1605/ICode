@@ -30,14 +30,13 @@ namespace Data.Repository
                                         .Include(problem => problem.Article)
                                         .Include(problem => problem.Tags)
                                         .Include(problem => problem.TestCases)
-                                        .ThenInclude(testcase => testcase.SubmissionDetails)
-                                        .ThenInclude(detail => detail.Submission)
-                                        .Where(problem => problem.TestCases.First().SubmissionDetails.Count() > 0)
+                                        .Include(problem => problem.Submissions)
+                                        .Where(problem => problem.Submissions.Count > 0)
                                         .Select(problem => new ProblemStatistic
                                         {
                                             problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                                            SubmitCount = problem.TestCases.First().SubmissionDetails.Count(),
-                                            SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.State == SubmitState.Success).Count()
+                                            SubmitCount = problem.Submissions.Count(),
+                                            SubmitSuccessCount = problem.Submissions.Where(x => x.State == SubmitState.Success).Count()
                                         })
                                         .OrderByDescending(x => x.SubmitCount);
             }
@@ -46,16 +45,14 @@ namespace Data.Repository
                 return _context.Problems.AsNoTracking()
                                         .Include(problem => problem.Article)
                                         .Include(problem => problem.Tags)
-                                        .Include(problem => problem.TestCases)
-                                        .ThenInclude(testcase => testcase.SubmissionDetails)
-                                        .ThenInclude(detail => detail.Submission)
-                                        .Where(problem => problem.TestCases.First().SubmissionDetails.Count() > 0)
+                                        .Include(problem => problem.Submissions)
+                                        .Where(problem => problem.Submissions.Count > 0)
                                         .Where(expression)
                                         .Select(problem => new ProblemStatistic
                                         {
                                             problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                                            SubmitCount = problem.TestCases.First().SubmissionDetails.Count(),
-                                            SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.State == SubmitState.Success).Count()
+                                            SubmitCount = problem.Submissions.Count(),
+                                            SubmitSuccessCount = problem.Submissions.Where(x => x.State == SubmitState.Success).Count()
                                         })
                                         .OrderByDescending(x => x.SubmitCount);
             }
@@ -68,15 +65,13 @@ namespace Data.Repository
                 return _context.Problems.AsNoTracking()
                                         .Include(problem => problem.Article)
                                         .Include(problem => problem.Tags)
-                                        .Include(problem => problem.TestCases)
-                                        .ThenInclude(testcase => testcase.SubmissionDetails)
-                                        .ThenInclude(detail => detail.Submission)
-                                        .Where(problem => problem.CreatedAt.Date < date.Date && problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count() > 0)
+                                        .Include(problem => problem.Submissions)
+                                        .Where(problem => problem.CreatedAt.Date < date.Date && problem.Submissions.Where(x => x.CreatedAt.Date == date.Date).Count() > 0)
                                         .Select(problem => new ProblemStatistic
                                         {
                                             problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                                            SubmitCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count(),
-                                            SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date && x.Submission.State == SubmitState.Success).Count()
+                                            SubmitCount = problem.Submissions.Where(x => x.CreatedAt.Date == date.Date).Count(),
+                                            SubmitSuccessCount = problem.Submissions.Where(x => x.CreatedAt.Date == date.Date && x.State == SubmitState.Success).Count()
                                         })
                                         .OrderByDescending(x => x.SubmitCount);
             }
@@ -85,16 +80,14 @@ namespace Data.Repository
                 return _context.Problems.AsNoTracking()
                                        .Include(problem => problem.Article)
                                        .Include(problem => problem.Tags)
-                                       .Include(problem => problem.TestCases)
-                                       .ThenInclude(testcase => testcase.SubmissionDetails)
-                                       .ThenInclude(detail => detail.Submission)
-                                       .Where(problem => problem.CreatedAt.Date < date.Date && problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count() > 0)
+                                       .Include(problem => problem.Submissions)
+                                       .Where(problem => problem.CreatedAt.Date < date.Date && problem.Submissions.Where(x => x.CreatedAt.Date == date.Date).Count() > 0)
                                        .Where(expression)
                                        .Select(problem => new ProblemStatistic
                                        {
-                                           problem = _mapper.Map<Problem, ProblemDTO>(problem),
-                                           SubmitCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date).Count(),
-                                           SubmitSuccessCount = problem.TestCases.First().SubmissionDetails.Where(x => x.Submission.CreatedAt.Date == date.Date && x.Submission.State == SubmitState.Success).Count()
+                                            problem = _mapper.Map<Problem, ProblemDTO>(problem),
+                                            SubmitCount = problem.Submissions.Where(x => x.CreatedAt.Date == date.Date).Count(),
+                                            SubmitSuccessCount = problem.Submissions.Where(x => x.CreatedAt.Date == date.Date && x.State == SubmitState.Success).Count()
                                        })
                                        .OrderByDescending(x => x.SubmitCount);
             }
@@ -104,25 +97,25 @@ namespace Data.Repository
         public IEnumerable<Problem> GetNewProblem(DateTime date, Expression<Func<Problem, bool>> expression = null)
         {
             if (expression == null)
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(x => x.CreatedAt.Date == date);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Include(x => x.Submissions).Where(x => x.CreatedAt.Date == date);
             else
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(x => x.CreatedAt.Date == date).Where(expression);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Include(x => x.Submissions).Where(x => x.CreatedAt.Date == date).Where(expression);
         }
 
         public Problem GetProblemDetail(Expression<Func<Problem, bool>> expression)
         {
-            return _context.Problems.Include(x => x.Article).Include(x => x.Tags).FirstOrDefault(expression);
+            return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Include(x => x.Submissions).FirstOrDefault(expression);
         }
 
         public IEnumerable<Problem> GetProblemDetailMulti(Expression<Func<Problem, bool>> expression)
         {
             if (expression == null)
             {
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Include(x => x.Submissions);
             }
             else
             {
-                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Where(expression);
+                return _context.Problems.Include(x => x.Article).Include(x => x.Tags).Include(x => x.Submissions).Where(expression);
             }
         }
 

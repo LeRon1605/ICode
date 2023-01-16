@@ -8,6 +8,7 @@ using AutoMapper;
 using Data.Entity;
 using Services.Interfaces;
 using Models.DTO;
+using ICode.Models;
 
 namespace API.Controllers
 {
@@ -17,13 +18,11 @@ namespace API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
-        private readonly IMapper _mapper;
 
-        public UserController(IUserService userService, IRoleService roleService, IMapper mapper)
+        public UserController(IUserService userService, IRoleService roleService)
         {
             _userService = userService;
             _roleService = roleService;
-            _mapper = mapper;
         }
 
         [HttpGet]
@@ -40,10 +39,9 @@ namespace API.Controllers
         }
 
         [HttpGet("{ID}")]
-        [Authorize]
         public IActionResult GetByID(string ID)
         {
-            User user = _userService.FindByID(ID);
+            UserDetail user = _userService.GetDetailById(ID);
             if (user == null)
             {
                 return NotFound(new ErrorResponse
@@ -54,7 +52,7 @@ namespace API.Controllers
             }
             else
             {
-                return Ok(_mapper.Map<User, UserDTO>(user));
+                return Ok(user);
             }
         }
 
@@ -71,14 +69,14 @@ namespace API.Controllers
                     detail = "User does not exist."
                 });
             }
-            if (_userService.Exist(input.Username, input.Username))
-            {
-                return Conflict(new ErrorResponse
-                {
-                    error = "Update failed.",
-                    detail = "Username or email already exist."
-                });
-            }
+            //if (_userService.Exist(input.Username, input.Username))
+            //{
+            //    return Conflict(new ErrorResponse
+            //    {
+            //        error = "Update failed.",
+            //        detail = "Username or email already exist."
+            //    });
+            //}
             await _userService.Update(ID, input);
             return NoContent();
         }
