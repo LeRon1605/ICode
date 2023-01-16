@@ -5,12 +5,12 @@ namespace ICode.CodeExecutor.Utils
         public static async Task Execute()
         {
             List<Task> tasks = new List<Task>();
-            string []files = Directory.GetFiles("Data", "*", SearchOption.AllDirectories);
-            foreach (string file in files) 
+            string []dirs = Directory.GetDirectories("judge", "*", SearchOption.AllDirectories);
+            foreach (string dir in dirs) 
             {
-                if (File.GetCreationTime(file).AddMinutes(1) < DateTime.Now) 
+                if (Directory.GetCreationTime(dir).AddMinutes(1) < DateTime.Now) 
                 {
-                    tasks.Add(Task.Run(() => File.Delete(file)));
+                    tasks.Add(Task.Run(() => Directory.Delete(dir, true)));
                 }
             }
             await Task.WhenAll(tasks);

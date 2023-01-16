@@ -1,6 +1,7 @@
 ﻿@{
+    ViewData["Title"] = "Danh sách bài nộp";
     PagingList<SubmissionDTO> submissions = (PagingList<SubmissionDTO>)ViewBag.submissions;
-    string[] languages = new string[] { "cpp|C++" };
+    string[] languages = new string[] { "cpp|C++", "c|C", "java|Java" };
     int count = 0;
     var routeData = new Dictionary<string, string>()
     {
@@ -104,7 +105,9 @@
                     <tr>
                         <td>@(++count)</td>
                         <td>@submission.ID</td>
-                        <td>@submission.Problem.Name</td>
+                        <td>
+                            <a class="text-decoration-none" asp-action="Index" asp-controller="Problem" asp-route-id="@submission.Problem.ID">@submission.Problem.Name</a>
+                        </td>
                         <td>@submission.User.Username</td>
                         <td>@submission.Language</td>
                         <td>

@@ -33,3 +33,27 @@ $('#wrapper').on('change', 'select', () => {
     flask.addLanguage(languageSelector.value, Prism.languages[languageSelector.value]);
     flask.updateCode(code);
 });
+
+const config = {
+    type: 'pie',
+    data: {
+        labels: ['AC', 'WA'],
+        datasets: [{
+            backgroundColor: ['#22CFCF', '#FF4069'],
+            data: statisticData,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        },
+    },
+};
+const myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+);

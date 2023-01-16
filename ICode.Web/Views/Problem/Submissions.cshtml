@@ -1,7 +1,8 @@
 ﻿@model ProblemDTO
 @{
+    ViewData["Title"] = $"Danh sách bài nộp - {Model.Name}";
     PagingList<SubmissionDTO> submissions = (PagingList<SubmissionDTO>)ViewBag.submissions;
-    string[] languages = new string[] { "cpp|C++" };
+    string[] languages = new string[] { "cpp|C++", "c|C", "java|Java" };
     int count = 0;
     var routeData = new Dictionary<string, string>()
     {
@@ -17,7 +18,7 @@
     <div class="row mb-4">
         <div class="col-md-8 col-xl-6 text-center mx-auto">
             <h2>Danh sách bài nộp</h2>
-            <p class="w-lg-50">@Model.Name</p>
+            <a class="w-lg-50 text-decoration-none" asp-action="Index" asp-controller="Problem" asp-route-id="@Model.ID">@Model.Name</a>
         </div>
     </div>
     <form class="row d-flex justify-content-between" asp-action="Submissions" asp-controller="Problem" asp-route-id="@Model.ID" method="get">
@@ -92,6 +93,10 @@
                     <th>Ngôn ngữ</th>
                     <th>Trạng thái</th>
                     <th>Thời gian nộp</th>
+                    @if (Convert.ToBoolean(ViewData["your"]))
+                    {
+                        <th>Hành dộng</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -106,6 +111,12 @@
                             <span class="badge bg-@(submission.Status ? "success" : "danger")">@submission.Description</span>
                         </td>
                         <td>@submission.CreatedAt.ToString("dd/MM/yyyy hh:mm:ss")</td>
+                        @if (Convert.ToBoolean(ViewData["your"]))
+                        {
+                            <td>
+                                <a asp-action="Detail" asp-controller="Submission" asp-route-id="@submission.ID" class="text-decoration-none">Xem</a>
+                            </td>
+                        }            
                     </tr>
                 }
             </tbody>

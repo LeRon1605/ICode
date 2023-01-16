@@ -31,6 +31,7 @@ namespace Data.Repository
                                         .Include(problem => problem.Tags)
                                         .Include(problem => problem.TestCases)
                                         .Include(problem => problem.Submissions)
+                                        .Where(problem => problem.Submissions.Count > 0)
                                         .Select(problem => new ProblemStatistic
                                         {
                                             problem = _mapper.Map<Problem, ProblemDTO>(problem),
@@ -45,6 +46,7 @@ namespace Data.Repository
                                         .Include(problem => problem.Article)
                                         .Include(problem => problem.Tags)
                                         .Include(problem => problem.Submissions)
+                                        .Where(problem => problem.Submissions.Count > 0)
                                         .Where(expression)
                                         .Select(problem => new ProblemStatistic
                                         {

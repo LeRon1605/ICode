@@ -1,5 +1,8 @@
 ﻿@using CodeStudy.Models
 @model ProblemDTO
+@{
+    ViewData["Title"] = Model.Name;
+}
 @section Styles {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/css/nice-select.css" integrity="sha512-uHuCigcmv3ByTqBQQEwngXWk7E/NaPYP+CFglpkXPnRQbSubJmEENgh+itRDYbWV0fUZmUz7fD/+JDdeQFD5+A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="~/css/Problem/index.css" rel="stylesheet" />
@@ -50,9 +53,9 @@
                         </span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
-                        <span>Đã nộp</span>
+                        <span>Điểm</span>
                         <span>
-                            @Model.TotalSubmit
+                            @Model.Score
                         </span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between">
@@ -71,11 +74,12 @@
             </div>
             <ul class="list-group mt-3 bg-light p-4 rounded">
                 <li class="list-group-item d-flex justify-content-between">
-                    <a href=""
-                       class="text-decoration-none">Nộp bài</a>
+                    <a class="text-decoration-none" asp-action="Submissions" asp-controller="Problem" asp-route-id="@Model.ID">Danh sách bài nộp</a>
                 </li>
                 <li class="list-group-item d-flex justify-content-between">
-                    <a class="text-decoration-none" asp-action="Submissions" asp-controller="Problem" asp-route-id="@Model.ID">Danh sách bài nộp</a>
+                    <div class="bg-white rounded col-12">
+                        <canvas id="myChart"></canvas>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -100,5 +104,9 @@
         integrity="sha512-BEknrL2CnuVpqnSTwO4a9y9uW5bQ/nabkJeahZ5seRXvmzAMq59Ja9OxZe3lVGrnKEcVlamL4nUBl03wzPM/nA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/js/jquery.nice-select.min.js" integrity="sha512-NqYds8su6jivy1/WLoW8x1tZMRD7/1ZfhWG/jcRQLOzV1k1rIODCpMgoBnar5QXshKJGV7vi0LXLNXPoFsM5Zg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const statisticData = [@Model.SuccessSubmit, @Model.TotalSubmit - @Model.SuccessSubmit];
+    </script>
     <script src="~/js/Problem/index.js"></script>
 }

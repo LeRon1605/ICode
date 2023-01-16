@@ -2,6 +2,7 @@
 @using Models
 @using Models.Statistic
 @{
+    ViewData["Title"] = "ICode";
     List<ProblemDTO> problems = (List<ProblemDTO>)ViewBag.problems;
     List<ProblemDTO> newProblems = (List<ProblemDTO>)ViewBag.newProblems;
     List<ProblemStatistic> hotProblems = (List<ProblemStatistic>)ViewBag.hotProblems;
@@ -53,32 +54,7 @@
     </div>
     <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
         @foreach (ProblemStatistic statistic in hotProblems) {
-            <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@statistic.problem.ID">
-                <div class="rounded p-4 bg-white shadow">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="d-flex">
-                            <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
-                             src="@statistic.problem.Author.Avatar">
-                            <div>
-                                <p class="fw-bold mb-0">@statistic.problem.Author.Username</p>
-                                <p class="text-muted mb-0">@statistic.problem.Author.Email</p>
-                            </div>
-                        </div>
-                        <div>
-                            @foreach (TagDTO tag in statistic.problem.Tags) {
-                                <span class="badge rounded bg-primary mb-2">@tag.Name</span>
-                            }
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <h4 class="text col-9">@statistic.problem.Name</h4>
-                        <span>@statistic.SubmitSuccessCount/@statistic.SubmitCount</span>
-                    </div>
-                    <div class="text">
-                        @Html.Raw(statistic.problem.Description)
-                    </div>
-                </div>
-            </a>
+            <partial name="_ProblemCard" model="statistic.problem"/>
         }
     </div>
 </div>
@@ -95,33 +71,7 @@
     <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
         @foreach (ProblemDTO problem in newProblems)
         {
-            <a class="col text-decoration-none text-dark" asp-action="Index" asp-controller="Problem" asp-route-id="@problem.ID">
-                <div class="bg-white p-4 shadow rounded">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="d-flex">
-                            <img class="rounded-circle flex-shrink-0 me-3 fit-cover" width="50" height="50"
-                             src="@problem.Author.Avatar">
-                            <div>
-                                <p class="fw-bold mb-0">@problem.Author.Username</p>
-                                <p class="text-muted mb-0">@problem.Author.Email</p>
-                            </div>
-                        </div>
-                        <div>
-                            @foreach (TagDTO tag in problem.Tags)
-                            {
-                                <span class="badge rounded bg-primary mb-2">@tag.Name</span>
-                            }
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <h4 class="text col-9">@problem.Name</h4>
-                        <span>@problem.CreatedAt.ToString("dd/MM/yyyy")</span>
-                    </div>
-                    <div class="text">
-                        @Html.Raw(problem.Description)
-                    </div>
-                </div>
-            </a>
+            <partial name="_ProblemCard" model="problem"/>
         }
     </div>
 </div>
@@ -145,6 +95,7 @@
                             <th>Tác giả</th>
                             <th>Thể loại</th>
                             <th>Độ khó</th>
+                            <th>Điểm</th>
                             <th>Đã đạt</th>
                             <th>Đã nộp</th>
                             <th>Ngày tạo</th>
@@ -166,6 +117,7 @@
                                         @problem.Level
                                     </span>
                                 </td>
+                                <td>@problem.Score</td>
                                 <td>@problem.SuccessSubmit</td>
                                 <td>@problem.TotalSubmit</td>
                                 <td>@problem.CreatedAt.ToString("dd/MM/yyyy")</td>
