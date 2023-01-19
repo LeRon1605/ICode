@@ -13,6 +13,11 @@ using System.Threading.Tasks;
 using Models.DTO;
 using Services.Interfaces;
 using ICode.Common;
+using ICode.API.Services.Interfaces;
+using ICode.Models.Comment;
+using ICode.Data.Entity;
+using System.Security.Claims;
+using AutoMapper;
 
 namespace API.Controllers
 {
@@ -25,15 +30,19 @@ namespace API.Controllers
         private readonly ITestcaseService _testcaseService;
         private readonly ISubmissionService _submissionService;
         private readonly IReportService _reportService;
+        private readonly ICommentService _commentService;
+        private readonly IMapper _mapper;
         private readonly ILogger<ProblemController> _logger;
 
-        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, ILogger<ProblemController> logger)
+        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ITestcaseService testcaseService, IReportService reportService, ILogger<ProblemController> logger, ICommentService commentService, IMapper mapper)
         {
             _problemService = problemService;
             _tagSerivce = tagService;
             _submissionService = submissionService;
             _testcaseService = testcaseService;
             _reportService = reportService;
+            _commentService = commentService;
+            _mapper = mapper;
             _logger = logger;
         }
 
@@ -436,6 +445,58 @@ namespace API.Controllers
                     detail = "Tag doesn't exist in problem."
                 });
             }
+        }
+
+        [HttpPost("{id}/comments")]
+        [Authorize]
+        public async Task<IActionResult> Comment(string id, CommentCreateDTO comment)
+        {
+            Problem problem = _problemService.FindByID(id);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            if (comment.ParentId != null)
+            {
+                Comment parentComment = _commentService.FindByID(comment.ParentId);
+                if (parentComment == null)
+                {
+                    return NotFound(new ErrorResponse
+                    {
+                        error = "Resource not found.",
+                        detail = "Parent comment does not exist."
+                    });
+                }
+            }    
+            await _commentService.Add(new Comment
+            {
+                ID = Guid.NewGuid().ToString(),
+                Content = comment.Content,
+                UserID = User.FindFirstValue(Constant.ID),
+                ProblemID = problem.ID,
+                ParentID = comment.ParentId,
+                At = DateTime.Now
+            });
+            return Ok();
+        }
+
+        [HttpGet("{id}/comments")]
+        public IActionResult GetCommentsOfProblem(string id)
+        {
+            Problem problem = _problemService.FindByID(id);
+            if (problem == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    error = "Resource not found.",
+                    detail = "Problem does not exist."
+                });
+            }
+            return Ok(_mapper.Map<IEnumerable<Comment>, IEnumerable<CommentDetail>>(_commentService.GetCommentsOfProblem(id)));
         }
     }
 }

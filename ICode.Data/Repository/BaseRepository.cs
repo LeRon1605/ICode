@@ -48,7 +48,7 @@ namespace Data.Repository
 
         public bool isExist(Expression<Func<T, bool>> expression)
         {
-            return _context.Set<T>().Where(expression).Count() > 0;
+            return _context.Set<T>().Any(expression);
         }
 
         public async Task AddAsync(T entity)

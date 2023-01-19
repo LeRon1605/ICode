@@ -1,5 +1,7 @@
 using Data.Entity;
 using Data.Entity.Config;
+using ICode.Data.Entity;
+using ICode.Data.Entity.Config;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data
@@ -29,6 +31,7 @@ namespace Data
             new ContestDetailEntityConfig().Configure(modelBuilder.Entity<ContestDetail>());
             new ProblemContestDetailEntityConfig().Configure(modelBuilder.Entity<ProblemContestDetail>());
             new ContestSubmissionEntityConfig().Configure(modelBuilder.Entity<ContestSubmission>());
+            new CommentEntityConfig().Configure(modelBuilder.Entity<Comment>());
         }
 
         public virtual DbSet<User> Users { get; set; }
@@ -37,6 +40,7 @@ namespace Data
         public virtual DbSet<Report> Reports { get; set; }
         public virtual DbSet<Reply> Replies { get; set; }
         public virtual DbSet<Problem> Problems { get; set; }
+        public virtual DbSet<Comment> Comments { get; set; }
         public virtual DbSet<Submission> Submissions { get; set; }
         public virtual DbSet<SubmissionDetail> SubmissionDetails { get; set; }
         public virtual DbSet<TestCase> TestCases { get; set; }
