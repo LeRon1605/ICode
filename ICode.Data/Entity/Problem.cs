@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ICode.Common;
+using ICode.Data.Entity;
 
 namespace Data.Entity
 {
@@ -23,5 +24,6 @@ namespace Data.Entity
         public virtual ICollection<TestCase> TestCases { get; set; }
         public virtual ICollection<Tag> Tags { get; set; }
         public virtual ICollection<ProblemContestDetail> ProblemContestDetails { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
     }
 }

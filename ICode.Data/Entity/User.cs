@@ -1,4 +1,5 @@
 ﻿using ICode.Common;
+using ICode.Data.Entity;
 using System;
 using System.Collections.Generic;
 
@@ -28,5 +29,6 @@ namespace Data.Entity
         public virtual ICollection<Report> Reports { get; set; }
         public virtual ICollection<RefreshToken> Tokens { get; set; }
         public virtual ICollection<ContestDetail> ContestDetails { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
     }
 }

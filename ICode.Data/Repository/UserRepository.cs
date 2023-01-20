@@ -50,36 +50,15 @@ namespace Data.Repository
 
         public IEnumerable<ProblemSolvedStatistic> GetProblemSolveStatisticOfUser()
         {
-            return (from user in _context.Users
-                    join submission in _context.Submissions
-                    on user.ID equals submission.UserID
-                    join submissionDetail in _context.SubmissionDetails
-                    on submission.ID equals submissionDetail.SubmitID
-                    join testCase in _context.TestCases
-                    on submissionDetail.TestCaseID equals testCase.ID
-                    join testcase in _context.TestCases
-                    on submissionDetail.TestCaseID equals testcase.ID
-                    join problem in _context.Problems
-                    on testCase.ProblemID equals problem.ID
-                    where submission.State == SubmitState.Success
-                    select new
-                    {
-                        UserID = user.ID,
-                        User = _mapper.Map<User, UserDTO>(user),
-                        Problem = _mapper.Map<Problem, ProblemBase>(problem),
-                        Submit = _mapper.Map<Submission, SubmissionBase>(submission)
-                    })
-                    .AsEnumerable()
-                    .GroupBy(x => x.UserID)
-                    .Select(group => new ProblemSolvedStatistic
-                    {
-                        User = group.Select(x => x.User).FirstOrDefault(),
-                        Details = group.GroupBy(x => x.Problem.ID).Select(x => new ProblemSolvedStatisticDetail
-                        {
-                            Submit = x.Select(x => x.Submit).OrderBy(x => x.CreatedAt).FirstOrDefault(),
-                            Problem = x.Select(x => x.Problem).GroupBy(x => x.ID).Select(x => x.FirstOrDefault()).FirstOrDefault()
-                        }).ToList()
-                    });
+            return _context.Users.Include(x => x.Submissions).ThenInclude(x => x.Problem).Where(x => x.Submissions.Count > 0).AsEnumerable().Select(x => new ProblemSolvedStatistic
+            {
+                User = _mapper.Map<User, UserDTO>(x),
+                Details = x.Submissions.Where(x => x.State == SubmitState.Success).GroupBy(x => x.Problem).Select(x => new ProblemSolvedStatisticDetail
+                {
+                    Problem = _mapper.Map<Problem, ProblemDTO>(x.Key),
+                    Submit = _mapper.Map<Submission, SubmissionDTO>(x.OrderBy(x => x.CreatedAt).FirstOrDefault())
+                })
+            });
         }
 
         public IEnumerable<SubmissionStatistic> GetTopUserActivity(int take = 5, Expression<Func<User, bool>> expression = null)
