@@ -8,6 +8,7 @@ namespace ICode.Data.Repository.Interfaces
 {
     public interface ICommentRepository: IRepository<Comment>
     {
+        void RemoveHierachy(string id);
         IEnumerable<Comment> GetCommentsOfProblem(string problemId);
     }
 }

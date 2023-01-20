@@ -46,8 +46,7 @@ namespace ICode.API.Services
             Comment comment = await _commentRepository.FindByIDAsync(ID);
             if (comment != null)
             {
-                _commentRepository.Remove(comment);
-                await _unitOfWork.CommitAsync();
+                _commentRepository.RemoveHierachy(ID);
                 return true;
             }    
             return false;

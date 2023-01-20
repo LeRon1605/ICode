@@ -1,4 +1,5 @@
 ﻿using Data;
+using Data.Entity;
 using Data.Repository;
 using ICode.Data.Entity;
 using ICode.Data.Repository.Interfaces;
@@ -46,6 +47,21 @@ namespace ICode.Data.Repository
                     LoadUserHierachy(comment.Childs);
                 }
             }
+        }
+
+        public void RemoveHierachy(string id)
+        {
+            string sql = @$"
+                WITH CTE_COMMENTS AS (
+	                SELECT * FROM COMMENTS
+	                WHERE ID = '{id}'
+	                UNION ALL
+	                SELECT COMMENTS.* FROM COMMENTS INNER JOIN CTE_COMMENTS
+	                ON CTE_COMMENTS.ID = COMMENTS.ParentID
+                )
+                DELETE FROM COMMENTS WHERE ID IN (SELECT ID FROM CTE_COMMENTS) 
+            ";
+            _context.Database.ExecuteSqlRaw(sql);
         }
     }
 }

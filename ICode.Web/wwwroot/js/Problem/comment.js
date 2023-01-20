@@ -48,12 +48,12 @@ const renderCommentBlock = (obj) => `
                 </div>
             </div>
             <div class="comment__action">
-                <span class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" aria-describedby="Chỉnh sửa">
+                <button class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" aria-describedby="Chỉnh sửa">
                     <i class="fa-solid fa-pen-to-square"></i>
-                </span>
-                <span class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon">
+                </button>
+                <button class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon" data-id="${obj.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">
                     <i class="fa-solid fa-trash text-danger"></i>
-                </span>
+                </button>
             </div>
         </div>
         <div class="mt-2 reply-block"></div>
@@ -80,14 +80,14 @@ const renderReplyBlock = (obj) => `
                     </div>
                 </div>
                 <div class="comment__action">
-                    <span class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" title="Chỉnh sửa">
+                    <button class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" title="Chỉnh sửa">
                         <i class="fa-solid fa-pen-to-square"></i>
-                    </span>
-                    <span class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon" title="Xóa">
+                    </button>
+                    <button class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon" title="Xóa" data-id="${obj.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">
                         <i class="fa-solid fa-trash text-danger"></i>
-                    </span>
+                    </button>
                 </div>
-            </div>                           
+            </div>
         </div>
     </div>
 `;
@@ -106,3 +106,29 @@ function getCookie(cname) {
     }
     return "";
 }
+
+let commentDelete;
+const deleteInput = document.getElementById('delete-id');
+const deleteBtn = document.getElementById('delete-btn');
+const deleteForm = document.getElementById('delete-form');
+
+$('#deleteModal').on('show.bs.modal', function (event) {
+    commentDelete = event.relatedTarget.parentElement.parentElement.parentElement;
+    deleteInput.value = event.relatedTarget.dataset.id;
+});
+
+deleteForm.addEventListener('click', async e => {
+    e.preventDefault();
+    const response = await fetch(`http://localhost:5001/comments/${deleteInput.value}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getCookie('access_token')}`
+        }
+    });
+    if (response.status == 204) {
+        commentDelete.remove();
+    } 
+    $('#deleteModal').modal('hide');
+});
