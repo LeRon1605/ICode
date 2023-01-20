@@ -44,6 +44,7 @@ namespace ICode.Web
             services.AddScoped<ITagService, TagService>();
             services.AddScoped<IProblemService, ProblemService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
+            services.AddScoped<ICommentService, CommentService>();
 
             services.AddHttpClient("ICode", config =>
             {

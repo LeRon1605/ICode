@@ -43,7 +43,7 @@ namespace ICode.API.Controllers
                     detail = "Comment does not exist."
                 });
             }
-            return Ok(_mapper.Map<Comment, CommentBase>(comment));
+            return Ok(_mapper.Map<Comment, CommentDetail>(comment));
         }
 
         [HttpPut("{id}")]

@@ -471,8 +471,8 @@ namespace API.Controllers
                         detail = "Parent comment does not exist."
                     });
                 }
-            }    
-            await _commentService.Add(new Comment
+            }
+            Comment entity = new Comment
             {
                 ID = Guid.NewGuid().ToString(),
                 Content = comment.Content,
@@ -480,8 +480,9 @@ namespace API.Controllers
                 ProblemID = problem.ID,
                 ParentID = comment.ParentId,
                 At = DateTime.Now
-            });
-            return Ok();
+            };
+            await _commentService.Add(entity);
+            return CreatedAtAction(actionName: "GetById", controllerName: "Comment", routeValues: new { id = entity.ID }, _mapper.Map<Comment, CommentBase>(entity));
         }
 
         [HttpGet("{id}/comments")]

@@ -1,9 +1,14 @@
 ﻿@using CodeStudy.Models
+@using ICode.Models.Comment
+@using System.Web
+@using System.Security.Claims
 @model ProblemDTO
 @{
     ViewData["Title"] = Model.Name;
+    List<CommentDetail> comments = (List<CommentDetail>)ViewBag.comments;
 }
 @section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/css/nice-select.css" integrity="sha512-uHuCigcmv3ByTqBQQEwngXWk7E/NaPYP+CFglpkXPnRQbSubJmEENgh+itRDYbWV0fUZmUz7fD/+JDdeQFD5+A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="~/css/Problem/index.css" rel="stylesheet" />
 }
@@ -30,6 +35,79 @@
                 <div id="codeBlock"></div>
                 <button type="submit" class="mt-3 btn btn-primary @(User.Identity.IsAuthenticated ? "" : "disabled")">Nộp bài</button>
             </form>
+            <div class="mt-5">
+                    <div class="d-flex ms-1 mb-4">
+                        <input class="form-control content-input" placeholder="Nhập bình luận" />
+                        <button class="btn btn-primary col-2 ms-2 @(User.Identity.IsAuthenticated ? "" : "disabled")" onclick="handleSubmit(this)">Bình luận</button>
+                    </div>
+                    <div id="comment-block">
+                    @foreach (CommentDetail comment in comments)
+                    {
+                        <div class="col text-decoration-none text-dark border-start rounded mb-5">
+                            <div class="d-flex justify-content-between align-items-start rounded p-3 bg-white shadow comment">
+                                <div class="d-flex col-12">
+                                    <img class="rounded-circle flex-shrink-0 me-3 fit-cover border" width="50" height="50" src="@comment.User.Avatar">
+                                    <div style="flex-grow: 1">
+                                        <div class="d-flex justify-content-between">
+                                            <p class="fw-bold mb-0">@comment.User.Username</p>
+                                            <span>@comment.At.ToString("hh:mm:ss dd/MM/yyyy")</span>
+                                        </div>
+                                        <p class="text-muted mb-0">@comment.Content</p>
+                                    </div>
+                                </div>
+                                @if (User.Identity.IsAuthenticated && comment.UserID == User.FindFirst(ClaimTypes.NameIdentifier).Value)
+                                {
+                                    <div class="comment__action">
+                                        <span class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" title="Chỉnh sửa">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </span>
+                                        <span class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon" title="Xóa">
+                                            <i class="fa-solid fa-trash text-danger"></i>
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="mt-2 reply-block">
+                                @foreach (CommentDetail child in comment.Childs)
+                                {
+                                    <div class="col text-decoration-none text-dark mb-2">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div style="height: 1px; background-color: #cfcfcf;" class="col-1"></div>
+                                            <div class="d-flex justify-content-between align-items-start rounded p-3 bg-white shadow col-11 comment">
+                                                <div class="d-flex col-12">
+                                                    <img class="rounded-circle flex-shrink-0 me-3 fit-cover border" width="50" height="50" src="@child.User.Avatar">
+                                                    <div style="flex-grow: 1">
+                                                        <div class="d-flex justify-content-between">
+                                                            <p class="fw-bold mb-0">@child.User.Username</p>
+                                                            <span>@child.At.ToString("hh:mm:ss dd/MM/yyyy")</span>
+                                                        </div>
+                                                        <p class="text-muted mb-0">@child.Content</p>
+                                                    </div>
+                                                </div>
+                                                @if (User.Identity.IsAuthenticated && child.UserID == User.FindFirst(ClaimTypes.NameIdentifier).Value)
+                                                {
+                                                    <div class="comment__action">
+                                                        <span class="bg-white rounded-circle shadow p-2 mb-2 d-flex align-items-center justify-content-center comment__action_icon" title="Chỉnh sửa">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </span>
+                                                        <span class="bg-white rounded-circle shadow p-2 d-flex align-items-center justify-content-center comment__action_icon" title="Xóa">
+                                                            <i class="fa-solid fa-trash text-danger"></i>
+                                                        </span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="d-flex ms-1" style="transform: translateY(50%);">
+                                <input class="form-control content-input" placeholder="Nhập bình luận" />
+                                <button class="btn btn-primary col-2 ms-2 @(User.Identity.IsAuthenticated ? "" : "disabled")" onclick="handleSubmit(this, '@comment.ID')">Phản hồi</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
         <div class="col-md-6 col-xl-3">
             <div class="bg-light p-4 rounded">
@@ -107,6 +185,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const statisticData = [@Model.SuccessSubmit, @Model.TotalSubmit - @Model.SuccessSubmit];
+        const problemId = "@(Model.ID)";
+        const user = {
+            username: "@(User.Identity.Name)",
+            image: "@(User.FindFirst("Avatar")?.Value)"
+        };
     </script>
     <script src="~/js/Problem/index.js"></script>
+    <script src="~/js/Problem/comment.js"></script>
 }

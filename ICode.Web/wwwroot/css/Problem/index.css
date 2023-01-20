@@ -9,3 +9,26 @@
     position: relative !important;
     box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
+
+.comment {
+    position: relative;
+    cursor: pointer
+}
+
+.comment__action {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(100%, -50%);
+}
+
+.comment:hover .comment__action {
+    display: flex;
+    flex-direction: column;
+}
+
+.comment__action_icon {
+    transform: translateX(50%);
+    cursor: pointer;
+}

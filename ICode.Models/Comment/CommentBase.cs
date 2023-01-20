@@ -1,4 +1,6 @@
-﻿namespace ICode.Models.Comment
+﻿using System;
+
+namespace ICode.Models.Comment
 {
     public class CommentBase
     {
@@ -7,5 +9,6 @@
         public string ParentID { get; set; }
         public string ProblemID { get; set; }
         public string UserID { get; set; }
+        public DateTime At { get; set; }
     }
 }

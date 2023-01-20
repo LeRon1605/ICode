@@ -1,4 +1,5 @@
 ﻿using CodeStudy.Models;
+using ICode.Models.Comment;
 using ICode.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,12 +16,14 @@ namespace ICode.Web.Controllers
         private readonly IProblemService _problemService;
         private readonly ITagService _tagService;
         private readonly ISubmissionService _submissionService;
+        private readonly ICommentService _commentService;
 
-        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService)
+        public ProblemController(IProblemService problemService, ITagService tagService, ISubmissionService submissionService, ICommentService commentService)
         {
             _problemService = problemService;
             _tagService = tagService;
             _submissionService = submissionService;
+            _commentService = commentService;
         }
 
         public async Task<IActionResult> Index(string id)
@@ -29,6 +32,10 @@ namespace ICode.Web.Controllers
 
             if (problem == null)
                 return RedirectToAction("Index", "Home");
+
+            List<CommentDetail> comments = await _commentService.GetCommentsOfProblem(id);
+            ViewBag.comments = comments;
+
             return View(problem);
         }
 
